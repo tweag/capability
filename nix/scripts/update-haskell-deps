@@ -1,0 +1,12 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -I nixpkgs=./nix
+#! nix-shell -i bash -p cabal2nix
+
+set -eo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" && cd "$DIR/../.."
+
+mkdir -p nix/haskell/capabilities-via
+cd nix/haskell/capabilities-via
+cabal2nix ../../../ > default.nix
+
+# vim:ft=sh
