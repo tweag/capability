@@ -20,16 +20,20 @@ module HasState
   , modify'
   , gets
   , TheMonadState (..)
+  , TheReaderIORef (..)
   ) where
 
 import Control.Lens ((.=), over, set, use, view)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
 import qualified Control.Monad.State.Lazy as LState
 import qualified Control.Monad.State.Strict as SState
 import Data.Coerce (coerce)
+import Data.IORef
 import GHC.Exts (Proxy#, proxy#)
 
 import Has
+import HasReader -- Used for TheReaderIORef below
 
 
 class Monad m
@@ -79,3 +83,25 @@ deriving via (TheMonadState (LState.StateT s' (m :: * -> *)))
   instance (Has tag s s', Monad m) => HasState tag s (LState.StateT s' m)
 deriving via (TheMonadState (SState.StateT s' (m :: * -> *)))
   instance (Has tag s s', Monad m) => HasState tag s (SState.StateT s' m)
+
+
+-- XXX: The following might belong to a different module
+
+
+newtype TheReaderIORef m a = TheReaderIORef (m a)
+  deriving (Functor, Applicative, Monad)
+instance
+  (HasReader tag (IORef s) m, MonadIO m)
+  => HasState tag s (TheReaderIORef m)
+  where
+    get_ tag = TheReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ readIORef ref
+    put_ tag v = TheReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ writeIORef ref v
+    state_ tag f = TheReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ atomicModifyIORef' ref (swap . f)
+      where
+        swap (a, b) = (b, a)
