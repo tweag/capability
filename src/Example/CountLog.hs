@@ -116,3 +116,40 @@ newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
 
 runCounter'M :: MonadIO m => Counter'M m a -> m a
 runCounter'M (Counter'M m) = runReaderT m =<< liftIO (newIORef 0)
+
+
+----------------------------------------------------------------------
+-- Mixed Capabilities
+
+-- Example program ---------------------------------------------------
+
+-- | Double count and log the result, repeat once.
+mixed :: (Counter m, Logger m) => m ()
+mixed = do
+  doubleCount >>= logNum
+  doubleCount >>= logNum
+
+-- ReaderT instance --------------------------------------------------
+
+data CountLogCtx = CountLogCtx
+  { countCtx :: IORef Int
+  , logCtx :: LogCtx
+  } deriving Generic
+deriving via (TheField "countCtx" CountLogCtx)
+  instance Has "counter" (IORef Int) CountLogCtx
+deriving via (TheFieldHas "logCtx" CountLogCtx)
+  instance Has "logger" (String -> IO ()) CountLogCtx
+
+newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
+  deriving (Functor, Applicative, Monad)
+  deriving Counter
+    via (TheCounterState (TheReaderIORef (ReaderT CountLogCtx m)))
+  deriving Logger
+    via (TheLoggerReader (ReaderT CountLogCtx m))
+
+runCountLogM (CountLogM m) = do
+  ref <- liftIO $ newIORef 0
+  runReaderT m CountLogCtx
+    { countCtx = ref
+    , logCtx = regularLogger
+    }
