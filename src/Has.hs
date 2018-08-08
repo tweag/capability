@@ -3,6 +3,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
@@ -11,6 +12,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Has
   ( Has (..)
@@ -29,7 +31,7 @@ import GHC.TypeLits (Symbol)
 
 -- | @Has tag a s@ denotes that an @s@ has an @a@ associated with @tag@ that
 -- can be extracted or modified.
-class Has (tag :: k) (a :: *) (s :: *) where
+class Has (tag :: k) (a :: *) (s :: *) | tag s -> a where
   has_ :: forall f
     . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
     => Proxy# tag -> (a -> f a) -> s -> f s
