@@ -12,9 +12,14 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Has where
+module Has
+  ( Has (..)
+  , has
+  , TheValue
+  , TheField
+  ) where
 
-import Control.Lens as Lens
+import Control.Lens as Lens hiding (has)
 import Data.Coerce (coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import GHC.Exts (Proxy#, proxy#)
