@@ -19,12 +19,29 @@ module Has
   , TheField
   ) where
 
-import Control.Lens as Lens hiding (has)
-import Data.Coerce (coerce)
+import Control.Lens as Lens hiding (Lens', has)
+import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
+import Data.Roles (Representational, rep)
+import Data.Type.Coercion (Coercion (Coercion))
 import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
 import GHC.TypeLits (Symbol)
+
+
+-- | A lens that ensures the role of @f@'s argument is representational.
+type Lens' s a =
+  forall f. (Functor f, Representational f)
+  => (a -> f a) -> s -> f s
+
+coerceLens'
+  :: forall s' s a f. (Coercible s' s, Functor f, Representational f)
+  => ( (a -> f a) -> s' -> f s' ) -> (a -> f a) -> s -> f s
+coerceLens' = case rep @_ @_ @f @s' @s Coercion of
+  Coercion -> coerce id'
+  where
+    id' :: ( (a -> f a) -> s -> f s ) -> (a -> f a) -> s -> f s
+    id' = id
 
 
 class Has (tag :: k) (a :: *) (s :: *) where
@@ -36,7 +53,7 @@ has = has_ (proxy# @_ @tag)
 
 newtype TheValue a = TheValue a
 instance Has tag a (TheValue a) where
-  has_ _ = coerced
+  has_ _ = coerceLens' id
 
 
 newtype TheField (field :: Symbol) s = TheField s
@@ -46,6 +63,4 @@ newtype TheField (field :: Symbol) s = TheField s
 instance (Generic s, Generic.HasField' field s a)
   => Has tag a (TheField field s)
   where
-    has_ _ = coerced' . Generic.field' @field
-      where
-        coerced' = coerced :: Iso' (TheField field s) s
+    has_ _ = coerceLens' $ Generic.field' @field @s @a

@@ -1,8 +1,15 @@
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Example.CountLog where
 
 import Control.Monad.IO.Class
 import qualified Data.Char
 import Data.IORef
+
+import Has
 
 
 class Monad m => Counter m where
@@ -28,6 +35,8 @@ program = do
 
 
 data CountCtx = CountCtx { counter :: IORef Int }
+deriving via (TheValue CountCtx)
+  instance Has CountCtx CountCtx CountCtx
 
 data LogCtx m = LogCtx { logger :: String -> m () }
 
