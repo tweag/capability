@@ -48,7 +48,7 @@ type Lens' s a =
 
 
 -- | For any tag a value has itself.
-newtype TheValue a = TheValue a
+newtype TheValue a = TheValue { theValue :: a }
 instance Has tag a (TheValue a) where
   has_
     :: forall f
@@ -57,7 +57,7 @@ instance Has tag a (TheValue a) where
   has_ _ = coerce (id :: (a -> f a) -> a -> f a)
 
 
-newtype TheField (field :: Symbol) s = TheField s
+newtype TheField (field :: Symbol) s = TheField { theField :: s }
 -- The constraint raises @-Wsimplifiable-class-constraints@.
 -- This could be avoided by instead placing @HasField'@s constraints here.
 -- Unfortunately, it uses non-exported symbols from @generic-lens@.
