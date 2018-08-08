@@ -146,6 +146,7 @@ newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
   deriving Logger
     via (TheLoggerReader (ReaderT CountLogCtx m))
 
+runCountLogM :: MonadIO m => CountLogM m b -> m b
 runCountLogM (CountLogM m) = do
   ref <- liftIO $ newIORef 0
   runReaderT m CountLogCtx
