@@ -65,8 +65,7 @@ loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 newtype LogM m a = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
-deriving via (TheLoggerReader (ReaderT LogCtx (m :: * -> *)))
-  instance MonadIO m => Logger (LogM m)
+  deriving Logger via (TheLoggerReader (ReaderT LogCtx m))
 
 runLogM :: LogCtx -> LogM m a -> m a
 runLogM ctx (LogM m) = runReaderT m ctx
