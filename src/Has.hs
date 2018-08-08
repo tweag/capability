@@ -1,59 +1,58 @@
 -- See @Has tag a (TheField field s)@.
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Has
   ( Has (..)
   , has
-  , TheValue
-  , TheField
+  , Lens'
+  , TheValue (..)
+  , TheField (..)
   ) where
 
-import Control.Lens as Lens hiding (Lens', has)
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
-import Data.Roles (Representational, rep)
-import Data.Type.Coercion (Coercion (Coercion))
 import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
 import GHC.TypeLits (Symbol)
 
 
--- | A lens that ensures the role of @f@'s argument is representational.
-type Lens' s a =
-  forall f. (Functor f, Representational f)
-  => (a -> f a) -> s -> f s
-
-coerceLens'
-  :: forall s' s a f. (Coercible s' s, Functor f, Representational f)
-  => ( (a -> f a) -> s' -> f s' ) -> (a -> f a) -> s -> f s
-coerceLens' = case rep @_ @_ @f @s' @s Coercion of
-  Coercion -> coerce id'
-  where
-    id' :: ( (a -> f a) -> s -> f s ) -> (a -> f a) -> s -> f s
-    id' = id
-
-
+-- | @Has tag a s@ denotes that an @s@ has an @a@ associated with @tag@ that
+-- can be extracted or modified.
 class Has (tag :: k) (a :: *) (s :: *) where
-  has_ :: Proxy# tag -> Lens' s a
+  has_ :: forall f
+    . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
+    => Proxy# tag -> (a -> f a) -> s -> f s
 
+-- | A lens from @s@ to @a@ associated with @tag@.
 has :: forall tag a s. Has tag a s => Lens' s a
 has = has_ (proxy# @_ @tag)
 
+-- | A lens that ensures the role of @f@'s argument is representational.
+-- This is to enable coercion of lenses.
+type Lens' s a =
+  forall f. (Functor f, forall a b. Coercible a b => Coercible (f a) (f b))
+  => (a -> f a) -> s -> f s
 
+
+-- | For any tag a value has itself.
 newtype TheValue a = TheValue a
 instance Has tag a (TheValue a) where
-  has_ _ = coerceLens' id
+  has_
+    :: forall f
+    . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
+    => Proxy# tag -> (a -> f a) -> TheValue a -> f (TheValue a)
+  has_ _ = coerce (id :: (a -> f a) -> a -> f a)
 
 
 newtype TheField (field :: Symbol) s = TheField s
@@ -63,4 +62,8 @@ newtype TheField (field :: Symbol) s = TheField s
 instance (Generic s, Generic.HasField' field s a)
   => Has tag a (TheField field s)
   where
-    has_ _ = coerceLens' $ Generic.field' @field @s @a
+    has_
+      :: forall f
+      . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
+      => Proxy# tag -> (a -> f a) -> TheField field s -> f (TheField field s)
+    has_ _ = coerce (Generic.field' @field :: (a -> f a) -> s -> f s)

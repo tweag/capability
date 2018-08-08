@@ -1,6 +1,8 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Example.CountLog where
@@ -8,6 +10,7 @@ module Example.CountLog where
 import Control.Monad.IO.Class
 import qualified Data.Char
 import Data.IORef
+import GHC.Generics (Generic)
 
 import Has
 
@@ -36,14 +39,20 @@ program = do
 
 data CountCtx = CountCtx { counter :: IORef Int }
 deriving via (TheValue CountCtx)
-  instance Has CountCtx CountCtx CountCtx
+  instance Has "counter" CountCtx CountCtx
 
 data LogCtx m = LogCtx { logger :: String -> m () }
+deriving via (TheValue (LogCtx m))
+  instance Has "log" (LogCtx m) (LogCtx m)
 
 data CountLogCtx m = CountLogCtx
   { countCtx :: CountCtx
   , logCtx :: LogCtx m
-  }
+  } deriving Generic
+deriving via (TheField "countCtx" (CountLogCtx m))
+  instance Has "counter" CountCtx (CountLogCtx m)
+deriving via (TheField "logCtx" (CountLogCtx m))
+  instance Has "log" (LogCtx m) (CountLogCtx m)
 
 
 mkCounter :: MonadIO m => m CountCtx
