@@ -49,8 +49,7 @@ doubleCount = count >> count
 -- XXX: Using just @StateT Int m a@ makes deriving via fail. Can we fix that?
 newtype CounterM a = CounterM (State (TheValue Int) a)
   deriving (Functor, Applicative, Monad)
-deriving via (TheCounterState (TheMonadState (State (TheValue Int))))
-  instance Counter CounterM
+  deriving Counter via TheCounterState (State (TheValue Int))
 
 runCounterM :: CounterM a -> (a, Int)
 runCounterM (CounterM m) = runState m (TheValue 0) & _2 %~ theValue
