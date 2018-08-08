@@ -112,7 +112,6 @@ newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
   deriving Counter
     via TheCounterState (TheReaderIORef (ReaderT (TheValue (IORef Int)) m))
 
-
 runCounter'M :: MonadIO m => Counter'M m a -> m a
 runCounter'M (Counter'M m) = runReaderT m =<< liftIO (newIORef 0)
 
@@ -138,6 +137,7 @@ deriving via (TheField "countCtx" CountLogCtx)
   instance Has "counter" (IORef Int) CountLogCtx
 deriving via (TheFieldHas "logCtx" CountLogCtx)
   instance Has "logger" (String -> IO ()) CountLogCtx
+
 
 newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
