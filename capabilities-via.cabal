@@ -17,7 +17,7 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 library
-  -- exposed-modules:
+  exposed-modules:     Example.CountLog
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.10 && <4.13
