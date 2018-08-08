@@ -20,6 +20,7 @@ module Has
   , Lens'
   , TheValue (..)
   , TheField (..)
+  , TheFieldHas (..)
   ) where
 
 import Data.Coerce (Coercible, coerce)
@@ -69,3 +70,20 @@ instance (Generic s, Generic.HasField' field s a)
       . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
       => Proxy# tag -> (a -> f a) -> TheField field s -> f (TheField field s)
     has_ _ = coerce (Generic.field' @field :: (a -> f a) -> s -> f s)
+
+
+-- | Transitive variant of 'TheField'.
+newtype TheFieldHas (field :: Symbol) s = TheFieldHas { theFieldHas :: s }
+-- The constraint raises @-Wsimplifiable-class-constraints@.
+-- This could be avoided by instead placing @HasField'@s constraints here.
+-- Unfortunately, it uses non-exported symbols from @generic-lens@.
+instance (Generic s, Generic.HasField' field s s', Has tag a s')
+  => Has tag a (TheFieldHas field s)
+  where
+    has_
+      :: forall f
+      . ( Functor f, forall x y. Coercible x y => Coercible (f x) (f y) )
+      => Proxy# tag
+      -> (a -> f a) -> TheFieldHas field s -> f (TheFieldHas field s)
+    has_ tag = coerce
+      (Generic.field' @field . has_ tag :: (a -> f a) -> s -> f s)
