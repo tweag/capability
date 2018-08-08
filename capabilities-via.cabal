@@ -19,6 +19,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Example.CountLog
                        Has
+                       HasReader
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.10 && <4.13

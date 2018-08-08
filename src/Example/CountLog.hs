@@ -1,18 +1,24 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Example.CountLog where
 
 import Control.Monad.IO.Class
+import Control.Monad.Reader (ReaderT, runReaderT)
 import qualified Data.Char
+import Data.Coerce (coerce)
 import Data.IORef
 import GHC.Generics (Generic)
 
 import Has
+import HasReader
 
 
 class Monad m => Counter m where
@@ -41,18 +47,29 @@ data CountCtx = CountCtx { counter :: IORef Int }
 deriving via (TheValue CountCtx)
   instance Has "counter" CountCtx CountCtx
 
-data LogCtx m = LogCtx { logger :: String -> m () }
-deriving via (TheValue (LogCtx m))
-  instance Has "log" (LogCtx m) (LogCtx m)
 
-data CountLogCtx m = CountLogCtx
+data LogCtx = LogCtx { logger :: String -> IO () }
+deriving via (TheValue LogCtx)
+  instance Has "log" LogCtx LogCtx
+
+newtype TheLogCtxReader m a = TheLogCtxReader (m a)
+  deriving (Functor, Applicative, Monad)
+instance
+  (HasReader "log" LogCtx m, MonadIO m)
+  => Logger (TheLogCtxReader m)
+  where
+    logStr msg =
+      coerce (asks @"log" logger >>= liftIO . ($ msg) :: m ())
+
+
+data CountLogCtx = CountLogCtx
   { countCtx :: CountCtx
-  , logCtx :: LogCtx m
+  , logCtx :: LogCtx
   } deriving Generic
-deriving via (TheField "countCtx" (CountLogCtx m))
-  instance Has "counter" CountCtx (CountLogCtx m)
-deriving via (TheField "logCtx" (CountLogCtx m))
-  instance Has "log" (LogCtx m) (CountLogCtx m)
+deriving via (TheField "countCtx" CountLogCtx)
+  instance Has "counter" CountCtx CountLogCtx
+deriving via (TheField "logCtx" CountLogCtx)
+  instance Has "log" LogCtx CountLogCtx
 
 
 mkCounter :: MonadIO m => m CountCtx
@@ -60,8 +77,14 @@ mkCounter = do
   ref <- liftIO $ newIORef 0
   pure CountCtx { counter = ref }
 
-regularLogger :: MonadIO m => LogCtx m
-regularLogger = LogCtx { logger = liftIO . putStrLn }
+regularLogger :: LogCtx
+regularLogger = LogCtx { logger = putStrLn }
 
-loudLogger :: MonadIO m => LogCtx m
-loudLogger = LogCtx { logger = liftIO . putStrLn . map Data.Char.toUpper }
+loudLogger :: LogCtx
+loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
+
+
+newtype LogM m a = LogM (ReaderT LogCtx m a)
+  deriving (Functor, Applicative, Monad)
+deriving via (TheLogCtxReader (ReaderT LogCtx (m :: * -> *)))
+  instance MonadIO m => Logger (LogM m)
