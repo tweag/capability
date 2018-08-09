@@ -22,7 +22,27 @@ library
                        HasReader
                        HasState
   -- other-modules:
-  -- other-extensions:
+  other-extensions:    AllowAmbiguousTypes
+                       BangPatterns
+                       DataKinds
+                       DeriveGeneric
+                       DerivingVia
+                       FlexibleContexts
+                       FlexibleInstances
+                       FunctionalDependencies
+                       GeneralizedNewtypeDeriving
+                       ImpredicativeTypes
+                       InstanceSigs
+                       KindSignatures
+                       MagicHash
+                       MultiParamTypeClasses
+                       PolyKinds
+                       QuantifiedConstraints
+                       RankNTypes
+                       ScopedTypeVariables
+                       StandaloneDeriving
+                       TypeApplications
+                       UndecidableInstances
   build-depends:       base >=4.10 && <4.13
                      , deriving-compat
                      , generic-lens
