@@ -7,6 +7,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -64,7 +65,7 @@ loudLogger :: LogCtx
 loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 
-newtype LogM m a = LogM (ReaderT LogCtx m a)
+newtype LogM m (a :: *) = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Logger via
     (TheLoggerReader (Field "logger"
@@ -109,7 +110,7 @@ runCounterM (CounterM m) = runState m 0
 
 -- ReaderT IORef instance --------------------------------------------
 
-newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
+newtype Counter'M m (a :: *) = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     TheCounterState (ReaderIORef
@@ -138,7 +139,7 @@ data CountLogCtx = CountLogCtx
   } deriving Generic
 
 
-newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
+newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     (TheCounterState (ReaderIORef
@@ -157,3 +158,35 @@ runCountLogM (CountLogM m) = do
     { countCtx = ref
     , logCtx = regularLogger
     }
+
+
+----------------------------------------------------------------------
+-- Multiple Tagged States
+
+-- Example program ---------------------------------------------------
+
+twoStates :: (HasState "foo" Int m, HasState "bar" Int m) => m ()
+twoStates = do
+  modify @"foo" (+1)
+  modify @"bar" (subtract 1)
+
+-- StateT instance ---------------------------------------------------
+
+data TwoStates = TwoStates
+  { tsFoo :: Int
+  , tsBar :: Int
+  } deriving (Generic, Show)
+
+
+newtype TwoStatesM a = TwoStatesM (State TwoStates a)
+  deriving (Functor, Applicative, Monad)
+  deriving (HasState "foo" Int) via
+    Field "tsFoo" (MonadState (State TwoStates))
+  deriving (HasState "bar" Int) via
+    Field "tsBar" (MonadState (State TwoStates))
+
+runTwoStatesM :: TwoStatesM a -> (a, TwoStates)
+runTwoStatesM (TwoStatesM m) = runState m TwoStates
+  { tsFoo = 0
+  , tsBar = 0
+  }
