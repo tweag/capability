@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
@@ -22,13 +23,19 @@ module HasReader
   , local
   , reader
   , TheMonadReader (..)
+  , MonadReader (..)
+  , Field (..)
   ) where
 
 import Control.Lens (over, view)
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader (ReaderT)
 import qualified Control.Monad.Reader.Class as Reader
 import Data.Coerce (coerce)
+import qualified Data.Generics.Product.Fields as Generic
 import GHC.Exts (Proxy#, proxy#)
+import GHC.Generics (Generic)
+import GHC.TypeLits (Symbol)
 
 import Has
 
@@ -69,3 +76,34 @@ instance
 
 deriving via (TheMonadReader (ReaderT r' (m :: * -> *)))
   instance (Has tag r r', Monad m) => HasReader tag r (ReaderT r' m)
+
+
+newtype MonadReader m a = MonadReader (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
+  ask_ _ = coerce @(m r) Reader.ask
+  local_
+    :: forall a. Proxy# tag -> (r -> r) -> MonadReader m a -> MonadReader m a
+  local_ _ = coerce @((r -> r) -> m a -> m a) Reader.local
+  reader_ :: forall a. Proxy# tag -> (r -> a) -> MonadReader m a
+  reader_ _ = coerce @((r -> a) -> m a) Reader.reader
+
+
+newtype Field (field :: Symbol) m a = Field (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+-- The constraint raises @-Wsimplifiable-class-constraints@.
+-- This could be avoided by instead placing @HasField'@s constraints here.
+-- Unfortunately, it uses non-exported symbols from @generic-lens@.
+instance
+  ( Generic r', Generic.HasField' field r' r, HasReader tag r' m )
+  => HasReader tag r (Field field m)
+  where
+    ask_ _ = coerce @(m r) $
+      asks @tag $ view (Generic.field' @field)
+    local_
+      :: forall a. Proxy# tag -> (r -> r) -> Field field m a -> Field field m a
+    local_ tag = coerce @((r -> r) -> m a -> m a) $
+      local_ tag . over (Generic.field' @field)
+    reader_ :: forall a. Proxy# tag -> (r -> a) -> Field field m a
+    reader_ tag f = coerce @(m a) $
+      reader_ tag $ f . view (Generic.field' @field)

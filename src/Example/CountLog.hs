@@ -146,8 +146,12 @@ newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter
     via (TheCounterState (TheReaderIORef (ReaderT CountLogCtx m)))
-  deriving Logger
-    via (TheLoggerReader (ReaderT CountLogCtx m))
+  -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
+  --   That seems anti-modular - if a user-defined constraint is required,
+  --   they may have to add orphan instances for @Field@ and @MonadReader@.
+  deriving Logger via
+    (TheLoggerReader (Field "logger" (Field "logCtx"
+    (MonadReader (ReaderT CountLogCtx m)))))
 
 runCountLogM :: MonadIO m => CountLogM m b -> m b
 runCountLogM (CountLogM m) = do
