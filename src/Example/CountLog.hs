@@ -18,7 +18,7 @@ module Example.CountLog where
 import Control.Lens
 import Control.Monad.IO.Class
 import Control.Monad.Reader (ReaderT (..), runReaderT)
-import Control.Monad.State.Strict (State, StateT, runState, runStateT)
+import Control.Monad.State.Strict (State, runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef

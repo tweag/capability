@@ -47,7 +47,7 @@ has = has_ (proxy# @_ @tag)
 -- | A lens that ensures the role of @f@'s argument is representational.
 -- This is to enable coercion of lenses.
 type Lens' s a =
-  forall f. (Functor f, forall a b. Coercible a b => Coercible (f a) (f b))
+  forall f. (Functor f, forall x y. Coercible x y => Coercible (f x) (f y))
   => (a -> f a) -> s -> f s
 
 

@@ -27,7 +27,7 @@ module HasState
   , TheReaderIORef (..)
   ) where
 
-import Control.Lens ((.=), over, set, use, view)
+import Control.Lens ((.=), set, use, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
 import qualified Control.Monad.State.Lazy as LState
@@ -98,13 +98,13 @@ instance
   (HasReader tag (IORef s) m, MonadIO m)
   => HasState tag s (TheReaderIORef m)
   where
-    get_ tag = TheReaderIORef $ do
+    get_ _ = TheReaderIORef $ do
       ref <- ask @tag
       liftIO $ readIORef ref
-    put_ tag v = TheReaderIORef $ do
+    put_ _ v = TheReaderIORef $ do
       ref <- ask @tag
       liftIO $ writeIORef ref v
-    state_ tag f = TheReaderIORef $ do
+    state_ _ f = TheReaderIORef $ do
       ref <- ask @tag
       liftIO $ atomicModifyIORef' ref (swap . f)
       where
