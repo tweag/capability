@@ -56,6 +56,8 @@ reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 reader = reader_ (proxy# @_ @tag)
 
 
+-- | Derive 'HasReader' from @m@'s
+-- 'Control.Monad.Reader.Class.MonadReader' instance.
 newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO)
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
@@ -67,10 +69,11 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
 
 
--- The constraint raises @-Wsimplifiable-class-constraints@.
--- This could be avoided by instead placing @HasField'@s constraints here.
--- Unfortunately, it uses non-exported symbols from @generic-lens@.
+-- | Zoom in on the record field @field@ of type @r@ in the environment @r'@.
 instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasField'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
   ( Generic r', Generic.HasField' field r' r, HasReader tag r' m )
   => HasReader tag r (Field field m)
   where

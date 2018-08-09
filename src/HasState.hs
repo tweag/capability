@@ -71,6 +71,8 @@ gets f = do
   pure (f s)
 
 
+-- | Derive 'HasState' from @m@'s
+-- 'Control.Monad.State.Class.MonadState' instance.
 newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO)
 instance State.MonadState s m => HasState tag s (MonadState m) where
@@ -80,10 +82,11 @@ instance State.MonadState s m => HasState tag s (MonadState m) where
   state_ _ = coerce @((s -> (a, s)) -> m a) State.state
 
 
--- The constraint raises @-Wsimplifiable-class-constraints@.
--- This could be avoided by instead placing @HasField'@s constraints here.
--- Unfortunately, it uses non-exported symbols from @generic-lens@.
+-- | Zoom in on the record field @field@ of type @s@ in the state @s'@.
 instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasField'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
   ( Generic s', Generic.HasField' field s' s, HasState tag s' m )
   => HasState tag s (Field field m)
   where
