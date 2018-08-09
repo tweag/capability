@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
@@ -23,21 +24,22 @@ module HasState
   , modify
   , modify'
   , gets
-  , TheMonadState (..)
-  , TheReaderIORef (..)
+  , MonadState (..)
+  , ReaderIORef (..)
+  , module Accessors
   ) where
 
-import Control.Lens ((.=), set, use, view)
+import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
-import qualified Control.Monad.State.Lazy as LState
-import qualified Control.Monad.State.Strict as SState
 import Data.Coerce (coerce)
+import qualified Data.Generics.Product.Fields as Generic
 import Data.IORef
 import GHC.Exts (Proxy#, proxy#)
+import GHC.Generics (Generic)
 
-import Has
-import HasReader -- Used for TheReaderIORef below
+import Accessors
+import HasReader -- Used for ReaderIORef below
 
 
 class Monad m
@@ -70,41 +72,50 @@ gets f = do
   pure (f s)
 
 
-newtype TheMonadState m a = TheMonadState (m a)
-  deriving (Functor, Applicative, Monad)
-instance
-  (Has tag s s', State.MonadState s' m)
-  => HasState tag s (TheMonadState m)
-  where
-    get_ tag = coerce @(m s) $ use (has_ tag)
-    put_ tag v = coerce @(m ()) $ has_ tag .= v
-    state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> TheMonadState m a
-    state_ tag f = coerce @(m a) $ State.state $ \s' ->
-      let (a, s) = f $ view (has_ tag) s' in
-      (a, set (has_ tag) s s')
+-- | Derive 'HasState' from @m@'s
+-- 'Control.Monad.State.Class.MonadState' instance.
+newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+instance State.MonadState s m => HasState tag s (MonadState m) where
+  get_ _ = coerce @(m s) State.get
+  put_ _ = coerce @(s -> m ()) State.put
+  state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> MonadState m a
+  state_ _ = coerce @((s -> (a, s)) -> m a) State.state
 
-deriving via (TheMonadState (LState.StateT s' (m :: * -> *)))
-  instance (Has tag s s', Monad m) => HasState tag s (LState.StateT s' m)
-deriving via (TheMonadState (SState.StateT s' (m :: * -> *)))
-  instance (Has tag s s', Monad m) => HasState tag s (SState.StateT s' m)
+
+-- | Zoom in on the record field @field@ of type @s@ in the state @s'@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasField'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  ( Generic s', Generic.HasField' field s' s, HasState tag s' m )
+  => HasState tag s (Field field m)
+  where
+    get_ _ = coerce @(m s) $
+      gets @tag $ view (Generic.field' @field)
+    put_ _ = coerce @(s -> m ()) $
+      modify @tag . set (Generic.field' @field @s')
+    state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Field field m a
+    state_ _ = coerce @((s -> (a, s)) -> m a) $
+      state @tag . Generic.field' @field @_ @_ @((,) a)
 
 
 -- XXX: The following might belong to a different module
 
 
-newtype TheReaderIORef m a = TheReaderIORef (m a)
+newtype ReaderIORef m a = ReaderIORef (m a)
   deriving (Functor, Applicative, Monad)
 instance
   (HasReader tag (IORef s) m, MonadIO m)
-  => HasState tag s (TheReaderIORef m)
+  => HasState tag s (ReaderIORef m)
   where
-    get_ _ = TheReaderIORef $ do
+    get_ _ = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ readIORef ref
-    put_ _ v = TheReaderIORef $ do
+    put_ _ v = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ writeIORef ref v
-    state_ _ f = TheReaderIORef $ do
+    state_ _ f = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ atomicModifyIORef' ref (swap . f)
       where

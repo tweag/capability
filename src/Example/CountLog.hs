@@ -5,8 +5,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -22,11 +22,9 @@ import Control.Monad.Reader (ReaderT (..), runReaderT)
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
-import Data.Functor.Identity (Identity (..))
 import Data.IORef
 import GHC.Generics (Generic)
 
-import Has
 import HasReader
 import HasState
 
@@ -58,8 +56,6 @@ logNum = logStr . ("num: " ++) . show
 
 data LogCtx = LogCtx { logger :: String -> IO () }
   deriving Generic
-deriving via (TheField "logger" LogCtx)
-  instance Has "logger" (String -> IO ()) LogCtx
 
 regularLogger :: LogCtx
 regularLogger = LogCtx { logger = putStrLn }
@@ -70,7 +66,9 @@ loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 newtype LogM m a = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
-  deriving Logger via (TheLoggerReader (ReaderT LogCtx m))
+  deriving Logger via
+    (TheLoggerReader (Field "logger"
+    (MonadReader (ReaderT LogCtx m))))
 
 runLogM :: LogCtx -> LogM m a -> m a
 runLogM ctx (LogM m) = runReaderT m ctx
@@ -103,7 +101,8 @@ doubleCount = count >> count
 
 newtype CounterM a = CounterM (State Int a)
   deriving (Functor, Applicative, Monad)
-  deriving Counter via TheCounterState (State (TheValue Int))
+  deriving Counter via
+    TheCounterState (MonadState (State Int))
 
 runCounterM :: CounterM a -> (a, Int)
 runCounterM (CounterM m) = runState m 0
@@ -112,8 +111,9 @@ runCounterM (CounterM m) = runState m 0
 
 newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
-  deriving Counter
-    via TheCounterState (TheReaderIORef (ReaderT (TheValue (IORef Int)) m))
+  deriving Counter via
+    TheCounterState (ReaderIORef
+    (MonadReader (ReaderT (IORef Int) m)))
 
 runCounter'M :: MonadIO m => Counter'M m a -> m a
 runCounter'M (Counter'M m) = runReaderT m =<< liftIO (newIORef 0)
@@ -136,18 +136,19 @@ data CountLogCtx = CountLogCtx
   { countCtx :: IORef Int
   , logCtx :: LogCtx
   } deriving Generic
-deriving via (TheField "countCtx" CountLogCtx)
-  instance Has "counter" (IORef Int) CountLogCtx
-deriving via (TheFieldHas "logCtx" CountLogCtx)
-  instance Has "logger" (String -> IO ()) CountLogCtx
 
 
 newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
-  deriving Counter
-    via (TheCounterState (TheReaderIORef (ReaderT CountLogCtx m)))
-  deriving Logger
-    via (TheLoggerReader (ReaderT CountLogCtx m))
+  deriving Counter via
+    (TheCounterState (ReaderIORef
+    (Field "countCtx" (MonadReader (ReaderT CountLogCtx m)))))
+  -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
+  --   That seems anti-modular - if a user-defined constraint is required,
+  --   they may have to add orphan instances for @Field@ and @MonadReader@.
+  deriving Logger via
+    (TheLoggerReader (Field "logger" (Field "logCtx"
+    (MonadReader (ReaderT CountLogCtx m)))))
 
 runCountLogM :: MonadIO m => CountLogM m b -> m b
 runCountLogM (CountLogM m) = do

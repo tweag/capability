@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
@@ -21,16 +22,19 @@ module HasReader
   , asks
   , local
   , reader
-  , TheMonadReader (..)
+  , MonadReader (..)
+  , module Accessors
   ) where
 
 import Control.Lens (over, view)
-import Control.Monad.Reader (ReaderT)
+import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.Reader.Class as Reader
 import Data.Coerce (coerce)
+import qualified Data.Generics.Product.Fields as Generic
 import GHC.Exts (Proxy#, proxy#)
+import GHC.Generics (Generic)
 
-import Has
+import Accessors
 
 
 class Monad m
@@ -53,19 +57,33 @@ reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 reader = reader_ (proxy# @_ @tag)
 
 
-newtype TheMonadReader m a = TheMonadReader (m a)
-  deriving (Functor, Applicative, Monad)
-instance
-  (Has tag r r', Reader.MonadReader r' m)
-  => HasReader tag r (TheMonadReader m)
-  where
-    ask_ tag = coerce (view (has_ tag) :: m r)
-    local_ :: forall a.
-      Proxy# tag -> (r -> r) -> TheMonadReader m a -> TheMonadReader m a
-    local_ tag f = coerce (Reader.local $ over (has_ tag) f :: m a -> m a)
-    reader_ :: forall a.
-      Proxy# tag -> (r -> a) -> TheMonadReader m a
-    reader_ tag f = coerce (Reader.reader (f . view (has_ tag)) :: m a)
+-- | Derive 'HasReader' from @m@'s
+-- 'Control.Monad.Reader.Class.MonadReader' instance.
+newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
+  ask_ _ = coerce @(m r) Reader.ask
+  local_
+    :: forall a. Proxy# tag -> (r -> r) -> MonadReader m a -> MonadReader m a
+  local_ _ = coerce @((r -> r) -> m a -> m a) Reader.local
+  reader_ :: forall a. Proxy# tag -> (r -> a) -> MonadReader m a
+  reader_ _ = coerce @((r -> a) -> m a) Reader.reader
 
-deriving via (TheMonadReader (ReaderT r' (m :: * -> *)))
-  instance (Has tag r r', Monad m) => HasReader tag r (ReaderT r' m)
+
+-- | Zoom in on the record field @field@ of type @r@ in the environment @r'@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasField'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  ( Generic r', Generic.HasField' field r' r, HasReader tag r' m )
+  => HasReader tag r (Field field m)
+  where
+    ask_ _ = coerce @(m r) $
+      asks @tag $ view (Generic.field' @field)
+    local_
+      :: forall a. Proxy# tag -> (r -> r) -> Field field m a -> Field field m a
+    local_ tag = coerce @((r -> r) -> m a -> m a) $
+      local_ tag . over (Generic.field' @field)
+    reader_ :: forall a. Proxy# tag -> (r -> a) -> Field field m a
+    reader_ tag f = coerce @(m a) $
+      reader_ tag $ f . view (Generic.field' @field)
