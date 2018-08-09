@@ -113,7 +113,7 @@ runCounterM (CounterM m) = runState m 0
 newtype Counter'M (m :: * -> *) a = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
-    TheCounterState (TheReaderIORef
+    TheCounterState (ReaderIORef
     (MonadReader (ReaderT (IORef Int) m)))
 
 runCounter'M :: MonadIO m => Counter'M m a -> m a
@@ -142,7 +142,7 @@ data CountLogCtx = CountLogCtx
 newtype CountLogM (m :: * -> *) a = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
-    (TheCounterState (TheReaderIORef
+    (TheCounterState (ReaderIORef
     (Field "countCtx" (MonadReader (ReaderT CountLogCtx m)))))
   -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
   --   That seems anti-modular - if a user-defined constraint is required,

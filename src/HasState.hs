@@ -25,7 +25,7 @@ module HasState
   , modify'
   , gets
   , MonadState (..)
-  , TheReaderIORef (..)
+  , ReaderIORef (..)
   ) where
 
 import Control.Lens (Lens', set, view)
@@ -38,7 +38,7 @@ import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
 
 import Accessors
-import HasReader -- Used for TheReaderIORef below
+import HasReader -- Used for ReaderIORef below
 
 
 class Monad m
@@ -103,19 +103,19 @@ stateOnLens l f s' = let (a, s) = f (view l s') in (a, set l s s')
 -- XXX: The following might belong to a different module
 
 
-newtype TheReaderIORef m a = TheReaderIORef (m a)
+newtype ReaderIORef m a = ReaderIORef (m a)
   deriving (Functor, Applicative, Monad)
 instance
   (HasReader tag (IORef s) m, MonadIO m)
-  => HasState tag s (TheReaderIORef m)
+  => HasState tag s (ReaderIORef m)
   where
-    get_ _ = TheReaderIORef $ do
+    get_ _ = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ readIORef ref
-    put_ _ v = TheReaderIORef $ do
+    put_ _ v = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ writeIORef ref v
-    state_ _ f = TheReaderIORef $ do
+    state_ _ f = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ atomicModifyIORef' ref (swap . f)
       where
