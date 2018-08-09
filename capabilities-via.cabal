@@ -18,6 +18,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Example.CountLog
+                       Accessors
                        Has
                        HasReader
                        HasState

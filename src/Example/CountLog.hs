@@ -39,7 +39,7 @@ class Monad m => Logger m where
   logStr :: String -> m ()
 
 -- | Any @HasReader "logger" (String -> IO ())@ can be a @Logger@.
-newtype TheLoggerReader m a = TheLoggerReader (m a)
+newtype TheLoggerReader (m :: * -> *) a = TheLoggerReader (m a)
   deriving (Functor, Applicative, Monad)
 instance
   (HasReader "logger" (String -> IO ()) m, MonadIO m)
@@ -66,7 +66,7 @@ loudLogger :: LogCtx
 loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 
-newtype LogM m a = LogM (ReaderT LogCtx m a)
+newtype LogM (m :: * -> *) a = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Logger via
     (TheLoggerReader (Field "logger"
@@ -84,7 +84,7 @@ class Monad m => Counter m where
   count :: m Int
 
 -- | Any @HasState "counter" Int m@ can be a @Counter@.
-newtype TheCounterState m a = TheCounterState (m a)
+newtype TheCounterState (m :: * -> *) a = TheCounterState (m a)
   deriving (Functor, Applicative, Monad)
 instance
   (HasState "counter" Int m, Monad m)
@@ -110,7 +110,7 @@ runCounterM (CounterM m) = runState m 0
 
 -- ReaderT IORef instance --------------------------------------------
 
-newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
+newtype Counter'M (m :: * -> *) a = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     TheCounterState (TheReaderIORef
@@ -139,7 +139,7 @@ data CountLogCtx = CountLogCtx
   } deriving Generic
 
 
-newtype CountLogM m a = CountLogM (ReaderT CountLogCtx m a)
+newtype CountLogM (m :: * -> *) a = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     (TheCounterState (TheReaderIORef

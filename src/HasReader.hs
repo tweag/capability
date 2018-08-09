@@ -33,7 +33,8 @@ import Data.Coerce (coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
-import GHC.TypeLits (Symbol)
+
+import Accessors
 
 
 class Monad m
@@ -56,7 +57,7 @@ reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 reader = reader_ (proxy# @_ @tag)
 
 
-newtype MonadReader m a = MonadReader (m a)
+newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO)
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   ask_ _ = coerce @(m r) Reader.ask
@@ -67,8 +68,6 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
 
 
-newtype Field (field :: Symbol) m a = Field (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
 -- The constraint raises @-Wsimplifiable-class-constraints@.
 -- This could be avoided by instead placing @HasField'@s constraints here.
 -- Unfortunately, it uses non-exported symbols from @generic-lens@.
