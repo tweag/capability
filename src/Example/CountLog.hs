@@ -22,11 +22,10 @@ import Control.Monad.Reader (ReaderT (..), runReaderT)
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
-import Data.Functor.Identity (Identity (..))
 import Data.IORef
 import GHC.Generics (Generic)
 
-import Has
+import Accessors
 import HasReader
 import HasState
 
@@ -103,7 +102,8 @@ doubleCount = count >> count
 
 newtype CounterM a = CounterM (State Int a)
   deriving (Functor, Applicative, Monad)
-  deriving Counter via TheCounterState (State (TheValue Int))
+  deriving Counter via
+    TheCounterState (MonadState (State Int))
 
 runCounterM :: CounterM a -> (a, Int)
 runCounterM (CounterM m) = runState m 0

@@ -23,7 +23,6 @@ module HasReader
   , local
   , reader
   , MonadReader (..)
-  , Field (..)
   ) where
 
 import Control.Lens (over, view)
