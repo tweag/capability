@@ -15,12 +15,14 @@
 
 module Example.CountLog where
 
-import Control.Lens
 import Control.Monad.IO.Class
 import Control.Monad.Reader (ReaderT (..), runReaderT)
-import Control.Monad.State.Strict (State, runState)
+-- The @StateT@ constructor has to be imported even though it is not used
+-- explicitly. Otherwise, the deriving via of @Counter CounterM@ would fail.
+import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
+import Data.Functor.Identity (Identity (..))
 import Data.IORef
 import GHC.Generics (Generic)
 
@@ -99,17 +101,15 @@ doubleCount = count >> count
 
 -- StateT instance ---------------------------------------------------
 
--- XXX: Using just @StateT Int m a@ makes deriving via fail. Can we fix that?
-newtype CounterM a = CounterM (State (TheValue Int) a)
+newtype CounterM a = CounterM (State Int a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via TheCounterState (State (TheValue Int))
 
 runCounterM :: CounterM a -> (a, Int)
-runCounterM (CounterM m) = runState m (TheValue 0) & _2 %~ theValue
+runCounterM (CounterM m) = runState m 0
 
 -- ReaderT IORef instance --------------------------------------------
 
--- XXX: Why is @TheValue@ not required around @IORef Int@ here? See @CounterM@.
 newtype Counter'M m a = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter
