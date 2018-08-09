@@ -25,7 +25,6 @@ import Data.Coerce (coerce)
 import Data.IORef
 import GHC.Generics (Generic)
 
-import Accessors
 import HasReader
 import HasState
 

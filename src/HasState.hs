@@ -26,6 +26,7 @@ module HasState
   , gets
   , MonadState (..)
   , ReaderIORef (..)
+  , module Accessors
   ) where
 
 import Control.Lens (set, view)

@@ -23,6 +23,7 @@ module HasReader
   , local
   , reader
   , MonadReader (..)
+  , module Accessors
   ) where
 
 import Control.Lens (over, view)
