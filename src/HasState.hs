@@ -28,7 +28,7 @@ module HasState
   , ReaderIORef (..)
   ) where
 
-import Control.Lens (Lens', set, view)
+import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
 import Data.Coerce (coerce)
@@ -96,11 +96,7 @@ instance
       modify @tag . set (Generic.field' @field @s')
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Field field m a
     state_ _ = coerce @((s -> (a, s)) -> m a) $
-      state @tag . stateOnLens (Generic.field' @field)
-
-
-stateOnLens :: Lens' s' s -> (s -> (a, s)) -> s' -> (a, s')
-stateOnLens l f s' = let (a, s) = f (view l s') in (a, set l s s')
+      state @tag . Generic.field' @field @_ @_ @((,) a)
 
 
 -- XXX: The following might belong to a different module
