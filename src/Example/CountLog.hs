@@ -196,6 +196,16 @@ runTwoStatesM (TwoStatesM m) = runState m TwoStates
   , tsBar = 0
   }
 
+-- Nested StateT instance --------------------------------------------
+
+newtype NestedStatesM a = NestedStatesM (StateT Int (State Int) a)
+  deriving (Functor, Applicative, Monad)
+  deriving (HasState "foo" Int) via MonadState (StateT Int (State Int))
+  deriving (HasState "bar" Int) via Lift (StateT Int (MonadState (State Int)))
+
+runNestedStatesM :: NestedStatesM a -> ((a, Int), Int)
+runNestedStatesM (NestedStatesM m) = runState (runStateT m 0) 0
+
 
 ----------------------------------------------------------------------
 -- Writer Monad
