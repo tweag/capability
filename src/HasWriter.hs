@@ -11,10 +11,23 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- | Defines a writer monad capability.
+--
+-- The interface of 'HasWriter' follows that of
+-- 'Control.Monad.Writer.Class.MonadWriter'. However, we do
+-- not provide a strategy to derive a @HasWriter@ instance from a
+-- @MonadWriter@ instance. Implementations of @MonadWriter@ based on
+-- 'Control.Monad.Writer.Strict.WriterT' or similar have a space-leak, see this
+-- <https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks blog post>
+-- by Getty Ritter.
+--
+-- Instead, we provide the 'WriterLog' strategy that implements the writer
+-- monad on a state monad. Using 'HasWriter' instead of 'HasState' directly
+-- ensures your code is restricted to the writer monad interface and does
+-- not misuse the underlying state monad.
 module HasWriter
   ( HasWriter (..)
   , writer
