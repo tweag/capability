@@ -31,17 +31,16 @@ library
                        FlexibleInstances
                        FunctionalDependencies
                        GeneralizedNewtypeDeriving
-                       ImpredicativeTypes
                        InstanceSigs
                        KindSignatures
                        MagicHash
                        MultiParamTypeClasses
-                       PolyKinds
                        QuantifiedConstraints
                        RankNTypes
                        ScopedTypeVariables
                        StandaloneDeriving
                        TypeApplications
+                       TypeInType
                        UndecidableInstances
   build-depends:       base >=4.10 && <4.13
                      , deriving-compat
