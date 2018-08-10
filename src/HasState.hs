@@ -88,15 +88,15 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic s', Generic.HasField' field s' s, HasState tag s' m )
-  => HasState tag s (Field field m)
+  ( Generic record, Generic.HasField' field record v, HasState tag record m )
+  => HasState tag v (Field field m)
   where
-    get_ _ = coerce @(m s) $
+    get_ _ = coerce @(m v) $
       gets @tag $ view (Generic.field' @field)
-    put_ _ = coerce @(s -> m ()) $
-      modify @tag . set (Generic.field' @field @s')
-    state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Field field m a
-    state_ _ = coerce @((s -> (a, s)) -> m a) $
+    put_ _ = coerce @(v -> m ()) $
+      modify @tag . set (Generic.field' @field @record)
+    state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Field field m a
+    state_ _ = coerce @((v -> (a, v)) -> m a) $
       state @tag . Generic.field' @field @_ @_ @((,) a)
 
 

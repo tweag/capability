@@ -75,15 +75,15 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic r', Generic.HasField' field r' r, HasReader tag r' m )
-  => HasReader tag r (Field field m)
+  ( Generic record, Generic.HasField' field record v, HasReader tag record m )
+  => HasReader tag v (Field field m)
   where
-    ask_ _ = coerce @(m r) $
+    ask_ _ = coerce @(m v) $
       asks @tag $ view (Generic.field' @field)
     local_
-      :: forall a. Proxy# tag -> (r -> r) -> Field field m a -> Field field m a
-    local_ tag = coerce @((r -> r) -> m a -> m a) $
+      :: forall a. Proxy# tag -> (v -> v) -> Field field m a -> Field field m a
+    local_ tag = coerce @((v -> v) -> m a -> m a) $
       local_ tag . over (Generic.field' @field)
-    reader_ :: forall a. Proxy# tag -> (r -> a) -> Field field m a
+    reader_ :: forall a. Proxy# tag -> (v -> a) -> Field field m a
     reader_ tag f = coerce @(m a) $
       reader_ tag $ f . view (Generic.field' @field)
