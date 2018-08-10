@@ -70,8 +70,7 @@ newtype WriterLog m a = WriterLog (m a)
 instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)
   where
-    writer_ :: forall a. Proxy# tag -> (a, w) -> WriterLog m a
-    writer_ _ (a, w) = coerce @(m a) $ modify' @tag (<> w) >> pure a
+    writer_ tag (a, w) = tell_ tag w >> pure a
     tell_ _ w = coerce @(m ()) $ modify' @tag (<> w)
     listen_ :: forall a. Proxy# tag -> WriterLog m a -> WriterLog m (a, w)
     listen_ _ m = coerce @(m (a, w)) $ do
