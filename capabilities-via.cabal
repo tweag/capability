@@ -21,6 +21,7 @@ library
                        Accessors
                        HasReader
                        HasState
+                       HasStream
                        HasWriter
   -- other-modules:
   other-extensions:    AllowAmbiguousTypes
@@ -49,6 +50,7 @@ library
                      , lens
                      , mtl
                      , roles
+                     , streaming
                      , transformers
   ghc-options:         -Wall
   hs-source-dirs:      src
