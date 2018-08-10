@@ -26,9 +26,12 @@ import Data.Coerce (coerce)
 import Data.IORef
 import Data.Monoid (Sum (..))
 import GHC.Generics (Generic)
+import Streaming (Stream, Of)
+import qualified Streaming.Prelude as S
 
 import HasReader
 import HasState
+import HasStream
 import HasWriter
 
 
@@ -231,3 +234,33 @@ newtype WriterM a = WriterM (State Int a)
 
 runWriterM :: WriterM a -> (a, Int)
 runWriterM (WriterM m) = runState m 0
+
+
+----------------------------------------------------------------------
+-- Streaming Capability
+
+-- Example program ---------------------------------------------------
+
+iota :: HasStream "nums" Int m => Int -> m ()
+iota n
+  | n < 0 = error "negative number passed to iota."
+  | otherwise = go 0
+  where
+    go i
+      | i == n = pure ()
+      | otherwise = yield @"nums" i >> go (succ i)
+
+-- StateT instance ---------------------------------------------------
+
+newtype StreamAccM a = StreamAccM (State [Int] a)
+  deriving (Functor, Applicative, Monad)
+  deriving (HasStream "nums" Int) via
+    StreamStack (MonadState (State [Int]))
+
+runStreamAccM :: StreamAccM a -> (a, [Int])
+runStreamAccM (StreamAccM m) = runState m []
+
+-- Stream instance ---------------------------------------------------
+
+printStreamOfInt :: Stream (Of Int) IO () -> IO ()
+printStreamOfInt = S.stdoutLn . S.map show
