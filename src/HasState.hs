@@ -9,6 +9,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -32,7 +33,7 @@ module HasState
 import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
-import Data.Coerce (coerce)
+import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import Data.IORef
 import GHC.Exts (Proxy#, proxy#)
@@ -81,6 +82,18 @@ instance State.MonadState s m => HasState tag s (MonadState m) where
   put_ _ = coerce @(s -> m ()) State.put
   state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> MonadState m a
   state_ _ = coerce @((s -> (a, s)) -> m a) State.state
+
+
+-- | Convert the state using safe coercion.
+instance
+  ( Coercible from to, HasState tag from m
+  , forall x y. Coercible x y => Coercible (m x) (m y) )
+  => HasState tag to (Coerce to m)
+  where
+    get_ tag = coerce @(m from) $ get_ tag
+    put_ tag = coerce @(from -> m ()) $ put_ tag
+    state_ :: forall a. Proxy# tag -> (to -> (a, to)) -> Coerce to m a
+    state_ tag = coerce @((from -> (a, from)) -> m a) $ state_ tag
 
 
 -- | Zoom in on the record field @field@ of type @s@ in the state @s'@.

@@ -211,28 +211,23 @@ useWriter = do
 -- Note, this is probably inadvisable in real applications and just here to
 -- demonstrate that it is possible.
 mixWriterState
-  :: (HasState "count" (Sum Int) m, HasWriter "count" (Sum Int) m)
+  :: (HasState "count" Int m, HasWriter "count" (Sum Int) m)
   => m Int
 mixWriterState = do
   tell @"count" 1
   one <- get @"count"
-  tell @"count" one
-  pure $ getSum one
+  tell @"count" $ Sum one
+  pure one
 
 -- StateT instance ---------------------------------------------------
 
-newtype WriterM a = WriterM (State (Sum Int) a)
+newtype WriterM a = WriterM (State Int a)
   deriving (Functor, Applicative, Monad)
-  -- XXX: @HasWriter@ requires a @Monoid@, but @Int@ has no canonical instance.
-  --   We choose the monoid instance using the @Sum@ newtype.
-  --   We may want to add a @Coerce@ combinator similar to @Field@ so that
-  --   @WriterM@ can be implemented in terms of @State Int@, and the deriving
-  --   clause can choose the monoid instance.
   deriving (HasWriter "count" (Sum Int))
-    via WriterLog (MonadState (State (Sum Int)))
+    via WriterLog (Coerce (Sum Int) (MonadState (State Int)))
   -- See caveat on 'mixWriterState'.
-  deriving (HasState "count" (Sum Int))
-    via MonadState (State (Sum Int))
+  deriving (HasState "count" Int)
+    via MonadState (State Int)
 
 runWriterM :: WriterM a -> (a, Int)
-runWriterM (WriterM m) = getSum <$> runState m 0
+runWriterM (WriterM m) = runState m 0
