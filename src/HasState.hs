@@ -14,6 +14,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasState
@@ -88,7 +89,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic s', Generic.HasField' field s' s, HasState tag s' m )
+  ( Generic s', Generic.HasField' field s' s, HasState tag s' m, tag ~ field )
   => HasState tag s (Field field m)
   where
     get_ _ = coerce @(m s) $
@@ -98,6 +99,15 @@ instance
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Field field m a
     state_ _ = coerce @((s -> (a, s)) -> m a) $
       state @tag . Generic.field' @field @_ @_ @((,) a)
+
+
+instance (HasState oldtag s m, tag ~ newtag)
+  => HasState newtag s (Rename tag oldtag m)
+  where
+    get_ _ = coerce @(m s) $ get @oldtag
+    put_ _ = coerce @(s -> m ()) $ put @oldtag
+    state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Rename tag oldtag m a
+    state_ _ = coerce @((s -> (a, s)) -> m a) $ state @oldtag
 
 
 -- XXX: The following might belong to a different module

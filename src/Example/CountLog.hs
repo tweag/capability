@@ -181,9 +181,9 @@ data TwoStates = TwoStates
 newtype TwoStatesM a = TwoStatesM (State TwoStates a)
   deriving (Functor, Applicative, Monad)
   deriving (HasState "foo" Int) via
-    Field "tsFoo" (MonadState (State TwoStates))
+    Rename "foo" "tsFoo" (Field "tsFoo" (MonadState (State TwoStates)))
   deriving (HasState "bar" Int) via
-    Field "tsBar" (MonadState (State TwoStates))
+    Rename "bar" "tsBar" (Field "tsBar" (MonadState (State TwoStates)))
 
 runTwoStatesM :: TwoStatesM a -> (a, TwoStates)
 runTwoStatesM (TwoStatesM m) = runState m TwoStates
