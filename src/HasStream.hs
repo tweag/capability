@@ -33,7 +33,7 @@ class Monad m
     -- | Use 'yield' instead.
     yield_ :: Proxy# tag -> a -> m ()
 
--- | Stream the given value.
+-- | Emit the given value.
 yield :: forall tag a m. HasStream tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 
