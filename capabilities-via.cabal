@@ -21,6 +21,7 @@ library
                        Accessors
                        HasReader
                        HasState
+                       HasWriter
   -- other-modules:
   other-extensions:    AllowAmbiguousTypes
                        BangPatterns

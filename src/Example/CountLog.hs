@@ -24,10 +24,12 @@ import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef
+import Data.Monoid (Sum (..))
 import GHC.Generics (Generic)
 
 import HasReader
 import HasState
+import HasWriter
 
 
 ----------------------------------------------------------------------
@@ -190,3 +192,47 @@ runTwoStatesM (TwoStatesM m) = runState m TwoStates
   { tsFoo = 0
   , tsBar = 0
   }
+
+
+----------------------------------------------------------------------
+-- Writer Monad
+
+-- Example programs --------------------------------------------------
+
+-- | Increase a counter using a writer monad.
+useWriter :: HasWriter "count" (Sum Int) m => m ()
+useWriter = do
+  tell @"count" 1
+  tell @"count" 2
+  tell @"count" 3
+
+-- | Mix writer and state monad operations on the same tag.
+--
+-- Note, this is probably inadvisable in real applications and just here to
+-- demonstrate that it is possible.
+mixWriterState
+  :: (HasState "count" (Sum Int) m, HasWriter "count" (Sum Int) m)
+  => m Int
+mixWriterState = do
+  tell @"count" 1
+  one <- get @"count"
+  tell @"count" one
+  pure $ getSum one
+
+-- StateT instance ---------------------------------------------------
+
+newtype WriterM a = WriterM (State (Sum Int) a)
+  deriving (Functor, Applicative, Monad)
+  -- XXX: @HasWriter@ requires a @Monoid@, but @Int@ has no canonical instance.
+  --   We choose the monoid instance using the @Sum@ newtype.
+  --   We may want to add a @Coerce@ combinator similar to @Field@ so that
+  --   @WriterM@ can be implemented in terms of @State Int@, and the deriving
+  --   clause can choose the monoid instance.
+  deriving (HasWriter "count" (Sum Int))
+    via WriterLog (MonadState (State (Sum Int)))
+  -- See caveat on 'mixWriterState'.
+  deriving (HasState "count" (Sum Int))
+    via MonadState (State (Sum Int))
+
+runWriterM :: WriterM a -> (a, Int)
+runWriterM (WriterM m) = getSum <$> runState m 0
