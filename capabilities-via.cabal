@@ -57,6 +57,7 @@ library
                      , monad-unlift
                      , mtl
                      , mutable-containers
+                     , primitive
                      , roles
                      , streaming
                      , transformers

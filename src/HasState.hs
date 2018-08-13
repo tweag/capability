@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasState
@@ -27,6 +28,7 @@ module HasState
 
 import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
@@ -70,7 +72,7 @@ gets f = do
 -- | Derive 'HasState' from @m@'s
 -- 'Control.Monad.State.Class.MonadState' instance.
 newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance State.MonadState s m => HasState tag s (MonadState m) where
   get_ _ = coerce @(m s) State.get
   put_ _ = coerce @(s -> m ()) State.put

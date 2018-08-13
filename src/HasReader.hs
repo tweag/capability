@@ -15,6 +15,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasReader
@@ -32,6 +33,7 @@ module HasReader
 import Control.Lens (over, view)
 import Control.Monad.Catch (MonadMask, bracket)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.Reader.Class as Reader
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Control (MonadTransControl (..))
@@ -67,7 +69,7 @@ reader = reader_ (proxy# @_ @tag)
 -- | Derive 'HasReader' from @m@'s
 -- 'Control.Monad.Reader.Class.MonadReader' instance.
 newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   ask_ _ = coerce @(m r) Reader.ask
   local_
@@ -111,7 +113,7 @@ instance HasState tag r m => HasReader tag r (ReadStatePure m) where
 --
 -- See 'ReadStatePure'.
 newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance
   (HasState tag r m, MonadMask m)
   => HasReader tag r (ReadState m)
