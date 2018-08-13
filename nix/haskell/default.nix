@@ -19,6 +19,7 @@ self: super:
           doctest = super.haskell.lib.doJailbreak hssuper.doctest;
           free = super.haskell.lib.doJailbreak hssuper.free;
           inspection-testing = super.haskell.lib.doJailbreak hssuper.inspection-testing;
+          split = super.haskell.lib.doJailbreak hssuper.split;
           StateVar = super.haskell.lib.doJailbreak hssuper.StateVar;
 
           adjunctions = super.haskell.lib.overrideCabal hssuper.adjunctions (attrs: {
@@ -30,6 +31,16 @@ self: super:
                 src/Control/Monad/Trans/Contravariant/Adjoint.hs \
                 src/Data/Functor/Contravariant/Adjunction.hs \
                 src/Data/Functor/Contravariant/Rep.hs
+            '';
+          });
+          foldl = super.haskell.lib.overrideCabal hssuper.foldl (attrs: {
+            jailbreak = true;
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              sed -i '
+                /import Data\.Functor\.Contravariant/s/import/import "contravariant"/;
+                1i{-# LANGUAGE PackageImports #-}' \
+                src/Control/Foldl.hs
             '';
           });
           invariant = super.haskell.lib.overrideCabal hssuper.invariant (attrs: {
@@ -93,6 +104,13 @@ self: super:
             patchPhase = ''
               ${attrs.patchPhase or ""}
               sed -i '230s/M\.fold/M.foldr/' tests/HashMapProperties.hs
+            '';
+          });
+          vector-algorithms = hssuper.vector-algorithms.overrideAttrs (attrs: {
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              # See https://ghc.haskell.org/trac/ghc/wiki/Migration/8.6#DPHisgone
+              sed -i 's/-Odph/-O2 -fmax-simplifier-iterations=20/' vector-algorithms.cabal
             '';
           });
         };
