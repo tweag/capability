@@ -1,7 +1,5 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -10,9 +8,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE QuantifiedConstraints #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -26,22 +22,19 @@ module HasState
   , modify'
   , gets
   , MonadState (..)
-  , ReaderIORef (..)
   , module Accessors
   ) where
 
 import Control.Lens (set, view)
-import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
-import Data.IORef
 import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
 
 import Accessors
-import HasReader -- Used for ReaderIORef below
 
 
 class Monad m
@@ -122,25 +115,3 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
     put_ _ = coerce $ lift @t @m . put @tag @s
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Lift (t m) a
     state_ _ = coerce $ lift @t @m . state @tag @s @m @a
-
-
--- XXX: The following might belong to a different module
-
-
-newtype ReaderIORef m a = ReaderIORef (m a)
-  deriving (Functor, Applicative, Monad)
-instance
-  (HasReader tag (IORef s) m, MonadIO m)
-  => HasState tag s (ReaderIORef m)
-  where
-    get_ _ = ReaderIORef $ do
-      ref <- ask @tag
-      liftIO $ readIORef ref
-    put_ _ v = ReaderIORef $ do
-      ref <- ask @tag
-      liftIO $ writeIORef ref v
-    state_ _ f = ReaderIORef $ do
-      ref <- ask @tag
-      liftIO $ atomicModifyIORef' ref (swap . f)
-      where
-        swap (a, b) = (b, a)

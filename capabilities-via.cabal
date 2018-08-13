@@ -21,6 +21,7 @@ library
                        Accessors
                        HasReader
                        HasState
+                       HasState.Ref
                        HasStream
                        HasWriter
                        HasWriter.Discouraged
