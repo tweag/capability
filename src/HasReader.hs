@@ -30,6 +30,8 @@ module HasReader
 import Control.Lens (over, view)
 import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.Reader.Class as Reader
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Control (MonadTransControl (..))
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import GHC.Exts (Proxy#, proxy#)
@@ -102,3 +104,16 @@ instance
     reader_ :: forall a. Proxy# tag -> (v -> a) -> Field field m a
     reader_ tag f = coerce @(m a) $
       reader_ tag $ f . view (Generic.field' @field)
+
+
+-- | Lift one layer in a monad transformer stack.
+instance (HasReader tag r m, MonadTransControl t, Monad (t m))
+  => HasReader tag r (Lift (t m))
+  where
+    ask_ _ = coerce $ lift @t @m $ ask @tag @r
+    local_
+      :: forall a. Proxy# tag -> (r -> r) -> Lift (t m) a -> Lift (t m) a
+    local_ _ f = coerce @(t m a -> t m a) $
+      \m -> liftWith (\run -> local @tag f $ run m) >>= restoreT . pure
+    reader_ :: forall a. Proxy# tag -> (r -> a) -> Lift (t m) a
+    reader_ _ = coerce @((r -> a) -> t m a) $ lift . reader @tag
