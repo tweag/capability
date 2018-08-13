@@ -117,7 +117,8 @@ instance
     reader_ tag = coerce @((from -> a) -> m a) $ reader_ tag
 
 
--- | Zoom in on the record field @field@ of type @r@ in the environment @r'@.
+-- | Zoom in on the record field @field@ of type @v@
+-- in the environment @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.

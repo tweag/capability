@@ -62,7 +62,7 @@ instance
     state_ tag = coerce @((from -> (a, from)) -> m a) $ state_ tag
 
 
--- | Zoom in on the record field @field@ of type @s@ in the state @s'@.
+-- | Zoom in on the record field @field@ of type @v@ in the state @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
