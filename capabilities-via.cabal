@@ -45,6 +45,7 @@ library
                        TypeInType
                        UndecidableInstances
   build-depends:       base >=4.10 && <4.13
+                     , containers
                      , deriving-compat
                      , generic-lens
                      , lens
