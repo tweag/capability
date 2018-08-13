@@ -23,6 +23,7 @@ library
                        HasState
                        HasStream
                        HasWriter
+                       HasWriter.Discouraged
   -- other-modules:
   other-extensions:    AllowAmbiguousTypes
                        BangPatterns
@@ -45,9 +46,12 @@ library
                        TypeInType
                        UndecidableInstances
   build-depends:       base >=4.10 && <4.13
+                     , containers
                      , deriving-compat
                      , generic-lens
                      , lens
+                     , monad-control
+                     , monad-unlift
                      , mtl
                      , roles
                      , streaming

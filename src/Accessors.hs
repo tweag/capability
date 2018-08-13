@@ -5,6 +5,7 @@
 module Accessors
   ( Coerce (..)
   , Field (..)
+  , Lift (..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -18,4 +19,12 @@ newtype Coerce to m a = Coerce (m a)
 
 -- | Access the record field @field@ in the context @m@.
 newtype Field (field :: Symbol) m a = Field (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+
+
+-- | Skip one level in a monad transformer stack.
+--
+-- Note, that instances generated with this strategy can incur a performance
+-- penalty.
+newtype Lift m a = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO)

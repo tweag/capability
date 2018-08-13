@@ -18,6 +18,7 @@ module HasStream
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 import Streaming
@@ -51,3 +52,10 @@ instance HasState tag [a] m => HasStream tag a (StreamStack m) where
 
 instance Monad m => HasStream tag a (S.Stream (Of a) m) where
   yield_ _ = S.yield
+
+
+-- | Lift one layer in a monad transformer stack.
+instance (HasStream tag a m, MonadTrans t, Monad (t m))
+  => HasStream tag a (Lift (t m))
+  where
+    yield_ _ = coerce @(a -> t m ()) $ lift . yield @tag

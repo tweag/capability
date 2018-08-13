@@ -33,6 +33,7 @@ module HasState
 import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Control.Monad.State.Class as State
+import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import Data.IORef
@@ -111,6 +112,16 @@ instance
     state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Field field m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
       state @tag . Generic.field' @field @_ @_ @((,) a)
+
+
+-- | Lift one layer in a monad transformer stack.
+instance (HasState tag s m, MonadTrans t, Monad (t m))
+  => HasState tag s (Lift (t m))
+  where
+    get_ _ = coerce $ lift @t @m $ get @tag @s
+    put_ _ = coerce $ lift @t @m . put @tag @s
+    state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Lift (t m) a
+    state_ _ = coerce $ lift @t @m . state @tag @s @m @a
 
 
 -- XXX: The following might belong to a different module
