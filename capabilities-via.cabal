@@ -50,6 +50,7 @@ library
                      , containers
                      , deriving-compat
                      , exceptions
+                     , dlist
                      , generic-lens
                      , lens
                      , monad-control
