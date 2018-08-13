@@ -49,6 +49,7 @@ library
                      , generic-lens
                      , lens
                      , monad-control
+                     , monad-unlift
                      , mtl
                      , roles
                      , streaming
