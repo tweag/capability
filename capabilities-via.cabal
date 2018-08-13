@@ -49,6 +49,7 @@ library
   build-depends:       base >=4.10 && <4.13
                      , containers
                      , deriving-compat
+                     , exceptions
                      , generic-lens
                      , lens
                      , monad-control
