@@ -199,6 +199,9 @@ runTwoStatesM (TwoStatesM m) = runState m TwoStates
 
 -- Nested StateT instance --------------------------------------------
 
+-- Note, that this is not the recommended way to provide multiple `HasState`
+-- capabilities. Use the approach shown above in 'TwoStatesM' instead. However,
+-- this pattern can be useful to transation existing code to this library.
 newtype NestedStatesM a = NestedStatesM (StateT Int (State Int) a)
   deriving (Functor, Applicative, Monad)
   deriving (HasState "foo" Int) via MonadState (StateT Int (State Int))

@@ -23,5 +23,8 @@ newtype Field (field :: Symbol) m a = Field (m a)
 
 
 -- | Skip one level in a monad transformer stack.
+--
+-- Note, that instances generated with this strategy can incur a performance
+-- penalty.
 newtype Lift m a = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO)

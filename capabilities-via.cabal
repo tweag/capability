@@ -23,6 +23,7 @@ library
                        HasState
                        HasStream
                        HasWriter
+                       HasWriter.Discouraged
   -- other-modules:
   other-extensions:    AllowAmbiguousTypes
                        BangPatterns
