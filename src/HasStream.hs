@@ -15,16 +15,20 @@ module HasStream
   ( HasStream (..)
   , yield
   , StreamStack (..)
+  , StreamDList (..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (coerce)
+import Data.DList (DList)
+import qualified Data.DList as DList
 import GHC.Exts (Proxy#, proxy#)
 import Streaming
 import qualified Streaming.Prelude as S
 
 import HasState
+import HasWriter
 
 
 -- | Streaming capability.
@@ -45,9 +49,12 @@ newtype StreamStack m (a :: *) = StreamStack (m a)
 instance HasState tag [a] m => HasStream tag a (StreamStack m) where
   yield_ _ a = coerce @(m ()) $ modify' @tag (a:)
 
--- XXX: Consider adding a strategy for @HasState tag (DList a)@ as well.
---   It allows to avoid the final reverse, if the final list should have
---   forward order.
+
+-- | Accumulate streamed values in forward order in a difference list.
+newtype StreamDList m (a :: *) = StreamDList (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+instance HasWriter tag (DList a) m => HasStream tag a (StreamDList m) where
+  yield_ _ = coerce @(a -> m ()) $ tell @tag . DList.singleton
 
 
 instance Monad m => HasStream tag a (S.Stream (Of a) m) where
