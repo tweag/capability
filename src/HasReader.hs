@@ -119,8 +119,12 @@ instance
     ask_ _ = coerce @(m r) $ get @tag
     local_ :: forall a.
       Proxy# tag -> (r -> r) -> ReadState m a -> ReadState m a
-    local_ _ f = coerce @(m a -> m a) $
-      bracket (state @tag $ \r -> (r, f r)) (put @tag) . const
+    local_ _ f = coerce @(m a -> m a) $ \action ->
+      let
+        setAndSave = state @tag $ \r -> (r, f r)
+        restore r = put @tag r
+      in
+      bracket setAndSave restore $ \_ -> action
     reader_ :: forall a. Proxy# tag -> (r -> a) -> ReadState m a
     reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
 
