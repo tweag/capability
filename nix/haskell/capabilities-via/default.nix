@@ -1,7 +1,7 @@
 { mkDerivation, base, containers, deriving-compat, dlist
-, exceptions, generic-lens, lens, monad-control, monad-unlift, mtl
-, mutable-containers, primitive, roles, stdenv, streaming
-, transformers
+, exceptions, generic-lens, hspec, lens, monad-control
+, monad-unlift, mtl, mutable-containers, primitive, roles, silently
+, stdenv, streaming, transformers
 }:
 mkDerivation {
   pname = "capabilities-via";
@@ -12,6 +12,7 @@ mkDerivation {
     monad-control monad-unlift mtl mutable-containers primitive roles
     streaming transformers
   ];
+  testHaskellDepends = [ base hspec mtl silently ];
   homepage = "https://github.com/tweag/capabilities-via";
   license = stdenv.lib.licenses.bsd3;
 }

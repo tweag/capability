@@ -13,6 +13,9 @@ self: super:
           capabilities-via = hssuper.callPackage ./capabilities-via {};
 
           generic-lens = super.haskell.lib.dontCheck hssuper.generic-lens;
+          # temporary's test-suite requires tasty.
+          # tasty doesn't build with GHC 8.6.
+          temporary = super.haskell.lib.dontCheck hssuper.temporary;
 
           cabal-doctest = super.haskell.lib.doJailbreak hssuper.cabal-doctest;
           contravariant = super.haskell.lib.doJailbreak hssuper.contravariant;
