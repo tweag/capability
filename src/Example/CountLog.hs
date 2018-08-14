@@ -11,14 +11,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Example.CountLog where
 
 import Control.Monad.IO.Class
-import Control.Monad.Primitive (PrimMonad, PrimState)
 import Control.Monad.Reader (ReaderT (..), runReaderT)
 -- The @StateT@ constructor has to be imported even though it is not used
 -- explicitly. Otherwise, the deriving via of @Counter CounterM@ would fail.
@@ -121,9 +119,8 @@ runCounterM (CounterM m) = runState m 0
 
 newtype Counter'M m (a :: *) = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
-deriving via TheCounterState (ReaderRef (MonadReader (ReaderT (IORef Int) m)))
-  instance (PrimMonad m, PrimState m ~ PrimState IO)
-  => Counter (Counter'M m)
+  deriving Counter via
+    TheCounterState (ReaderIORef (MonadReader (ReaderT (IORef Int) m)))
 
 runCounter'M :: MonadIO m => Counter'M m a -> m a
 runCounter'M (Counter'M m) = runReaderT m =<< liftIO (newIORef 0)
@@ -150,17 +147,15 @@ data CountLogCtx = CountLogCtx
 
 newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
+  deriving Counter via
+    TheCounterState (ReaderIORef (Field "countCtx"
+    (MonadReader (ReaderT CountLogCtx m))))
   -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
   --   That seems anti-modular - if a user-defined constraint is required,
   --   they may have to add orphan instances for @Field@ and @MonadReader@.
   deriving Logger via
     (TheLoggerReader (Field "logger" (Field "logCtx"
     (MonadReader (ReaderT CountLogCtx m)))))
-deriving via
-  TheCounterState (ReaderRef (Field "countCtx"
-  (MonadReader (ReaderT CountLogCtx m))))
-  instance (PrimMonad m, PrimState m ~ PrimState IO)
-  => Counter (CountLogM m)
 
 runCountLogM :: MonadIO m => CountLogM m b -> m b
 runCountLogM (CountLogM m) = do
