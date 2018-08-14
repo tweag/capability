@@ -14,14 +14,45 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasState.Ref
-  ( ReaderRef (..)
+  ( ReaderIORef (..)
+  , ReaderRef (..)
   ) where
 
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.IORef
 import Data.Mutable
 
 import HasReader
 import HasState
+
+
+-- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
+--
+-- Example:
+--
+-- > newtype MyState m a = MyState (ReaderT (IORef Int) m a)
+-- >   deriving (Functor, Applicative, Monad)
+-- >   deriving HasState "foo" Int via
+-- >     ReaderIORef (MonadReader (ReaderT (IORef Int) m))
+--
+-- See 'ReaderRef' for a more generic strategy.
+newtype ReaderIORef m a = ReaderIORef (m a)
+  deriving (Functor, Applicative, Monad)
+instance
+  (HasReader tag (IORef s) m, MonadIO m)
+  => HasState tag s (ReaderIORef m)
+  where
+    get_ _ = ReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ readIORef ref
+    put_ _ v = ReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ writeIORef ref v
+    state_ _ f = ReaderIORef $ do
+      ref <- ask @tag
+      liftIO $ atomicModifyIORef' ref (swap . f)
+      where
+        swap (a, b) = (b, a)
 
 
 -- | Derive a state monad from a reader over a mutable reference.
@@ -38,6 +69,8 @@ import HasState
 -- > deriving via ReaderRef (MonadReader (ReaderT (IORef Int) m))
 -- >   instance (PrimMonad m, PrimState m ~ PrimState IO)
 -- >   => HasState "foo" Int (MyState m)
+--
+-- See 'ReaderIORef' for a specialized version over 'Data.IORef.IORef'.
 newtype ReaderRef m (a :: *) = ReaderRef (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance
