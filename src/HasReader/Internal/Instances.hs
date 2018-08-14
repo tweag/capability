@@ -29,6 +29,7 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Control (MonadTransControl (..))
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
+import qualified Data.Generics.Product.Positions as Generic
 import GHC.Exts (Proxy#)
 import GHC.Generics (Generic)
 
@@ -116,7 +117,8 @@ instance
     reader_ tag = coerce @((from -> a) -> m a) $ reader_ tag
 
 
--- | Zoom in on the record field @field@ of type @r@ in the environment @r'@.
+-- | Zoom in on the record field @field@ of type @v@
+-- in the environment @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
@@ -133,6 +135,26 @@ instance
     reader_ :: forall a. Proxy# tag -> (v -> a) -> Field field m a
     reader_ tag f = coerce @(m a) $
       reader_ tag $ f . view (Generic.field' @field)
+
+
+-- | Zoom in on the field at position @pos@ of type @v@
+-- in the environment @struct@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasPosition'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  ( Generic struct, Generic.HasPosition' pos struct v, HasReader tag struct m )
+  => HasReader tag v (Pos pos m)
+  where
+    ask_ _ = coerce @(m v) $
+      asks @tag $ view (Generic.position' @pos)
+    local_
+      :: forall a. Proxy# tag -> (v -> v) -> Pos pos m a -> Pos pos m a
+    local_ tag = coerce @((v -> v) -> m a -> m a) $
+      local_ tag . over (Generic.position' @pos)
+    reader_ :: forall a. Proxy# tag -> (v -> a) -> Pos pos m a
+    reader_ tag f = coerce @(m a) $
+      reader_ tag $ f . view (Generic.position' @pos)
 
 
 -- | Lift one layer in a monad transformer stack.

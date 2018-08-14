@@ -7,12 +7,13 @@
 module Accessors
   ( Coerce (..)
   , Field (..)
+  , Pos (..)
   , Lift (..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
-import GHC.TypeLits (Symbol)
+import GHC.TypeLits (Nat, Symbol)
 
 
 -- | Coerce the type in the context @m@ to @to@.
@@ -22,6 +23,11 @@ newtype Coerce to m a = Coerce (m a)
 
 -- | Access the record field @field@ in the context @m@.
 newtype Field (field :: Symbol) m a = Field (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
+
+-- | Access the value at position @pos@ in the context @m@.
+newtype Pos (pos :: Nat) m a = Pos (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 

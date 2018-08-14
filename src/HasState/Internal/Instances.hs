@@ -28,6 +28,7 @@ import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
+import qualified Data.Generics.Product.Positions as Generic
 import Data.IORef
 import Data.Mutable
 import GHC.Exts (Proxy#)
@@ -61,7 +62,7 @@ instance
     state_ tag = coerce @((from -> (a, from)) -> m a) $ state_ tag
 
 
--- | Zoom in on the record field @field@ of type @s@ in the state @s'@.
+-- | Zoom in on the record field @field@ of type @v@ in the state @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
@@ -76,6 +77,23 @@ instance
     state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Field field m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
       state @tag . Generic.field' @field @_ @_ @((,) a)
+
+
+-- | Zoom in on the field at position @pos@ of type @v@ in the state @struct@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@.
+  -- This could be avoided by instead placing @HasPosition'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  ( Generic struct, Generic.HasPosition' pos struct v, HasState tag struct m )
+  => HasState tag v (Pos pos m)
+  where
+    get_ _ = coerce @(m v) $
+      gets @tag $ view (Generic.position' @pos)
+    put_ _ = coerce @(v -> m ()) $
+      modify @tag . set (Generic.position' @pos @struct)
+    state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Pos pos m a
+    state_ _ = coerce @((v -> (a, v)) -> m a) $
+      state @tag . Generic.position' @pos @_ @_ @((,) a)
 
 
 -- | Lift one layer in a monad transformer stack.
