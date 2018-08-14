@@ -175,7 +175,7 @@ twoStates = do
   modify @"foo" (+1)
   modify @"bar" (subtract 1)
 
--- StateT instance ---------------------------------------------------
+-- StateT record instance --------------------------------------------
 
 data TwoStates = TwoStates
   { tsFoo :: Int
@@ -195,6 +195,18 @@ runTwoStatesM (TwoStatesM m) = runState m TwoStates
   { tsFoo = 0
   , tsBar = 0
   }
+
+-- StateT tuple instance --------------------------------------------
+
+newtype PairStateM a = PairStateM (State (Int, Int) a)
+  deriving (Functor, Applicative, Monad)
+  deriving (HasState "foo" Int) via
+    Pos 1 (MonadState (State (Int, Int)))
+  deriving (HasState "bar" Int) via
+    Pos 2 (MonadState (State (Int, Int)))
+
+runPairStateM :: PairStateM a -> (a, (Int, Int))
+runPairStateM (PairStateM m) = runState m (0, 0)
 
 -- Nested StateT instance --------------------------------------------
 
