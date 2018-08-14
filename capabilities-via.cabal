@@ -20,8 +20,11 @@ library
   exposed-modules:     Example.CountLog
                        Accessors
                        HasReader
+                       HasReader.Internal.Class
+                       HasReader.Internal.Instances
                        HasState
-                       HasState.Ref
+                       HasState.Internal.Class
+                       HasState.Internal.Instances
                        HasStream
                        HasWriter
                        HasWriter.Discouraged
@@ -56,6 +59,8 @@ library
                      , monad-control
                      , monad-unlift
                      , mtl
+                     , mutable-containers
+                     , primitive
                      , roles
                      , streaming
                      , transformers

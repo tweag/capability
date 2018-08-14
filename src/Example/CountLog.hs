@@ -32,7 +32,6 @@ import qualified Streaming.Prelude as S
 
 import HasReader
 import HasState
-import HasState.Ref
 import HasStream
 import HasWriter
 
@@ -120,8 +119,7 @@ runCounterM (CounterM m) = runState m 0
 newtype Counter'M m (a :: *) = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
-    TheCounterState (ReaderIORef
-    (MonadReader (ReaderT (IORef Int) m)))
+    TheCounterState (ReaderIORef (MonadReader (ReaderT (IORef Int) m)))
 
 runCounter'M :: MonadIO m => Counter'M m a -> m a
 runCounter'M (Counter'M m) = runReaderT m =<< liftIO (newIORef 0)
@@ -149,8 +147,8 @@ data CountLogCtx = CountLogCtx
 newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
-    (TheCounterState (ReaderIORef
-    (Field "countCtx" (MonadReader (ReaderT CountLogCtx m)))))
+    TheCounterState (ReaderIORef (Field "countCtx"
+    (MonadReader (ReaderT CountLogCtx m))))
   -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
   --   That seems anti-modular - if a user-defined constraint is required,
   --   they may have to add orphan instances for @Field@ and @MonadReader@.

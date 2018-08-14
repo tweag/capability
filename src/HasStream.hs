@@ -9,6 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasStream
@@ -19,6 +20,7 @@ module HasStream
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (coerce)
 import Data.DList (DList)
@@ -45,14 +47,14 @@ yield = yield_ (proxy# @_ @tag)
 
 -- | Accumulate streamed values in a reverse order list.
 newtype StreamStack m (a :: *) = StreamStack (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance HasState tag [a] m => HasStream tag a (StreamStack m) where
   yield_ _ a = coerce @(m ()) $ modify' @tag (a:)
 
 
 -- | Accumulate streamed values in forward order in a difference list.
 newtype StreamDList m (a :: *) = StreamDList (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance HasWriter tag (DList a) m => HasStream tag a (StreamDList m) where
   yield_ _ = coerce @(a -> m ()) $ tell @tag . DList.singleton
 

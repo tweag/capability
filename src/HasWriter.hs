@@ -13,6 +13,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Defines a writer monad capability.
@@ -39,6 +40,7 @@ module HasWriter
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
@@ -67,7 +69,7 @@ pass = pass_ (proxy# @_ @tag)
 
 
 newtype WriterLog m a = WriterLog (m a)
-  deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)
   where
