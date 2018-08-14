@@ -79,7 +79,7 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
 
 -- | Convert a /pure/ state monad into a reader monad.
 --
--- /Pure/ meaning that the monad @m@ does not allow to catch exceptions.
+-- /Pure/ meaning that the monad stack does not allow to catch exceptions.
 -- Otherwise, an exception occurring in the action passed to 'local' could
 -- cause the context to remain modified outside of the call to 'local'. E.g.
 --
@@ -90,6 +90,8 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
 --
 -- Note, that no @MonadIO@ instance is provided, as this would allow to
 -- catch exceptions.
+--
+-- See 'ReadState.
 newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
   deriving (Functor, Applicative, Monad)
 instance HasState tag r m => HasReader tag r (ReadStatePure m) where
@@ -105,7 +107,9 @@ instance HasState tag r m => HasReader tag r (ReadStatePure m) where
 
 -- | Convert a state monad into a reader monad.
 --
--- Use this if @m@ allows to catch exceptions. See 'ReadStatePure'.
+-- Use this if the monad stack allows to catch exceptions.
+--
+-- See 'ReadStatePure'.
 newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO)
 instance
