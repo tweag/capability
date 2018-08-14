@@ -32,6 +32,7 @@ import qualified Streaming.Prelude as S
 
 import HasReader
 import HasState
+import HasState.Ref
 import HasStream
 import HasWriter
 

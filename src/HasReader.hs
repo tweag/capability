@@ -24,10 +24,13 @@ module HasReader
   , local
   , reader
   , MonadReader (..)
+  , ReadStatePure (..)
+  , ReadState (..)
   , module Accessors
   ) where
 
 import Control.Lens (over, view)
+import Control.Monad.Catch (MonadMask, bracket)
 import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.Reader.Class as Reader
 import Control.Monad.Trans.Class (lift)
@@ -38,6 +41,7 @@ import GHC.Exts (Proxy#, proxy#)
 import GHC.Generics (Generic)
 
 import Accessors
+import HasState
 
 
 class Monad m
@@ -71,6 +75,58 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   local_ _ = coerce @((r -> r) -> m a -> m a) Reader.local
   reader_ :: forall a. Proxy# tag -> (r -> a) -> MonadReader m a
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
+
+
+-- | Convert a /pure/ state monad into a reader monad.
+--
+-- /Pure/ meaning that the monad stack does not allow to catch exceptions.
+-- Otherwise, an exception occurring in the action passed to 'local' could
+-- cause the context to remain modified outside of the call to 'local'. E.g.
+--
+-- > local @tag (const r') (throw MyException)
+-- > `catch` \MyException -> ask @tag
+--
+-- returns @r'@ instead of the previous value.
+--
+-- Note, that no @MonadIO@ instance is provided, as this would allow to
+-- catch exceptions.
+--
+-- See 'ReadState.
+newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
+  deriving (Functor, Applicative, Monad)
+instance HasState tag r m => HasReader tag r (ReadStatePure m) where
+  ask_ _ = coerce @(m r) $ get @tag
+  local_ :: forall a.
+    Proxy# tag -> (r -> r) -> ReadStatePure m a -> ReadStatePure m a
+  local_ _ f = coerce @(m a -> m a) $ \m -> do
+    r <- state @tag $ \r -> (r, f r)
+    m <* put @tag r
+  reader_ :: forall a. Proxy# tag -> (r -> a) -> ReadStatePure m a
+  reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
+
+
+-- | Convert a state monad into a reader monad.
+--
+-- Use this if the monad stack allows to catch exceptions.
+--
+-- See 'ReadStatePure'.
+newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+instance
+  (HasState tag r m, MonadMask m)
+  => HasReader tag r (ReadState m)
+  where
+    ask_ _ = coerce @(m r) $ get @tag
+    local_ :: forall a.
+      Proxy# tag -> (r -> r) -> ReadState m a -> ReadState m a
+    local_ _ f = coerce @(m a -> m a) $ \action ->
+      let
+        setAndSave = state @tag $ \r -> (r, f r)
+        restore r = put @tag r
+      in
+      bracket setAndSave restore $ \_ -> action
+    reader_ :: forall a. Proxy# tag -> (r -> a) -> ReadState m a
+    reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
 
 
 -- | Convert the environment using safe coercion.
