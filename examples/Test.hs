@@ -4,7 +4,9 @@ module Main
 
 import Test.Hspec
 
+import qualified Reader
+
 
 main :: IO ()
 main = hspec $
-  pure ()
+  Reader.spec

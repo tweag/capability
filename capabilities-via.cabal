@@ -70,6 +70,7 @@ library
 
 test-suite examples
   type:                exitcode-stdio-1.0
+  other-modules:       Reader
   main-is:             Test.hs
   build-depends:       base
                      , capabilities-via
