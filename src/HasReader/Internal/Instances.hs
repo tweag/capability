@@ -31,7 +31,6 @@ import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import GHC.Exts (Proxy#)
-import GHC.Generics (Generic)
 
 import Accessors
 import HasReader.Internal.Class
@@ -135,7 +134,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic record, Generic.HasField' field record v, HasReader tag record m )
+  ( Generic.HasField' field record v, HasReader tag record m )
   => HasReader tag v (Field field m)
   where
     ask_ _ = coerce @(m v) $
@@ -158,7 +157,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasPosition'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic struct, Generic.HasPosition' pos struct v, HasReader tag struct m )
+  ( Generic.HasPosition' pos struct v, HasReader tag struct m )
   => HasReader tag v (Pos pos m)
   where
     ask_ _ = coerce @(m v) $
