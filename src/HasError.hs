@@ -19,6 +19,7 @@ module HasError
   , throw
   , HasCatch (..)
   , catch
+  , catchJust
   , MonadThrow (..)
   , MonadCatch (..)
   , SafeExceptions (..)
@@ -27,7 +28,8 @@ module HasError
   ) where
 
 import qualified Control.Exception.Safe as Safe
-import Control.Lens (review)
+import Control.Lens (preview, review)
+import Control.Monad ((<=<))
 import qualified Control.Monad.Catch as Catch
 import qualified Control.Monad.Except as Except
 import Control.Monad.IO.Class (MonadIO)
@@ -62,11 +64,20 @@ throw = throw_ (proxy# @_ @tag)
 class HasCatch (tag :: k) (e :: *) (m :: * -> *) where
   -- | Use 'catch' instead.
   catch_ :: Proxy# tag -> m a -> (e -> m a) -> m a
+  -- | Use 'catchJust' instead.
+  catchJust_ :: Proxy# tag -> (e -> Maybe b) -> m a -> (b -> m a) -> m a
 
 -- | Provide a handler for exceptions thrown in the given action.
 catch :: forall tag e m a. HasCatch tag e m => m a -> (e -> m a) -> m a
 catch = catch_ (proxy# @_ @tag)
 {-# INLINE catch #-}
+
+-- | Like 'catch', but only handle the exception if the provided function
+-- returns 'Just'.
+catchJust :: forall tag e m a b. HasCatch tag e m
+  => (e -> Maybe b) -> m a -> (b -> m a) -> m a
+catchJust = catchJust_ (proxy# @_ @tag)
+{-# INLINE catchJust #-}
 
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
@@ -78,13 +89,27 @@ newtype MonadError m (a :: *) = MonadError (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance Except.MonadError e m => HasThrow tag e (MonadError m) where
   throw_ :: forall a. Proxy# tag -> e -> MonadError m a
-  throw_ _ = coerce @(e -> m a) $ Except.throwError
+  throw_ _ = coerce @(e -> m a) $
+    -- Note, the use of @Except.throwError@ here must match that in
+    -- @MonadCatch@'s @catchJust_@ below.
+    Except.throwError
   {-# INLINE throw_ #-}
 instance Except.MonadError e m => HasCatch tag e (MonadError m) where
   catch_ :: forall a.
     Proxy# tag -> MonadError m a -> (e -> MonadError m a) -> MonadError m a
   catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ Except.catchError
   {-# INLINE catch_ #-}
+  catchJust_ :: forall a b.
+    Proxy# tag
+    -> (e -> Maybe b)
+    -> MonadError m a
+    -> (b -> MonadError m a)
+    -> MonadError m a
+  catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+    -- Note, the use of @Except.throwError@ here must match that in
+    -- @MonadThrow@'s @throw_@ above.
+    \f m h -> Except.catchError m $ \e -> maybe (Except.throwError e) h $ f e
+  {-# INLINE catchJust_ #-}
 
 
 -- | Derive 'HasThrow' from @m@'s 'Control.Monad.Catch.MonadThrow' instance.
@@ -108,6 +133,15 @@ instance (Catch.Exception e, Catch.MonadCatch m)
       Proxy# tag -> MonadCatch m a -> (e -> MonadCatch m a) -> MonadCatch m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ Catch.catch
     {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# tag
+      -> (e -> Maybe b)
+      -> MonadCatch m a
+      -> (b -> MonadCatch m a)
+      -> MonadCatch m a
+    catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+      Catch.catchJust
+    {-# INLINE catchJust_ #-}
 
 
 -- | Derive 'HasError' using the functionality from the @safe-exceptions@
@@ -130,6 +164,15 @@ instance (Safe.Exception e, Safe.MonadCatch m)
       -> SafeExceptions m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ Safe.catch
     {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# tag
+      -> (e -> Maybe b)
+      -> SafeExceptions m a
+      -> (b -> SafeExceptions m a)
+      -> SafeExceptions m a
+    catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+      Safe.catchJust
+    {-# INLINE catchJust_ #-}
 
 
 -- | Derive 'HasError' using the functionality from the @unliftio@ package.
@@ -151,6 +194,15 @@ instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
       -> MonadUnliftIO m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ UnliftIO.catch
     {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# tag
+      -> (e -> Maybe b)
+      -> MonadUnliftIO m a
+      -> (b -> MonadUnliftIO m a)
+      -> MonadUnliftIO m a
+    catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+      UnliftIO.catchJust
+    {-# INLINE catchJust_ #-}
 
 
 -- | Wrap the exception @e@ with the constructor @ctor@ to throw an exception
@@ -173,12 +225,20 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@. This could
   -- be avoided by instead placing @AsConstructor'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  (Generic.AsConstructor' ctor sum e, HasThrow tag sum m)
+  (Generic.AsConstructor' ctor sum e, HasCatch tag sum m)
   => HasCatch tag e (Ctor ctor m)
   where
     catch_ :: forall a.
       Proxy# tag -> Ctor ctor m a -> (e -> Ctor ctor m a) -> Ctor ctor m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $
-      -- XXX: We need a capability like @catchJust@ to implement this.
-      undefined
+      catchJust @tag @sum $ preview (Generic._Ctor' @ctor @sum)
     {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# tag
+      -> (e -> Maybe b)
+      -> Ctor ctor m a
+      -> (b -> Ctor ctor m a)
+      -> Ctor ctor m a
+    catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $ \f ->
+      catchJust @tag @sum $ f <=< preview (Generic._Ctor' @ctor @sum)
+    {-# INLINE catchJust_ #-}
