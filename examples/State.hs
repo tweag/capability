@@ -9,10 +9,13 @@
 -- | Example uses and instances of the @HasState@ capability.
 module State where
 
+import Control.Monad.Reader (ReaderT (..))
 import Control.Monad.State.Strict (State, StateT (..), runState)
+import Data.IORef
 import GHC.Generics (Generic)
 import Test.Hspec
 
+import HasReader
 import HasState
 
 
@@ -29,24 +32,32 @@ twoStates = do
 -- Instances
 
 data TwoStates = TwoStates
-  { tsFoo :: Int
-  , tsBar :: Int
-  } deriving (Eq, Generic, Show)
+  { tsFoo :: IORef Int
+  , tsBar :: IORef Int
+  } deriving Generic
 
--- | Deriving two @HasState@ instances from the record fields of one
--- @MonadState@.
-newtype TwoStatesM a = TwoStatesM (State TwoStates a)
+-- | Deriving @HasState@ from @HasReader@ of an @IORef@.
+--
+-- In this case two separate state capabilities are derived from the record
+-- fields of the @HasReader@ context.
+newtype TwoStatesM a = TwoStatesM (ReaderT TwoStates IO a)
   deriving (Functor, Applicative, Monad)
   deriving (HasState "foo" Int) via
-    Field "tsFoo" (MonadState (State TwoStates))
+    ReaderIORef (Field "tsFoo" (MonadReader (ReaderT TwoStates IO)))
   deriving (HasState "bar" Int) via
-    Field "tsBar" (MonadState (State TwoStates))
+    ReaderIORef (Field "tsBar" (MonadReader (ReaderT TwoStates IO)))
 
-runTwoStatesM :: TwoStatesM a -> (a, TwoStates)
-runTwoStatesM (TwoStatesM m) = runState m TwoStates
-  { tsFoo = 0
-  , tsBar = 0
-  }
+runTwoStatesM :: TwoStatesM a -> IO (a, (Int, Int))
+runTwoStatesM (TwoStatesM m) = do
+  fooRef <- newIORef 0
+  barRef <- newIORef 0
+  result <- runReaderT m TwoStates
+    { tsFoo = fooRef
+    , tsBar = barRef
+    }
+  fooVal <- readIORef fooRef
+  barVal <- readIORef barRef
+  pure (result, (fooVal, barVal))
 
 
 -- | Deriving two @HasState@ instances from the components of a tuple in
@@ -83,10 +94,10 @@ spec :: Spec
 spec = do
   describe "TwoStatesM" $
     it "evaluates twoStates" $
-      runTwoStatesM twoStates `shouldBe` ((), TwoStates 1 (-1))
+      runTwoStatesM twoStates `shouldReturn` ((), (1, -1))
   describe "PairStateM" $
     it "evaluates twoStates" $
-      runPairStateM twoStates `shouldBe` ((), (1, (-1)))
+      runPairStateM twoStates `shouldBe` ((), (1, -1))
   describe "NestedStatesM" $
     it "evaluates twoStates" $
-      runNestedStatesM twoStates `shouldBe` (((), 1), (-1))
+      runNestedStatesM twoStates `shouldBe` (((), 1), -1)
