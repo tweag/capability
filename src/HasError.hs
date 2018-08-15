@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module HasError
   ( HasError
@@ -21,17 +23,22 @@ module HasError
   , MonadCatch (..)
   , SafeExceptions (..)
   , MonadUnliftIO (..)
+  , module Accessors
   ) where
 
 import qualified Control.Exception.Safe as Safe
+import Control.Lens (review)
 import qualified Control.Monad.Catch as Catch
 import qualified Control.Monad.Except as Except
 import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.IO.Unlift as UnliftIO
 import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
+import qualified Data.Generics.Sum.Constructors as Generic
 import GHC.Exts (Proxy#, proxy#)
 import qualified UnliftIO.Exception as UnliftIO
+
+import Accessors
 
 
 class (HasThrow tag e m, HasCatch tag e m) => HasError tag e m
@@ -143,4 +150,35 @@ instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
       -> (e -> MonadUnliftIO m a)
       -> MonadUnliftIO m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ UnliftIO.catch
+    {-# INLINE catch_ #-}
+
+
+-- | Wrap the exception @e@ with the constructor @ctor@ to throw an exception
+-- of type @sum@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@. This could
+  -- be avoided by instead placing @AsConstructor'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  (Generic.AsConstructor' ctor sum e, HasThrow tag sum m)
+  => HasThrow tag e (Ctor ctor m)
+  where
+    throw_ :: forall a. Proxy# tag -> e -> Ctor ctor m a
+    throw_ _ = coerce @(e -> m a) $
+      throw @tag . review (Generic._Ctor' @ctor @sum)
+    {-# INLINE throw_ #-}
+
+
+-- | Catch an exception of type @sum@ if its constructor matches @ctor@.
+instance
+  -- The constraint raises @-Wsimplifiable-class-constraints@. This could
+  -- be avoided by instead placing @AsConstructor'@s constraints here.
+  -- Unfortunately, it uses non-exported symbols from @generic-lens@.
+  (Generic.AsConstructor' ctor sum e, HasThrow tag sum m)
+  => HasCatch tag e (Ctor ctor m)
+  where
+    catch_ :: forall a.
+      Proxy# tag -> Ctor ctor m a -> (e -> Ctor ctor m a) -> Ctor ctor m a
+    catch_ _ = coerce @(m a -> (e -> m a) -> m a) $
+      -- XXX: We need a capability like @catchJust@ to implement this.
+      undefined
     {-# INLINE catch_ #-}
