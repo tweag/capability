@@ -24,12 +24,10 @@ import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef
-import Data.Monoid (Sum (..))
 import GHC.Generics (Generic)
 
 import HasReader
 import HasState
-import HasWriter
 
 
 ----------------------------------------------------------------------
@@ -216,42 +214,3 @@ newtype NestedStatesM a = NestedStatesM (StateT Int (State Int) a)
 
 runNestedStatesM :: NestedStatesM a -> ((a, Int), Int)
 runNestedStatesM (NestedStatesM m) = runState (runStateT m 0) 0
-
-
-----------------------------------------------------------------------
--- Writer Monad
-
--- Example programs --------------------------------------------------
-
--- | Increase a counter using a writer monad.
-useWriter :: HasWriter "count" (Sum Int) m => m ()
-useWriter = do
-  tell @"count" 1
-  tell @"count" 2
-  tell @"count" 3
-
--- | Mix writer and state monad operations on the same tag.
---
--- Note, this is probably inadvisable in real applications and just here to
--- demonstrate that it is possible.
-mixWriterState
-  :: (HasState "count" Int m, HasWriter "count" (Sum Int) m)
-  => m Int
-mixWriterState = do
-  tell @"count" 1
-  one <- get @"count"
-  tell @"count" $ Sum one
-  pure one
-
--- StateT instance ---------------------------------------------------
-
-newtype WriterM a = WriterM (State Int a)
-  deriving (Functor, Applicative, Monad)
-  deriving (HasWriter "count" (Sum Int))
-    via WriterLog (Coerce (Sum Int) (MonadState (State Int)))
-  -- See caveat on 'mixWriterState'.
-  deriving (HasState "count" Int)
-    via MonadState (State Int)
-
-runWriterM :: WriterM a -> (a, Int)
-runWriterM (WriterM m) = runState m 0

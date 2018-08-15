@@ -73,6 +73,7 @@ test-suite examples
   other-modules:       Reader
                        Stream
                        Test.Common
+                       Writer
   main-is:             Test.hs
   build-depends:       base
                      , capabilities-via
