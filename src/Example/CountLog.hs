@@ -20,19 +20,15 @@ import Control.Monad.IO.Class
 import Control.Monad.Reader (ReaderT (..), runReaderT)
 -- The @StateT@ constructor has to be imported even though it is not used
 -- explicitly. Otherwise, the deriving via of @Counter CounterM@ would fail.
-import Control.Monad.State.Strict (State, StateT (..), evalStateT, runState)
+import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef
 import Data.Monoid (Sum (..))
-import qualified Data.Set as Set
 import GHC.Generics (Generic)
-import Streaming (Stream, Of)
-import qualified Streaming.Prelude as S
 
 import HasReader
 import HasState
-import HasStream
 import HasWriter
 
 
@@ -259,59 +255,3 @@ newtype WriterM a = WriterM (State Int a)
 
 runWriterM :: WriterM a -> (a, Int)
 runWriterM (WriterM m) = runState m 0
-
-
-----------------------------------------------------------------------
--- Streaming Capability
-
--- Example program ---------------------------------------------------
-
-iota :: HasStream "nums" Int m => Int -> m ()
-iota n
-  | n < 0 = error "negative number passed to iota."
-  | otherwise = go 0
-  where
-    go i
-      | i == n = pure ()
-      | otherwise = yield @"nums" i >> go (succ i)
-
-labelledNodes
-  :: (HasState "counter" Int m, HasStream "out" (Int, a) m, Foldable t)
-  => t a -> m ()
-labelledNodes = mapM_ $ \a -> do
-  n <- state @"counter" $ \n -> (n, succ n)
-  yield @"out" (n, a)
-
--- StateT instance ---------------------------------------------------
-
-newtype StreamAccM a = StreamAccM (State [Int] a)
-  deriving (Functor, Applicative, Monad)
-  deriving (HasStream "nums" Int) via
-    StreamStack (MonadState (State [Int]))
-
-runStreamAccM :: StreamAccM a -> (a, [Int])
-runStreamAccM (StreamAccM m) = runState m []
-
--- Stream instance ---------------------------------------------------
-
-printStreamOfInt :: Stream (Of Int) IO () -> IO ()
-printStreamOfInt = S.stdoutLn . S.map show
-
--- StateT Stream instance --------------------------------------------
-
-newtype StateOverStream a =
-  StateOverStream (StateT Int (Stream (Of (Int, Char)) IO) a)
-  deriving (Functor, Applicative, Monad)
-  deriving (HasState "counter" Int) via
-    MonadState (StateT Int (Stream (Of (Int, Char)) IO))
-  deriving (HasStream "out" (Int, Char)) via
-    Lift (StateT Int (Stream (Of (Int, Char)) IO))
-
-printStateOverStream :: StateOverStream () -> IO ()
-printStateOverStream (StateOverStream m) = do
-  S.stdoutLn . S.map show $ evalStateT m 0
-
-printLabelledNodes :: IO ()
-printLabelledNodes =
-  printStateOverStream $ labelledNodes $
-    Set.fromList "Hello world!"
