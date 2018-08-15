@@ -12,10 +12,11 @@ module Reader where
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import GHC.Generics (Generic)
-import System.IO.Silently (capture_)
 import Test.Hspec
 
 import HasReader
+
+import Test.Common
 
 
 ----------------------------------------------------------------------
@@ -105,15 +106,3 @@ spec = do
       runBadFooBarReader fooExample `shouldPrint` "3\n6\n"
     it "evaluates fooBarExample" $
       runBadFooBarReader fooBarExample `shouldNotPrint` "4\n3\n"
-
-
-shouldPrint :: IO a -> String -> IO ()
-shouldPrint action expected = do
-  actual <- capture_ action
-  actual `shouldBe` expected
-
-
-shouldNotPrint :: IO a -> String -> IO ()
-shouldNotPrint action expected = do
-  actual <- capture_ action
-  actual `shouldNotBe` expected
