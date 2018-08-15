@@ -73,6 +73,7 @@ library
 test-suite examples
   type:                exitcode-stdio-1.0
   other-modules:       CountLog
+                       Error
                        Reader
                        State
                        Stream
