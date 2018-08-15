@@ -93,20 +93,27 @@ runBadFooBarReader (BadFooBarReader m) = runReaderT m 1
 spec :: Spec
 spec = do
   describe "FooReaderT" $
-    it "evaluates fooExample" $ do
-      output <- capture_ (runFooReaderT fooExample)
-      output `shouldBe` "3\n6\n"
+    it "evaluates fooExample" $
+      runFooReaderT fooExample `shouldPrint` "3\n6\n"
   describe "FooBarReader" $ do
-    it "evaluates fooExample" $ do
-      output <- capture_ (runFooBarReader fooExample)
-      output `shouldBe` "3\n6\n"
-    it "evaluates fooBarExample" $ do
-      output <- capture_ (runFooBarReader fooBarExample)
-      output `shouldBe` "4\n3\n"
+    it "evaluates fooExample" $
+      runFooBarReader fooExample `shouldPrint` "3\n6\n"
+    it "evaluates fooBarExample" $
+      runFooBarReader fooBarExample `shouldPrint` "4\n3\n"
   describe "BadFooBarReader" $ do
-    it "evaluates fooExample" $ do
-      output <- capture_ (runBadFooBarReader fooExample)
-      output `shouldBe` "3\n6\n"
-    it "evaluates fooBarExample" $ do
-      output <- capture_ (runBadFooBarReader fooBarExample)
-      output `shouldNotBe` "4\n3\n"
+    it "evaluates fooExample" $
+      runBadFooBarReader fooExample `shouldPrint` "3\n6\n"
+    it "evaluates fooBarExample" $
+      runBadFooBarReader fooBarExample `shouldNotPrint` "4\n3\n"
+
+
+shouldPrint :: IO a -> String -> IO ()
+shouldPrint action expected = do
+  actual <- capture_ action
+  actual `shouldBe` expected
+
+
+shouldNotPrint :: IO a -> String -> IO ()
+shouldNotPrint action expected = do
+  actual <- capture_ action
+  actual `shouldNotBe` expected
