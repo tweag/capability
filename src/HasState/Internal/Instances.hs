@@ -45,9 +45,12 @@ newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance State.MonadState s m => HasState tag s (MonadState m) where
   get_ _ = coerce @(m s) State.get
+  {-# INLINE get_ #-}
   put_ _ = coerce @(s -> m ()) State.put
+  {-# INLINE put_ #-}
   state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> MonadState m a
   state_ _ = coerce @((s -> (a, s)) -> m a) State.state
+  {-# INLINE state_ #-}
 
 
 -- | Convert the state using safe coercion.
@@ -57,9 +60,12 @@ instance
   => HasState tag to (Coerce to m)
   where
     get_ tag = coerce @(m from) $ get_ tag
+    {-# INLINE get_ #-}
     put_ tag = coerce @(from -> m ()) $ put_ tag
+    {-# INLINE put_ #-}
     state_ :: forall a. Proxy# tag -> (to -> (a, to)) -> Coerce to m a
     state_ tag = coerce @((from -> (a, from)) -> m a) $ state_ tag
+    {-# INLINE state_ #-}
 
 
 -- | Zoom in on the record field @field@ of type @v@ in the state @record@.
@@ -72,11 +78,14 @@ instance
   where
     get_ _ = coerce @(m v) $
       gets @tag $ view (Generic.field' @field)
+    {-# INLINE get_ #-}
     put_ _ = coerce @(v -> m ()) $
       modify @tag . set (Generic.field' @field @record)
+    {-# INLINE put_ #-}
     state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Field field m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
       state @tag . Generic.field' @field @_ @_ @((,) a)
+    {-# INLINE state_ #-}
 
 
 -- | Zoom in on the field at position @pos@ of type @v@ in the state @struct@.
@@ -89,11 +98,14 @@ instance
   where
     get_ _ = coerce @(m v) $
       gets @tag $ view (Generic.position' @pos)
+    {-# INLINE get_ #-}
     put_ _ = coerce @(v -> m ()) $
       modify @tag . set (Generic.position' @pos @struct)
+    {-# INLINE put_ #-}
     state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Pos pos m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
       state @tag . Generic.position' @pos @_ @_ @((,) a)
+    {-# INLINE state_ #-}
 
 
 -- | Lift one layer in a monad transformer stack.
@@ -101,9 +113,12 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
   => HasState tag s (Lift (t m))
   where
     get_ _ = coerce $ lift @t @m $ get @tag @s
+    {-# INLINE get_ #-}
     put_ _ = coerce $ lift @t @m . put @tag @s
+    {-# INLINE put_ #-}
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Lift (t m) a
     state_ _ = coerce $ lift @t @m . state @tag @s @m @a
+    {-# INLINE state_ #-}
 
 
 -- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
@@ -125,14 +140,17 @@ instance
     get_ _ = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ readIORef ref
+    {-# INLINE get_ #-}
     put_ _ v = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ writeIORef ref v
+    {-# INLINE put_ #-}
     state_ _ f = ReaderIORef $ do
       ref <- ask @tag
       liftIO $ atomicModifyIORef' ref (swap . f)
       where
         swap (a, b) = (b, a)
+    {-# INLINE state_ #-}
 
 
 -- | Derive a state monad from a reader over a mutable reference.
@@ -161,12 +179,15 @@ instance
     get_ _ = ReaderRef $ do
       ref <- ask @tag
       readRef ref
+    {-# INLINE get_ #-}
     put_ _ v = ReaderRef $ do
       ref <- ask @tag
       writeRef ref v
+    {-# INLINE put_ #-}
     state_ _ f = ReaderRef $ do
       ref <- ask @tag
       s <- readRef ref
       let (a, s') = f s
       writeRef ref s'
       pure a
+    {-# INLINE state_ #-}

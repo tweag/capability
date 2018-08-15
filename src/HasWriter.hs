@@ -57,15 +57,19 @@ class (Monoid w, Monad m)
 
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
 writer = writer_ (proxy# @_ @tag)
+{-# INLINE writer #-}
 
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
 tell = tell_ (proxy# @_ @tag)
+{-# INLINE tell #-}
 
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
 listen = listen_ (proxy# @_ @tag)
+{-# INLINE listen #-}
 
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
+{-# INLINE pass #-}
 
 
 newtype WriterLog m a = WriterLog (m a)
@@ -74,7 +78,9 @@ instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)
   where
     writer_ tag (a, w) = tell_ tag w >> pure a
+    {-# INLINE writer_ #-}
     tell_ _ w = coerce @(m ()) $ modify' @tag (<> w)
+    {-# INLINE tell_ #-}
     listen_ :: forall a. Proxy# tag -> WriterLog m a -> WriterLog m (a, w)
     listen_ _ m = coerce @(m (a, w)) $ do
       w0 <- get @tag
@@ -83,6 +89,7 @@ instance (Monoid w, HasState tag w m)
       w <- get @tag
       put @tag $! w0 <> w
       pure (a, w)
+    {-# INLINE listen_ #-}
     pass_ :: forall a. Proxy# tag -> WriterLog m (a, w -> w) -> WriterLog m a
     pass_ _ m = coerce @(m a) $ do
       w0 <- get @tag
@@ -91,3 +98,4 @@ instance (Monoid w, HasState tag w m)
       w <- get @tag
       put @tag $! w0 <> f w
       pure a
+    {-# INLINE pass_ #-}

@@ -44,11 +44,14 @@ newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   ask_ _ = coerce @(m r) Reader.ask
+  {-# INLINE ask_ #-}
   local_
     :: forall a. Proxy# tag -> (r -> r) -> MonadReader m a -> MonadReader m a
   local_ _ = coerce @((r -> r) -> m a -> m a) Reader.local
+  {-# INLINE local_ #-}
   reader_ :: forall a. Proxy# tag -> (r -> a) -> MonadReader m a
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
+  {-# INLINE reader_ #-}
 
 
 -- | Convert a /pure/ state monad into a reader monad.
@@ -70,13 +73,16 @@ newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
   deriving (Functor, Applicative, Monad)
 instance HasState tag r m => HasReader tag r (ReadStatePure m) where
   ask_ _ = coerce @(m r) $ get @tag
+  {-# INLINE ask_ #-}
   local_ :: forall a.
     Proxy# tag -> (r -> r) -> ReadStatePure m a -> ReadStatePure m a
   local_ _ f = coerce @(m a -> m a) $ \m -> do
     r <- state @tag $ \r -> (r, f r)
     m <* put @tag r
+  {-# INLINE local_ #-}
   reader_ :: forall a. Proxy# tag -> (r -> a) -> ReadStatePure m a
   reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
+  {-# INLINE reader_ #-}
 
 
 -- | Convert a state monad into a reader monad.
@@ -91,6 +97,7 @@ instance
   => HasReader tag r (ReadState m)
   where
     ask_ _ = coerce @(m r) $ get @tag
+    {-# INLINE ask_ #-}
     local_ :: forall a.
       Proxy# tag -> (r -> r) -> ReadState m a -> ReadState m a
     local_ _ f = coerce @(m a -> m a) $ \action ->
@@ -99,8 +106,10 @@ instance
         restore r = put @tag r
       in
       bracket setAndSave restore $ \_ -> action
+    {-# INLINE local_ #-}
     reader_ :: forall a. Proxy# tag -> (r -> a) -> ReadState m a
     reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
+    {-# INLINE reader_ #-}
 
 
 -- | Convert the environment using safe coercion.
@@ -110,11 +119,14 @@ instance
   => HasReader tag to (Coerce to m)
   where
     ask_ tag = coerce @(m from) $ ask_ tag
+    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (to -> to) -> Coerce to m a -> Coerce to m a
     local_ tag = coerce @((from -> from) -> m a -> m a) $ local_ tag
+    {-# INLINE local_ #-}
     reader_ :: forall a. Proxy# tag -> (to -> a) -> Coerce to m a
     reader_ tag = coerce @((from -> a) -> m a) $ reader_ tag
+    {-# INLINE reader_ #-}
 
 
 -- | Zoom in on the record field @field@ of type @v@
@@ -128,13 +140,16 @@ instance
   where
     ask_ _ = coerce @(m v) $
       asks @tag $ view (Generic.field' @field)
+    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (v -> v) -> Field field m a -> Field field m a
     local_ tag = coerce @((v -> v) -> m a -> m a) $
       local_ tag . over (Generic.field' @field)
+    {-# INLINE local_ #-}
     reader_ :: forall a. Proxy# tag -> (v -> a) -> Field field m a
     reader_ tag f = coerce @(m a) $
       reader_ tag $ f . view (Generic.field' @field)
+    {-# INLINE reader_ #-}
 
 
 -- | Zoom in on the field at position @pos@ of type @v@
@@ -148,13 +163,16 @@ instance
   where
     ask_ _ = coerce @(m v) $
       asks @tag $ view (Generic.position' @pos)
+    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (v -> v) -> Pos pos m a -> Pos pos m a
     local_ tag = coerce @((v -> v) -> m a -> m a) $
       local_ tag . over (Generic.position' @pos)
+    {-# INLINE local_ #-}
     reader_ :: forall a. Proxy# tag -> (v -> a) -> Pos pos m a
     reader_ tag f = coerce @(m a) $
       reader_ tag $ f . view (Generic.position' @pos)
+    {-# INLINE reader_ #-}
 
 
 -- | Lift one layer in a monad transformer stack.
@@ -162,9 +180,12 @@ instance (HasReader tag r m, MonadTransControl t, Monad (t m))
   => HasReader tag r (Lift (t m))
   where
     ask_ _ = coerce $ lift @t @m $ ask @tag @r
+    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (r -> r) -> Lift (t m) a -> Lift (t m) a
     local_ _ f = coerce @(t m a -> t m a) $
       \m -> liftWith (\run -> local @tag f $ run m) >>= restoreT . pure
+    {-# INLINE local_ #-}
     reader_ :: forall a. Proxy# tag -> (r -> a) -> Lift (t m) a
     reader_ _ = coerce @((r -> a) -> t m a) $ lift . reader @tag
+    {-# INLINE reader_ #-}

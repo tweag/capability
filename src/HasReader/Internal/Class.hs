@@ -28,12 +28,16 @@ class Monad m
 
 ask :: forall tag r m. HasReader tag r m => m r
 ask = ask_ (proxy# @_ @tag)
+{-# INLINE ask #-}
 
 asks :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 asks f = f <$> ask @tag
+{-# INLINE asks #-}
 
 local :: forall tag r m a. HasReader tag r m => (r -> r) -> m a -> m a
 local = local_ (proxy# @_ @tag)
+{-# INLINE local #-}
 
 reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 reader = reader_ (proxy# @_ @tag)
+{-# INLINE reader #-}
