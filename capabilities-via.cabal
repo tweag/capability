@@ -46,11 +46,11 @@ library
                        ScopedTypeVariables
                        StandaloneDeriving
                        TypeApplications
+                       TypeFamilies
                        TypeInType
+                       UnboxedTuples
                        UndecidableInstances
   build-depends:       base >=4.10 && <4.13
-                     , containers
-                     , deriving-compat
                      , exceptions
                      , dlist
                      , generic-lens
@@ -60,7 +60,6 @@ library
                      , mtl
                      , mutable-containers
                      , primitive
-                     , roles
                      , streaming
                      , transformers
   ghc-options:         -Wall
