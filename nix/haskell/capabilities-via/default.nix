@@ -1,6 +1,7 @@
 { mkDerivation, base, containers, dlist, exceptions, generic-lens
 , hspec, lens, monad-control, monad-unlift, mtl, mutable-containers
-, primitive, silently, stdenv, streaming, transformers
+, primitive, safe-exceptions, silently, stdenv, streaming
+, transformers, unliftio, unliftio-core
 }:
 mkDerivation {
   pname = "capabilities-via";
@@ -8,7 +9,8 @@ mkDerivation {
   src = ../../..;
   libraryHaskellDepends = [
     base dlist exceptions generic-lens lens monad-control monad-unlift
-    mtl mutable-containers primitive streaming transformers
+    mtl mutable-containers primitive safe-exceptions streaming
+    transformers unliftio unliftio-core
   ];
   testHaskellDepends = [
     base containers hspec mtl silently streaming
