@@ -71,6 +71,7 @@ library
 test-suite examples
   type:                exitcode-stdio-1.0
   other-modules:       Reader
+                       State
                        Stream
                        Test.Common
                        Writer
