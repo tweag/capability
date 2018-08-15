@@ -14,7 +14,8 @@
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Example.CountLog where
+-- | Demonstrates how to derive user-defined capabilities using this library.
+module CountLog where
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader (ReaderT (..), runReaderT)
@@ -25,9 +26,12 @@ import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef
 import GHC.Generics (Generic)
+import Test.Hspec
 
 import HasReader
 import HasState
+
+import Test.Common
 
 
 ----------------------------------------------------------------------
@@ -65,6 +69,7 @@ loudLogger :: LogCtx
 loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 
+-- | Deriving @HasReader@ from @MonadReader@.
 newtype LogM m (a :: *) = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Logger via
@@ -100,6 +105,7 @@ doubleCount = count >> count
 
 -- StateT instance ---------------------------------------------------
 
+-- | Deriving @HasState@ from @MonadState@.
 newtype CounterM a = CounterM (State Int a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
@@ -110,6 +116,7 @@ runCounterM (CounterM m) = runState m 0
 
 -- ReaderT IORef instance --------------------------------------------
 
+-- | Deriving @HasState@ from @HasReader@ of an @IORef@.
 newtype Counter'M m (a :: *) = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
@@ -138,14 +145,12 @@ data CountLogCtx = CountLogCtx
   } deriving Generic
 
 
+-- | Deriving two capabilities from the record fields of @MonadReader@.
 newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     TheCounterState (ReaderIORef (Field "countCtx"
     (MonadReader (ReaderT CountLogCtx m))))
-  -- XXX: This requires @Field@ and @MonadReader@ to have @MonadIO@ instances.
-  --   That seems anti-modular - if a user-defined constraint is required,
-  --   they may have to add orphan instances for @Field@ and @MonadReader@.
   deriving Logger via
     (TheLoggerReader (Field "logger" (Field "logCtx"
     (MonadReader (ReaderT CountLogCtx m)))))
@@ -157,3 +162,30 @@ runCountLogM (CountLogM m) = do
     { countCtx = ref
     , logCtx = regularLogger
     }
+
+
+----------------------------------------------------------------------
+-- Test Cases
+
+spec :: Spec
+spec = do
+  describe "LogM" $ do
+    context "regularLogger" $
+      it "evaluates logNum" $
+        runLogM regularLogger (logNum 8) `shouldPrint` "num: 8\n"
+    context "loudLogger" $
+      it "evaluates logNum" $
+        runLogM loudLogger (logNum 8) `shouldPrint` "NUM: 8\n"
+  describe "CounterM" $
+    it "evaluates doubleCount" $
+      runCounterM doubleCount `shouldBe` (2, 2)
+  describe "Counter'M" $
+    it "evaluates doubleCount" $
+      runCounter'M doubleCount `shouldReturn` 2
+  describe "CountLogM" $ do
+    it "evaluates logNum" $
+      runCountLogM (logNum 8) `shouldPrint` "num: 8\n"
+    it "evaluates doubleCount" $
+      runCountLogM doubleCount `shouldReturn` 2
+    it "evaluates mixed" $
+      runCountLogM mixed `shouldPrint` "num: 2\nnum: 4\n"

@@ -17,8 +17,7 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Example.CountLog
-                       Accessors
+  exposed-modules:     Accessors
                        HasReader
                        HasReader.Internal.Class
                        HasReader.Internal.Instances
@@ -70,7 +69,8 @@ library
 
 test-suite examples
   type:                exitcode-stdio-1.0
-  other-modules:       Reader
+  other-modules:       CountLog
+                       Reader
                        State
                        Stream
                        Test.Common
