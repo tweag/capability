@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
@@ -25,8 +26,11 @@ module HasError
   , SafeExceptions (..)
   , MonadUnliftIO (..)
   , module Accessors
+  , Exception (..)
+  , Typeable
   ) where
 
+import Control.Exception (Exception (..))
 import qualified Control.Exception.Safe as Safe
 import Control.Lens (preview, review)
 import Control.Monad ((<=<))
@@ -37,19 +41,24 @@ import qualified Control.Monad.IO.Unlift as UnliftIO
 import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
 import qualified Data.Generics.Sum.Constructors as Generic
+import Data.Typeable (Typeable)
 import GHC.Exts (Proxy#, proxy#)
 import qualified UnliftIO.Exception as UnliftIO
 
 import Accessors
 
 
-class (HasThrow tag e m, HasCatch tag e m) => HasError tag e m
+-- XXX: Using @HasError@ in application code raises a warning
+--   @-Wsimplifiable-class-constraints@.
+class (HasThrow tag e m, HasCatch tag e m) => HasError tag e m | tag m -> e
 instance (HasThrow tag e m, HasCatch tag e m) => HasError tag e m
 
 
-class HasThrow (tag :: k) (e :: *) (m :: * -> *) where
-  -- | Use 'throw' instead.
-  throw_ :: Proxy# tag -> e -> m a
+class Monad m
+  => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
+  where
+    -- | Use 'throw' instead.
+    throw_ :: Proxy# tag -> e -> m a
 
 -- | Throw an exception.
 throw :: forall tag e m a. HasThrow tag e m => e -> m a
@@ -61,11 +70,13 @@ throw = throw_ (proxy# @_ @tag)
 --   Or should we consider colliding tags on the same transformer illegal,
 --   the same way it is illegal in @HasReader@ or @HasState@?
 
-class HasCatch (tag :: k) (e :: *) (m :: * -> *) where
-  -- | Use 'catch' instead.
-  catch_ :: Proxy# tag -> m a -> (e -> m a) -> m a
-  -- | Use 'catchJust' instead.
-  catchJust_ :: Proxy# tag -> (e -> Maybe b) -> m a -> (b -> m a) -> m a
+class Monad m
+  => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
+  where
+    -- | Use 'catch' instead.
+    catch_ :: Proxy# tag -> m a -> (e -> m a) -> m a
+    -- | Use 'catchJust' instead.
+    catchJust_ :: Proxy# tag -> (e -> Maybe b) -> m a -> (b -> m a) -> m a
 
 -- | Provide a handler for exceptions thrown in the given action.
 catch :: forall tag e m a. HasCatch tag e m => m a -> (e -> m a) -> m a
@@ -113,32 +124,35 @@ instance Except.MonadError e m => HasCatch tag e (MonadError m) where
 
 
 -- | Derive 'HasThrow' from @m@'s 'Control.Monad.Catch.MonadThrow' instance.
-newtype MonadThrow m (a :: *) = MonadThrow (m a)
+newtype MonadThrow (e :: *) m (a :: *) = MonadThrow (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (Catch.Exception e, Catch.MonadThrow m)
-  => HasThrow tag e (MonadThrow m)
+  => HasThrow tag e (MonadThrow e m)
   where
-    throw_ :: forall a. Proxy# tag -> e -> MonadThrow m a
+    throw_ :: forall a. Proxy# tag -> e -> MonadThrow e m a
     throw_ _ = coerce @(e -> m a) $ Catch.throwM
     {-# INLINE throw_ #-}
 
 
 -- | Derive 'HasCatch from @m@'s 'Control.Monad.Catch.MonadCatch instance.
-newtype MonadCatch m (a :: *) = MonadCatch (m a)
+newtype MonadCatch (e :: *) m (a :: *) = MonadCatch (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (Catch.Exception e, Catch.MonadCatch m)
-  => HasCatch tag e (MonadCatch m)
+  => HasCatch tag e (MonadCatch e m)
   where
     catch_ :: forall a.
-      Proxy# tag -> MonadCatch m a -> (e -> MonadCatch m a) -> MonadCatch m a
+      Proxy# tag
+      -> MonadCatch e m a
+      -> (e -> MonadCatch e m a)
+      -> MonadCatch e m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ Catch.catch
     {-# INLINE catch_ #-}
     catchJust_ :: forall a b.
       Proxy# tag
       -> (e -> Maybe b)
-      -> MonadCatch m a
-      -> (b -> MonadCatch m a)
-      -> MonadCatch m a
+      -> MonadCatch e m a
+      -> (b -> MonadCatch e m a)
+      -> MonadCatch e m a
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
       Catch.catchJust
     {-# INLINE catchJust_ #-}
@@ -146,60 +160,60 @@ instance (Catch.Exception e, Catch.MonadCatch m)
 
 -- | Derive 'HasError' using the functionality from the @safe-exceptions@
 -- package.
-newtype SafeExceptions m (a :: *) = SafeExceptions (m a)
+newtype SafeExceptions (e :: *) m (a :: *) = SafeExceptions (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (Safe.Exception e, Safe.MonadThrow m)
-  => HasThrow tag e (SafeExceptions m)
+  => HasThrow tag e (SafeExceptions e m)
   where
-    throw_ :: forall a. Proxy# tag -> e -> SafeExceptions m a
+    throw_ :: forall a. Proxy# tag -> e -> SafeExceptions e m a
     throw_ _ = coerce @(e -> m a) $ Safe.throw
     {-# INLINE throw_ #-}
 instance (Safe.Exception e, Safe.MonadCatch m)
-  => HasCatch tag e (SafeExceptions m)
+  => HasCatch tag e (SafeExceptions e m)
   where
     catch_ :: forall a.
       Proxy# tag
-      -> SafeExceptions m a
-      -> (e -> SafeExceptions m a)
-      -> SafeExceptions m a
+      -> SafeExceptions e m a
+      -> (e -> SafeExceptions e m a)
+      -> SafeExceptions e m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ Safe.catch
     {-# INLINE catch_ #-}
     catchJust_ :: forall a b.
       Proxy# tag
       -> (e -> Maybe b)
-      -> SafeExceptions m a
-      -> (b -> SafeExceptions m a)
-      -> SafeExceptions m a
+      -> SafeExceptions e m a
+      -> (b -> SafeExceptions e m a)
+      -> SafeExceptions e m a
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
       Safe.catchJust
     {-# INLINE catchJust_ #-}
 
 
 -- | Derive 'HasError' using the functionality from the @unliftio@ package.
-newtype MonadUnliftIO m (a :: *) = MonadUnliftIO (m a)
+newtype MonadUnliftIO (e :: *) m (a :: *) = MonadUnliftIO (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (UnliftIO.Exception e, MonadIO m)
-  => HasThrow tag e (MonadUnliftIO m)
+  => HasThrow tag e (MonadUnliftIO e m)
   where
-    throw_ :: forall a. Proxy# tag -> e -> MonadUnliftIO m a
+    throw_ :: forall a. Proxy# tag -> e -> MonadUnliftIO e m a
     throw_ _ = coerce @(e -> m a) $ UnliftIO.throwIO
     {-# INLINE throw_ #-}
 instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
-  => HasCatch tag e (MonadUnliftIO m)
+  => HasCatch tag e (MonadUnliftIO e m)
   where
     catch_ :: forall a.
       Proxy# tag
-      -> MonadUnliftIO m a
-      -> (e -> MonadUnliftIO m a)
-      -> MonadUnliftIO m a
+      -> MonadUnliftIO e m a
+      -> (e -> MonadUnliftIO e m a)
+      -> MonadUnliftIO e m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ UnliftIO.catch
     {-# INLINE catch_ #-}
     catchJust_ :: forall a b.
       Proxy# tag
       -> (e -> Maybe b)
-      -> MonadUnliftIO m a
-      -> (b -> MonadUnliftIO m a)
-      -> MonadUnliftIO m a
+      -> MonadUnliftIO e m a
+      -> (b -> MonadUnliftIO e m a)
+      -> MonadUnliftIO e m a
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
       UnliftIO.catchJust
     {-# INLINE catchJust_ #-}
