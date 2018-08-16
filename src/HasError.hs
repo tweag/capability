@@ -205,7 +205,7 @@ instance
   => HasThrow (tag :: k) e (MonadUnliftIO e m)
   where
     throw_ :: forall a. Proxy# tag -> e -> MonadUnliftIO e m a
-    throw_ _ = coerce @(e -> m a) $ UnliftIO.throwIO
+    throw_ _ = coerce @(Tagged tag e -> m a) $ UnliftIO.throwIO
     {-# INLINE throw_ #-}
 instance
   ( Typeable k, Typeable tag, UnliftIO.Exception e, UnliftIO.MonadUnliftIO m )
