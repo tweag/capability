@@ -17,7 +17,7 @@
 module Error where
 
 import Control.Monad (when)
-import Control.Monad.Except (ExceptT (..))
+--import Control.Monad.Except (ExceptT (..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import GHC.Generics (Generic)
 import Test.Hspec
@@ -129,14 +129,14 @@ newtype Calculator a = Calculator { runCalculator :: IO a }
 
 -- | Deriving separate @HasThrow@ capabilities from different transformer
 -- layers.
-newtype MaybeEither a =
-  MaybeEither { runMaybeEither :: Maybe (Either String a) }
-  deriving (Functor, Applicative, Monad) via
-    ExceptT String Maybe
-  deriving (HasThrow "foo" String) via
-    MonadError (ExceptT String Maybe)
-  deriving (HasThrow "bar" ()) via
-    Lift (ExceptT String (MonadError Maybe))
+--newtype MaybeEither a =
+--  MaybeEither { runMaybeEither :: Maybe (Either String a) }
+--  deriving (Functor, Applicative, Monad) via
+--    ExceptT String Maybe
+--  deriving (HasThrow "foo" String) via
+--    MonadError (ExceptT (Tagged "foo" String) Maybe)
+--  deriving (HasThrow "bar" ()) via
+--    Lift (ExceptT String (MonadError Maybe))
 
 
 ----------------------------------------------------------------------
@@ -159,8 +159,8 @@ spec = do
       runCalculator calculator
         `withInput` input
         `shouldPrint` output
-  describe "MaybeEither" $
-    it "evaluates nested" $ do
-      runMaybeEither (nested 2) `shouldBe` Just (Right 2)
-      runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
-      runMaybeEither (nested 1) `shouldBe` Nothing
+  --describe "MaybeEither" $
+  --  it "evaluates nested" $ do
+  --    runMaybeEither (nested 2) `shouldBe` Just (Right 2)
+  --    runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
+  --    runMaybeEither (nested 1) `shouldBe` Nothing
