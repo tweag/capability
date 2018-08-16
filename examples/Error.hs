@@ -153,14 +153,14 @@ newtype Calculator a = Calculator { runCalculator :: IO a }
 
 -- | Deriving separate @HasThrow@ capabilities from different transformer
 -- layers.
---newtype MaybeEither a =
---  MaybeEither { runMaybeEither :: Maybe (Either String a) }
---  deriving (Functor, Applicative, Monad) via
---    ExceptT String Maybe
---  deriving (HasThrow "foo" String) via
---    MonadError (ExceptT (Tagged "foo" String) Maybe)
---  deriving (HasThrow "bar" ()) via
---    Lift (ExceptT String (MonadError Maybe))
+newtype MaybeEither a =
+  MaybeEither { runMaybeEither :: Maybe (Either String a) }
+  deriving (Functor, Applicative, Monad) via
+    ExceptT String Maybe
+  deriving (HasThrow "foo" String) via
+    MonadError (ExceptT String Maybe)
+  deriving (HasThrow "bar" ()) via
+    Lift (ExceptT String (MonadError Maybe))
 
 
 newtype OverlapIO a = OverlapIO { runOverlapIO :: IO a }
@@ -223,11 +223,11 @@ spec = do
       runCalculator calculator
         `withInput` input
         `shouldPrint` output
-  --describe "MaybeEither" $
-  --  it "evaluates nested" $ do
-  --    runMaybeEither (nested 2) `shouldBe` Just (Right 2)
-  --    runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
-  --    runMaybeEither (nested 1) `shouldBe` Nothing
+  describe "MaybeEither" $
+    it "evaluates nested" $ do
+      runMaybeEither (nested 2) `shouldBe` Just (Right 2)
+      runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
+      runMaybeEither (nested 1) `shouldBe` Nothing
   describe "OverlapIO" $
     it "evaluates overlap" $
       runOverlapIO overlap `shouldReturn` "caught in foo thrown in foo"
