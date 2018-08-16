@@ -6,12 +6,18 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Example uses and instances of the @HasError@ capability.
 module Error where
 
+import Control.Monad (when)
+import Control.Monad.Except (ExceptT (..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import GHC.Generics (Generic)
 import Test.Hspec
@@ -90,6 +96,17 @@ calculator = do
       calculator
 
 
+-- Nested Example ----------------------------------------------------
+
+nested :: (HasThrow "foo" String m, HasThrow "bar" () m) => Int -> m Int
+nested n = do
+  when (n < 0) $
+    throw @"foo" "negative number"
+  when (odd n) $
+    throw @"bar" ()
+  pure n
+
+
 ----------------------------------------------------------------------
 -- Instances
 
@@ -108,11 +125,23 @@ newtype Calculator a = Calculator { runCalculator :: IO a }
     MonadUnliftIO CalcError IO
 
 
+-- | Deriving separate @HasThrow@ capabilities from different transformer
+-- layers.
+newtype MaybeEither a =
+  MaybeEither { runMaybeEither :: Maybe (Either String a) }
+  deriving (Functor, Applicative, Monad) via
+    ExceptT String Maybe
+  deriving (HasThrow "foo" String) via
+    MonadError (ExceptT String Maybe)
+  deriving (HasThrow "bar" ()) via
+    Lift (ExceptT String (MonadError Maybe))
+
+
 ----------------------------------------------------------------------
 -- Test Cases
 
 spec :: Spec
-spec =
+spec = do
   describe "Calculator" $
     it "evaluates calculator" $ do
       let input = "4\n-1\nxyz\nQ\n"
@@ -128,3 +157,8 @@ spec =
       runCalculator calculator
         `withInput` input
         `shouldPrint` output
+  describe "MaybeEither" $
+    it "evaluates nested" $ do
+      runMaybeEither (nested 2) `shouldBe` Just (Right 2)
+      runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
+      runMaybeEither (nested 1) `shouldBe` Nothing
