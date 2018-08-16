@@ -98,18 +98,18 @@ instance (Typeable k, Typeable tag, Exception e)
 -- | Derive 'HasError from @m@'s 'Control.Monad.Except.MonadError' instance.
 newtype MonadError m (a :: *) = MonadError (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
-instance Except.MonadError (Tagged tag e) m
+instance Except.MonadError e m
   => HasThrow tag e (MonadError m)
   where
     throw_ :: forall a. Proxy# tag -> e -> MonadError m a
-    throw_ _ = coerce @(Tagged tag e -> m a) $ Except.throwError
+    throw_ _ = coerce @(e -> m a) $ Except.throwError
     {-# INLINE throw_ #-}
-instance Except.MonadError (Tagged tag e) m
+instance Except.MonadError e m
   => HasCatch tag e (MonadError m)
   where
     catch_ :: forall a.
       Proxy# tag -> MonadError m a -> (e -> MonadError m a) -> MonadError m a
-    catch_ _ = coerce @(m a -> (Tagged tag e -> m a) -> m a) $
+    catch_ _ = coerce @(m a -> (e -> m a) -> m a) $
       Except.catchError
     {-# INLINE catch_ #-}
     catchJust_ :: forall a b.

@@ -180,13 +180,13 @@ newtype OverlapEither a =
   deriving (Functor, Applicative, Monad) via
     ExceptT String (Except String)
   deriving (HasThrow "foo" StringException) via
-    MonadError (ExceptT (Tagged "foo" StringException) (Except String))
+    MonadError (ExceptT StringException (Except String))
   deriving (HasThrow "bar" StringException) via
-    Lift (ExceptT String (MonadError (Except (Tagged "bar" StringException))))
+    Lift (ExceptT String (MonadError (Except StringException)))
   deriving (HasCatch "foo" StringException) via
-    MonadError (ExceptT (Tagged "foo" StringException) (Except String))
+    MonadError (ExceptT StringException (Except String))
   deriving (HasCatch "bar" StringException) via
-    Lift (ExceptT String (MonadError (Except (Tagged "bar" StringException))))
+    Lift (ExceptT String (MonadError (Except StringException)))
 
 
 newtype BadOverlapEither a =
@@ -194,13 +194,13 @@ newtype BadOverlapEither a =
   deriving (Functor, Applicative, Monad) via
     Except String
   deriving (HasThrow "foo" StringException) via
-    MonadError (Except (Tagged "foo" StringException))
+    MonadError (Except StringException)
   deriving (HasThrow "bar" StringException) via
-    MonadError (Except (Tagged "bar" StringException))
+    MonadError (Except StringException)
   deriving (HasCatch "foo" StringException) via
-    MonadError (Except (Tagged "foo" StringException))
+    MonadError (Except StringException)
   deriving (HasCatch "bar" StringException) via
-    MonadError (Except (Tagged "bar" StringException))
+    MonadError (Except StringException)
 
 
 ----------------------------------------------------------------------
