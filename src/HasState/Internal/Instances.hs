@@ -32,7 +32,6 @@ import qualified Data.Generics.Product.Positions as Generic
 import Data.IORef
 import Data.Mutable
 import GHC.Exts (Proxy#)
-import GHC.Generics (Generic)
 
 import Accessors
 import HasReader.Internal.Class
@@ -73,7 +72,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic record, Generic.HasField' field record v, HasState tag record m )
+  ( Generic.HasField' field record v, HasState tag record m )
   => HasState tag v (Field field m)
   where
     get_ _ = coerce @(m v) $
@@ -93,7 +92,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasPosition'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic struct, Generic.HasPosition' pos struct v, HasState tag struct m )
+  ( Generic.HasPosition' pos struct v, HasState tag struct m )
   => HasState tag v (Pos pos m)
   where
     get_ _ = coerce @(m v) $

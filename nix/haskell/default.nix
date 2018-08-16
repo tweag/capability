@@ -22,8 +22,10 @@ self: super:
           doctest = super.haskell.lib.doJailbreak hssuper.doctest;
           free = super.haskell.lib.doJailbreak hssuper.free;
           inspection-testing = super.haskell.lib.doJailbreak hssuper.inspection-testing;
+          safe-exceptions = super.haskell.lib.doJailbreak hssuper.safe-exceptions;
           split = super.haskell.lib.doJailbreak hssuper.split;
           StateVar = super.haskell.lib.doJailbreak hssuper.StateVar;
+          unliftio-core = super.haskell.lib.doJailbreak hssuper.unliftio-core;
 
           adjunctions = super.haskell.lib.overrideCabal hssuper.adjunctions (attrs: {
             postPatch = ''

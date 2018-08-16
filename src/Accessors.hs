@@ -8,6 +8,7 @@ module Accessors
   ( Coerce (..)
   , Field (..)
   , Pos (..)
+  , Ctor (..)
   , Lift (..)
   ) where
 
@@ -28,6 +29,11 @@ newtype Field (field :: Symbol) m a = Field (m a)
 
 -- | Access the value at position @pos@ in the context @m@.
 newtype Pos (pos :: Nat) m a = Pos (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
+
+-- | Choose the given constructor in the sum-type in context @m@.
+newtype Ctor (ctor :: Symbol) m a = Ctor (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 
