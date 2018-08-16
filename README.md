@@ -5,11 +5,12 @@ using the `DerivingVia` language extension added in GHC 8.6.
 
 ## Examples
 
-An example is provided in [`Example.CountLog`](src/Example/CountLog.hs).
+An example is provided in [`CountLog`](examples/CountLog.hs).
 Execute the following commands to try it out:
 
 ```
-$ nix-shell --pure --run "cabal repl"
+$ nix-shell --pure --run "cabal configure --enable-tests"
+$ nix-shell --pure --run "cabal repl examples"
 
 ghci> runLogM regularLogger $ logNum 4
 num: 4
