@@ -17,8 +17,9 @@
 module Error where
 
 import Control.Monad (when)
---import Control.Monad.Except (ExceptT (..))
+import Control.Monad.Except (Except, ExceptT (..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Functor.Identity (Identity (..))
 import GHC.Generics (Generic)
 import Test.Hspec
 import Text.Read (readEither)
@@ -174,6 +175,34 @@ newtype OverlapIO a = OverlapIO { runOverlapIO :: IO a }
     MonadUnliftIO StringException IO
 
 
+newtype OverlapEither a =
+  OverlapEither { runOverlapEither :: Either String (Either String a) }
+  deriving (Functor, Applicative, Monad) via
+    ExceptT String (Except String)
+  deriving (HasThrow "foo" StringException) via
+    MonadError (ExceptT (Tagged "foo" StringException) (Except String))
+  deriving (HasThrow "bar" StringException) via
+    Lift (ExceptT String (MonadError (Except (Tagged "bar" StringException))))
+  deriving (HasCatch "foo" StringException) via
+    MonadError (ExceptT (Tagged "foo" StringException) (Except String))
+  deriving (HasCatch "bar" StringException) via
+    Lift (ExceptT String (MonadError (Except (Tagged "bar" StringException))))
+
+
+newtype BadOverlapEither a =
+  BadOverlapEither { runBadOverlapEither :: Either String a }
+  deriving (Functor, Applicative, Monad) via
+    Except String
+  deriving (HasThrow "foo" StringException) via
+    MonadError (Except (Tagged "foo" StringException))
+  deriving (HasThrow "bar" StringException) via
+    MonadError (Except (Tagged "bar" StringException))
+  deriving (HasCatch "foo" StringException) via
+    MonadError (Except (Tagged "foo" StringException))
+  deriving (HasCatch "bar" StringException) via
+    MonadError (Except (Tagged "bar" StringException))
+
+
 ----------------------------------------------------------------------
 -- Test Cases
 
@@ -202,3 +231,11 @@ spec = do
   describe "OverlapIO" $
     it "evaluates overlap" $
       runOverlapIO overlap `shouldReturn` "caught in foo thrown in foo"
+  describe "OverlapEither" $
+    it "evaluates overlap" $
+      runOverlapEither overlap
+        `shouldBe` Right (Right "caught in foo thrown in foo")
+  describe "BadOverlapEither" $
+    it "evaluates overlap" $
+      runBadOverlapEither overlap
+        `shouldNotBe` Right "caught in foo thrown in foo"
