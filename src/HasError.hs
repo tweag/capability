@@ -97,10 +97,7 @@ newtype MonadError m (a :: *) = MonadError (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance Except.MonadError e m => HasThrow tag e (MonadError m) where
   throw_ :: forall a. Proxy# tag -> e -> MonadError m a
-  throw_ _ = coerce @(e -> m a) $
-    -- Note, the use of @Except.throwError@ here must match that in
-    -- @MonadCatch@'s @catchJust_@ below.
-    Except.throwError
+  throw_ _ = coerce @(e -> m a) $ Except.throwError
   {-# INLINE throw_ #-}
 instance Except.MonadError e m => HasCatch tag e (MonadError m) where
   catch_ :: forall a.
@@ -113,10 +110,7 @@ instance Except.MonadError e m => HasCatch tag e (MonadError m) where
     -> MonadError m a
     -> (b -> MonadError m a)
     -> MonadError m a
-  catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
-    -- Note, the use of @Except.throwError@ here must match that in
-    -- @MonadThrow@'s @throw_@ above.
-    \f m h -> Except.catchError m $ \e -> maybe (Except.throwError e) h $ f e
+  catchJust_ tag f m h = catch_ tag m $ \e -> maybe (throw_ tag e) h $ f e
   {-# INLINE catchJust_ #-}
 
 
