@@ -26,6 +26,7 @@ module HasError
   , MonadCatch (..)
   , SafeExceptions (..)
   , MonadUnliftIO (..)
+  , Rename (..)
   , Tagged (..)
   , module Accessors
   , Exception (..)
@@ -300,3 +301,36 @@ instance
     catchJust_ tag =
       coerce @((e -> Maybe b) -> t m a -> (b -> t m a) -> t m a) $ \f m h ->
         liftWith (\run -> catchJust_ tag f (run m) (run . h)) >>= restoreT . pure
+    {-# INLINE catchJust_ #-}
+
+
+-- XXX: This doesn't actually do anything.
+newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+instance
+  HasThrow oldtag e m
+  => HasThrow newtag e (Rename oldtag m)
+  where
+    throw_ :: forall a. Proxy# newtag -> e -> Rename oldtag m a
+    throw_ _ = coerce @(e -> m a) $ throw @oldtag
+    {-# INLINE throw_ #-}
+instance
+  HasCatch oldtag e m
+  => HasCatch newtag e (Rename oldtag m)
+  where
+    catch_ :: forall a.
+      Proxy# newtag
+      -> Rename oldtag m a
+      -> (e -> Rename oldtag m a)
+      -> Rename oldtag m a
+    catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ catch @oldtag
+    {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# newtag
+      -> (e -> Maybe b)
+      -> Rename oldtag m a
+      -> (b -> Rename oldtag m a)
+      -> Rename oldtag m a
+    catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+      catchJust @oldtag
+    {-# INLINE catchJust_ #-}
