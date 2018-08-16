@@ -21,6 +21,7 @@ module HasError
   , HasCatch (..)
   , catch
   , catchJust
+  , MonadError (..)
   , MonadThrow (..)
   , MonadCatch (..)
   , SafeExceptions (..)
@@ -39,6 +40,8 @@ import qualified Control.Monad.Except as Except
 import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.IO.Unlift as UnliftIO
 import Control.Monad.Primitive (PrimMonad)
+import Control.Monad.Trans.Class (MonadTrans, lift)
+import Control.Monad.Trans.Control (MonadTransControl (..))
 import Data.Coerce (coerce)
 import qualified Data.Generics.Sum.Constructors as Generic
 import Data.Typeable (Typeable)
@@ -256,3 +259,35 @@ instance
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $ \f ->
       catchJust @tag @sum $ f <=< preview (Generic._Ctor' @ctor @sum)
     {-# INLINE catchJust_ #-}
+
+
+instance
+  ( HasThrow tag e m, MonadTrans t, Monad (t m) )
+  => HasThrow tag e (Lift (t m))
+  where
+    throw_ :: forall a. Proxy# tag -> e -> Lift (t m) a
+    throw_ tag = coerce @(e -> t m a) $ lift . throw_ tag
+    {-# INLINE throw_ #-}
+
+
+instance
+  ( HasCatch tag e m, MonadTransControl t, Monad (t m) )
+  => HasCatch tag e (Lift (t m))
+  where
+    catch_ :: forall a.
+      Proxy# tag
+      -> Lift (t m) a
+      -> (e -> Lift (t m) a)
+      -> Lift (t m) a
+    catch_ tag = coerce @(t m a -> (e -> t m a) -> t m a) $ \m h ->
+      liftWith (\run -> catch_ tag (run m) (run . h)) >>= restoreT . pure
+    {-# INLINE catch_ #-}
+    catchJust_ :: forall a b.
+      Proxy# tag
+      -> (e -> Maybe b)
+      -> Lift (t m) a
+      -> (b -> Lift (t m) a)
+      -> Lift (t m) a
+    catchJust_ tag =
+      coerce @((e -> Maybe b) -> t m a -> (b -> t m a) -> t m a) $ \f m h ->
+        liftWith (\run -> catchJust_ tag f (run m) (run . h)) >>= restoreT . pure
