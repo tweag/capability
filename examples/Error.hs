@@ -121,6 +121,8 @@ newtype Calculator a = Calculator { runCalculator :: IO a }
     Ctor "ParserError" (MonadUnliftIO CalcError IO)
   deriving (HasThrow "math" MathError) via
     Ctor "MathError" (MonadUnliftIO CalcError IO)
+  deriving (HasThrow "calc" CalcError) via
+    MonadUnliftIO CalcError IO
   deriving (HasCatch "calc" CalcError) via
     MonadUnliftIO CalcError IO
 

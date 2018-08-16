@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -15,8 +16,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasError
-  ( HasError
-  , HasThrow (..)
+  ( HasThrow (..)
   , throw
   , HasCatch (..)
   , catch
@@ -51,12 +51,6 @@ import qualified UnliftIO.Exception as UnliftIO
 import Accessors
 
 
--- XXX: Using @HasError@ in application code raises a warning
---   @-Wsimplifiable-class-constraints@.
-class (HasThrow tag e m, HasCatch tag e m) => HasError tag e m | tag m -> e
-instance (HasThrow tag e m, HasCatch tag e m) => HasError tag e m
-
-
 class Monad m
   => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -73,7 +67,7 @@ throw = throw_ (proxy# @_ @tag)
 --   Or should we consider colliding tags on the same transformer illegal,
 --   the same way it is illegal in @HasReader@ or @HasState@?
 
-class Monad m
+class HasThrow tag e m
   => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
     -- | Use 'catch' instead.
@@ -140,6 +134,7 @@ instance (Catch.Exception e, Catch.MonadThrow m)
 -- | Derive 'HasCatch from @m@'s 'Control.Monad.Catch.MonadCatch instance.
 newtype MonadCatch (e :: *) m (a :: *) = MonadCatch (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+  deriving (HasThrow tag e) via MonadThrow e m
 instance (Catch.Exception e, Catch.MonadCatch m)
   => HasCatch tag e (MonadCatch e m)
   where
