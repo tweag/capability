@@ -107,6 +107,29 @@ nested n = do
   pure n
 
 
+-- Overlap Example ---------------------------------------------------
+
+newtype StringException = StringException String
+  deriving (Show, Typeable)
+  deriving anyclass Exception
+
+overlap
+  :: (HasCatch "foo" StringException m, HasCatch "bar" StringException m)
+  => m String
+overlap = do
+  catch @"foo"
+    do
+      catch @"bar"
+        do
+          throw @"bar" (StringException "thrown in bar")
+        \_ -> pure ()
+      catch @"bar"
+        do
+          throw @"foo" (StringException "thrown in foo")
+        \(StringException e) -> pure $ "caught in bar " ++ e
+    \(StringException e) -> pure $ "caught in foo " ++ e
+
+
 ----------------------------------------------------------------------
 -- Instances
 
@@ -139,6 +162,18 @@ newtype Calculator a = Calculator { runCalculator :: IO a }
 --    Lift (ExceptT String (MonadError Maybe))
 
 
+newtype OverlapIO a = OverlapIO { runOverlapIO :: IO a }
+  deriving newtype (Functor, Applicative, Monad)
+  deriving (HasThrow "foo" StringException) via
+    MonadUnliftIO StringException IO
+  deriving (HasThrow "bar" StringException) via
+    MonadUnliftIO StringException IO
+  deriving (HasCatch "foo" StringException) via
+    MonadUnliftIO StringException IO
+  deriving (HasCatch "bar" StringException) via
+    MonadUnliftIO StringException IO
+
+
 ----------------------------------------------------------------------
 -- Test Cases
 
@@ -164,3 +199,6 @@ spec = do
   --    runMaybeEither (nested 2) `shouldBe` Just (Right 2)
   --    runMaybeEither (nested (-1)) `shouldBe` Just (Left "negative number")
   --    runMaybeEither (nested 1) `shouldBe` Nothing
+  describe "OverlapIO" $
+    it "evaluates overlap" $
+      runOverlapIO overlap `shouldReturn` "caught in foo thrown in foo"
