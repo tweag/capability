@@ -43,12 +43,16 @@ instance
   where
     writer_ :: forall a. Proxy# tag -> (a, w) -> Lift (t m) a
     writer_ _ = coerce @((a, w) -> t m a) $ lift . writer @tag
+    {-# INLINE writer_ #-}
     tell_ _ = coerce @(w -> t m ()) $ lift . tell @tag
+    {-# INLINE tell_ #-}
     listen_ :: forall a. Proxy# tag -> Lift (t m) a -> Lift (t m) (a, w)
     listen_ _ = coerce @(t m a -> t m (a, w)) $ \m -> do
       u <- askUnlift
       lift $ listen @tag $ unlift u m
+    {-# INLINE listen_ #-}
     pass_ :: forall a. Proxy# tag -> Lift (t m) (a, w -> w) -> Lift (t m) a
     pass_ _ = coerce @(t m (a, w -> w) -> t m a) $ \m -> do
       u <- askUnlift
       lift $ pass @tag $ unlift u m
+    {-# INLINE pass_ #-}
