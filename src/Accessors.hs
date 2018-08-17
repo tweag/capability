@@ -22,6 +22,10 @@ newtype Coerce to m a = Coerce (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 
+-- XXX: The Field and Pos accessors should relate the tag to the field name or
+--   position in the same way as Ctor does to the constructor name.
+
+
 -- | Access the record field @field@ in the context @m@.
 newtype Field (field :: Symbol) m a = Field (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
@@ -33,7 +37,10 @@ newtype Pos (pos :: Nat) m a = Pos (m a)
 
 
 -- | Choose the given constructor in the sum-type in context @m@.
-newtype Ctor (ctor :: Symbol) m a = Ctor (m a)
+--
+-- XXX: The @ctor@ parameter might technically be redundant. But, it might
+--   still be useful for documentation purposes.
+newtype Ctor (ctor :: Symbol) (oldtag :: k) m a = Ctor (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 

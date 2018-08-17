@@ -38,9 +38,10 @@ data ParserError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-parseNumber :: HasThrow "parser" ParserError m => String -> m Int
+parseNumber :: HasThrow "ParserError" ParserError m
+  => String -> m Int
 parseNumber input = case readEither input of
-  Left err -> throw @"parser" $ InvalidInput err
+  Left err -> throw @"ParserError" $ InvalidInput err
   Right num -> pure num
 
 
@@ -49,9 +50,10 @@ data MathError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-sqrtNumber :: HasThrow "math" MathError m => Int -> m Int
+sqrtNumber :: HasThrow "MathError" MathError m
+  => Int -> m Int
 sqrtNumber num
-  | num < 0 = throw @"math" NegativeInput
+  | num < 0 = throw @"MathError" NegativeInput
   | otherwise = pure $ round $ sqrt @Double $ fromIntegral num
 
 
@@ -78,8 +80,9 @@ data CalcError
 --   exceptions with @ParserError/MathError@ and renaming the tags.
 --   @calculator@ would then have just one @HasThrow "calc"@ constraint.
 calculator ::
-  ( HasThrow "parser" ParserError m, HasThrow "math" MathError m
-  , HasCatch "calc" CalcError m, MonadIO m )
+  ( HasThrow "ParserError" ParserError m
+  , HasThrow "MathError" MathError m
+  , HasCatch "CalcError" CalcError m, MonadIO m )
   => m ()
 calculator = do
   liftIO $ putStr "Enter positive number or 'Q' to quit\n> "
@@ -87,7 +90,7 @@ calculator = do
   case line of
     "Q" -> pure ()
     input -> do
-      catch @"calc"
+      catch @"CalcError"
         do
           num <- parseNumber input
           root <- sqrtNumber num
@@ -117,13 +120,13 @@ nested n = do
 -- @MathError@ constructor.
 newtype Calculator a = Calculator { runCalculator :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO)
-  deriving (HasThrow "parser" ParserError) via
-    Ctor "ParserError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "math" MathError) via
-    Ctor "MathError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "calc" CalcError) via
+  deriving (HasThrow "ParserError" ParserError) via
+    Ctor "ParserError" "CalcError" (MonadUnliftIO CalcError IO)
+  deriving (HasThrow "MathError" MathError) via
+    Ctor "MathError" "CalcError" (MonadUnliftIO CalcError IO)
+  deriving (HasThrow "CalcError" CalcError) via
     MonadUnliftIO CalcError IO
-  deriving (HasCatch "calc" CalcError) via
+  deriving (HasCatch "CalcError" CalcError) via
     MonadUnliftIO CalcError IO
 
 
