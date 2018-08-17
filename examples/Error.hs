@@ -82,10 +82,14 @@ calculator = do
         do
           -- Errors in the parser or math component are converted to a
           -- @CalcError@ by wrapping with the corresponding constructor.
-          num <- wrapError @"CalcError" @"ParserError" $
-            parseNumber input
-          root <- wrapError @"CalcError" @"MathError" $
-            sqrtNumber num
+          num <-
+            wrapError @"CalcError" @"ParserError"
+              @(Ctor "ParserError" "CalcError") $
+              parseNumber input
+          root <-
+            wrapError @"CalcError" @"MathError"
+              @(Ctor "MathError" "CalcError") $
+              sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
         \e -> liftIO $ putStrLn $ "Error: " ++ show e
       calculator
