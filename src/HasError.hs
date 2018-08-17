@@ -235,6 +235,49 @@ instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
     {-# INLINE catchJust_ #-}
 
 
+-- | Rename the tag.
+--
+-- Apply cautiously. See @'HasCatch' newtag e ('Rename' oldtag m)@.
+instance HasThrow oldtag e m => HasThrow newtag e (Rename oldtag m) where
+  throw_ :: forall a. Proxy# newtag -> e -> Rename oldtag m a
+  throw_ _ = coerce @(e -> m a) $ throw @oldtag
+  {-# INLINE throw_ #-}
+
+-- | Rename the tag.
+--
+-- Apply cautiously. E.g. the following code produces colliding instances,
+-- where exceptions thrown in @\"Foo\"@ cannot be distinguished from exceptions
+-- thrown in @\"Bar\"@ and vice-versa.
+--
+-- > newtype Bad a = Bad (IO a)
+-- >   deriving (Functor, Applicative, Monad)
+-- >   deriving
+-- >     ( HasThrow "Foo" m
+-- >     , HasCatch "Foo" m
+-- >     ) via Rename () (MonadUnliftIO SomeError IO)
+-- >   deriving
+-- >     ( HasThrow "Bar" m
+-- >     , HasCatch "Bar" m
+-- >     ) via Rename () (MonadUnliftIO SomeError IO)
+instance HasCatch oldtag e m => HasCatch newtag e (Rename oldtag m) where
+  catch_ :: forall a.
+    Proxy# newtag
+    -> Rename oldtag m a
+    -> (e -> Rename oldtag m a)
+    -> Rename oldtag m a
+  catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ catch @oldtag
+  {-# INLINE catch_ #-}
+  catchJust_ :: forall a b.
+    Proxy# newtag
+    -> (e -> Maybe b)
+    -> Rename oldtag m a
+    -> (b -> Rename oldtag m a)
+    -> Rename oldtag m a
+  catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
+    catchJust @oldtag
+  {-# INLINE catchJust_ #-}
+
+
 -- | Wrap the exception @e@ with the constructor @ctor@ to throw an exception
 -- of type @sum@.
 instance
@@ -248,7 +291,6 @@ instance
     throw_ _ = coerce @(e -> m a) $
       throw @oldtag . review (Generic._Ctor' @ctor @sum)
     {-# INLINE throw_ #-}
-
 
 -- | Catch an exception of type @sum@ if its constructor matches @ctor@.
 instance
@@ -285,7 +327,6 @@ instance
     throw_ :: forall a. Proxy# tag -> e -> Lift (t m) a
     throw_ tag = coerce @(e -> t m a) $ lift . throw_ tag
     {-# INLINE throw_ #-}
-
 
 -- | Lift one layer in a monad transformer stack.
 instance
