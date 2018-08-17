@@ -109,6 +109,7 @@ wrapError :: forall tag ctor sum e m a.
   (HasCatch tag sum m, Generic.AsConstructor' ctor sum e)
   => (forall m'. HasCatch ctor e m' => m' a) -> m a
 wrapError action = coerce @(Ctor ctor tag m a) action
+{-# INLINE wrapError #-}
 
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
@@ -276,6 +277,7 @@ instance
     {-# INLINE catchJust_ #-}
 
 
+-- | Lift one layer in a monad transformer stack.
 instance
   ( HasThrow tag e m, MonadTrans t, Monad (t m) )
   => HasThrow tag e (Lift (t m))
@@ -285,6 +287,7 @@ instance
     {-# INLINE throw_ #-}
 
 
+-- | Lift one layer in a monad transformer stack.
 instance
   ( HasCatch tag e m, MonadTransControl t, Monad (t m) )
   => HasCatch tag e (Lift (t m))
@@ -306,3 +309,4 @@ instance
     catchJust_ tag =
       coerce @((e -> Maybe b) -> t m a -> (b -> t m a) -> t m a) $ \f m h ->
         liftWith (\run -> catchJust_ tag f (run m) (run . h)) >>= restoreT . pure
+    {-# INLINE catchJust_ #-}
