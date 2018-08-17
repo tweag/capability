@@ -21,6 +21,7 @@ module HasError
   , HasCatch (..)
   , catch
   , catchJust
+  , wrapError
   , MonadError (..)
   , MonadThrow (..)
   , MonadCatch (..)
@@ -51,6 +52,10 @@ import qualified UnliftIO.Exception as UnliftIO
 import Accessors
 
 
+-- | Capability to throw exceptions of type @e@ under @tag@.
+--
+-- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
+-- See 'HasCatch'.
 class Monad m
   => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -63,10 +68,20 @@ throw = throw_ (proxy# @_ @tag)
 {-# INLINE throw #-}
 
 
--- XXX: Should catch only catch exceptions thrown under the same tag?
---   Or should we consider colliding tags on the same transformer illegal,
---   the same way it is illegal in @HasReader@ or @HasState@?
-
+-- | Capability to catch exceptions of type @e@ under @tag@.
+--
+-- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
+-- In particular, the following program should throw @SomeError@ and not
+-- return @()@.
+-- > example ::
+-- >   (HasThrow "Left" SomeError m, HasCatch "Right" SomeError m)
+-- >   => m ()
+-- > example =
+-- >   catch @"Left"
+-- >     (throw @"Right" SomeError)
+-- >     \_ -> pure ()
+--
+-- See 'wrapError' for a way to combine multiple exception types into one.
 class HasThrow tag e m
   => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -86,6 +101,15 @@ catchJust :: forall tag e m a b. HasCatch tag e m
   => (e -> Maybe b) -> m a -> (b -> m a) -> m a
 catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
+
+
+-- | Wrap exceptions @e@ originating from the given action in @ctor@ to convert
+-- them to @sum@.
+wrapError :: forall tag ctor sum e m a.
+  (HasCatch tag sum m, Generic.AsConstructor' ctor sum e)
+  => (forall m'. HasCatch ctor e m' => m' a) -> m a
+wrapError action = coerce @(Ctor ctor tag m a) action
+{-# INLINE wrapError #-}
 
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
@@ -217,12 +241,12 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@. This could
   -- be avoided by instead placing @AsConstructor'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  (Generic.AsConstructor' ctor sum e, HasThrow tag sum m)
-  => HasThrow tag e (Ctor ctor m)
+  (Generic.AsConstructor' ctor sum e, HasThrow oldtag sum m)
+  => HasThrow ctor e (Ctor ctor oldtag m)
   where
-    throw_ :: forall a. Proxy# tag -> e -> Ctor ctor m a
+    throw_ :: forall a. Proxy# ctor -> e -> Ctor ctor oldtag m a
     throw_ _ = coerce @(e -> m a) $
-      throw @tag . review (Generic._Ctor' @ctor @sum)
+      throw @oldtag . review (Generic._Ctor' @ctor @sum)
     {-# INLINE throw_ #-}
 
 
@@ -231,25 +255,29 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@. This could
   -- be avoided by instead placing @AsConstructor'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  (Generic.AsConstructor' ctor sum e, HasCatch tag sum m)
-  => HasCatch tag e (Ctor ctor m)
+  (Generic.AsConstructor' ctor sum e, HasCatch oldtag sum m)
+  => HasCatch ctor e (Ctor ctor oldtag m)
   where
     catch_ :: forall a.
-      Proxy# tag -> Ctor ctor m a -> (e -> Ctor ctor m a) -> Ctor ctor m a
+      Proxy# ctor
+      -> Ctor ctor oldtag m a
+      -> (e -> Ctor ctor oldtag m a)
+      -> Ctor ctor oldtag m a
     catch_ _ = coerce @(m a -> (e -> m a) -> m a) $
-      catchJust @tag @sum $ preview (Generic._Ctor' @ctor @sum)
+      catchJust @oldtag @sum $ preview (Generic._Ctor' @ctor @sum)
     {-# INLINE catch_ #-}
     catchJust_ :: forall a b.
-      Proxy# tag
+      Proxy# ctor
       -> (e -> Maybe b)
-      -> Ctor ctor m a
-      -> (b -> Ctor ctor m a)
-      -> Ctor ctor m a
+      -> Ctor ctor oldtag m a
+      -> (b -> Ctor ctor oldtag m a)
+      -> Ctor ctor oldtag m a
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $ \f ->
-      catchJust @tag @sum $ f <=< preview (Generic._Ctor' @ctor @sum)
+      catchJust @oldtag @sum $ f <=< preview (Generic._Ctor' @ctor @sum)
     {-# INLINE catchJust_ #-}
 
 
+-- | Lift one layer in a monad transformer stack.
 instance
   ( HasThrow tag e m, MonadTrans t, Monad (t m) )
   => HasThrow tag e (Lift (t m))
@@ -259,6 +287,7 @@ instance
     {-# INLINE throw_ #-}
 
 
+-- | Lift one layer in a monad transformer stack.
 instance
   ( HasCatch tag e m, MonadTransControl t, Monad (t m) )
   => HasCatch tag e (Lift (t m))
@@ -280,3 +309,4 @@ instance
     catchJust_ tag =
       coerce @((e -> Maybe b) -> t m a -> (b -> t m a) -> t m a) $ \f m h ->
         liftWith (\run -> catchJust_ tag f (run m) (run . h)) >>= restoreT . pure
+    {-# INLINE catchJust_ #-}

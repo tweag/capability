@@ -38,9 +38,10 @@ data ParserError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-parseNumber :: HasThrow "parser" ParserError m => String -> m Int
+parseNumber :: HasThrow "ParserError" ParserError m
+  => String -> m Int
 parseNumber input = case readEither input of
-  Left err -> throw @"parser" $ InvalidInput err
+  Left err -> throw @"ParserError" $ InvalidInput err
   Right num -> pure num
 
 
@@ -49,9 +50,10 @@ data MathError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-sqrtNumber :: HasThrow "math" MathError m => Int -> m Int
+sqrtNumber :: HasThrow "MathError" MathError m
+  => Int -> m Int
 sqrtNumber num
-  | num < 0 = throw @"math" NegativeInput
+  | num < 0 = throw @"MathError" NegativeInput
   | otherwise = pure $ round $ sqrt @Double $ fromIntegral num
 
 
@@ -67,19 +69,8 @@ data CalcError
 -- | Calculator application
 --
 -- Prompts for positive numbers and prints their square roots.
---
--- The @HasCatch "calc"@ constraint is used to catch errors that can occur in
--- any of the components: "parser", or "math".
---
--- The @HasThrow "parser"/"math"@ constraints are imposed by the components.
---
--- XXX: It might be preferable to have a combinator that eliminates the
---   @HasThrow "parser"/"math"@ constraints by wrapping the corresponding
---   exceptions with @ParserError/MathError@ and renaming the tags.
---   @calculator@ would then have just one @HasThrow "calc"@ constraint.
 calculator ::
-  ( HasThrow "parser" ParserError m, HasThrow "math" MathError m
-  , HasCatch "calc" CalcError m, MonadIO m )
+  ( HasCatch "CalcError" CalcError m, MonadIO m )
   => m ()
 calculator = do
   liftIO $ putStr "Enter positive number or 'Q' to quit\n> "
@@ -87,10 +78,14 @@ calculator = do
   case line of
     "Q" -> pure ()
     input -> do
-      catch @"calc"
+      catch @"CalcError"
         do
-          num <- parseNumber input
-          root <- sqrtNumber num
+          -- Errors in the parser or math component are converted to a
+          -- @CalcError@ by wrapping with the corresponding constructor.
+          num <- wrapError @"CalcError" @"ParserError" $
+            parseNumber input
+          root <- wrapError @"CalcError" @"MathError" $
+            sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
         \e -> liftIO $ putStrLn $ "Error: " ++ show e
       calculator
@@ -111,20 +106,12 @@ nested n = do
 -- Instances
 
 -- | Deriving @HasThrow/HasCatch@ from @unliftio@.
---
--- @ParserError@s are wrapped as @CalcError@s using the @ParserError@
--- constructor, and @MathError@s are wrapped as @CalcError@s using the
--- @MathError@ constructor.
 newtype Calculator a = Calculator { runCalculator :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO)
-  deriving (HasThrow "parser" ParserError) via
-    Ctor "ParserError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "math" MathError) via
-    Ctor "MathError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "calc" CalcError) via
-    MonadUnliftIO CalcError IO
-  deriving (HasCatch "calc" CalcError) via
-    MonadUnliftIO CalcError IO
+  deriving
+    ( HasThrow "CalcError" CalcError
+    , HasCatch "CalcError" CalcError
+    ) via MonadUnliftIO CalcError IO
 
 
 -- | Deriving separate @HasThrow@ capabilities from different transformer
