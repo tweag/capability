@@ -52,8 +52,8 @@ library
                        UnboxedTuples
                        UndecidableInstances
   build-depends:       base >=4.10 && <4.13
-                     , exceptions
                      , dlist
+                     , exceptions
                      , generic-lens
                      , lens
                      , monad-control

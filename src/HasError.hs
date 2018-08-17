@@ -21,6 +21,9 @@ module HasError
   , HasCatch (..)
   , catch
   , catchJust
+  , retagThrow
+  , wrapThrow
+  , wrapCatch
   , MonadError (..)
   , MonadThrow (..)
   , MonadCatch (..)
@@ -84,6 +87,25 @@ catchJust :: forall tag e m a b. HasCatch tag e m
   => (e -> Maybe b) -> m a -> (b -> m a) -> m a
 catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
+
+
+retagThrow :: forall newtag oldtag e m a. HasThrow newtag e m
+  => (forall m'. HasThrow oldtag e m' => m' a) -> m a
+retagThrow m = undefined
+
+
+wrapThrow :: forall tag ctor sum e m a.
+  (HasThrow tag sum m, Generic.AsConstructor' ctor sum e)
+  => (forall m'. HasThrow tag e m' => m' a) -> m a
+wrapThrow m = coerce @(Ctor ctor m a) m
+{-# INLINE wrapThrow #-}
+
+
+wrapCatch :: forall tag ctor sum e m a.
+  (HasCatch tag sum m, Generic.AsConstructor' ctor sum e)
+  => (forall m'. HasCatch tag e m' => m' a) -> m a
+wrapCatch m = coerce @(Ctor ctor m a) m
+{-# INLINE wrapCatch #-}
 
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?

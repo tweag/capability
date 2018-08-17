@@ -79,8 +79,7 @@ data CalcError
 --   exceptions with @ParserError/MathError@ and renaming the tags.
 --   @calculator@ would then have just one @HasThrow "calc"@ constraint.
 calculator ::
-  ( HasThrow "parser" ParserError m, HasThrow "math" MathError m
-  , HasCatch "calc" CalcError m, MonadIO m )
+  ( HasCatch "calc" CalcError m, MonadIO m )
   => m ()
 calculator = do
   liftIO $ putStr "Enter positive number or 'Q' to quit\n> "
@@ -90,8 +89,14 @@ calculator = do
     input -> do
       catch @"calc"
         do
-          num <- parseNumber input
-          root <- sqrtNumber num
+          num <-
+            retagThrow @"calc" @"parser" $
+            wrapThrow @"parser" @"ParserError" @CalcError $
+            parseNumber input
+          root <-
+            retagThrow @"calc" @"math" $
+            wrapThrow @"math" @"MathError" @CalcError $
+            sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
         \e -> liftIO $ putStrLn $ "Error: " ++ show e
       calculator
@@ -141,10 +146,6 @@ overlap = do
 -- @MathError@ constructor.
 newtype Calculator a = Calculator { runCalculator :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO)
-  deriving (HasThrow "parser" ParserError) via
-    Ctor "ParserError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "math" MathError) via
-    Ctor "MathError" (MonadUnliftIO CalcError IO)
   deriving (HasThrow "calc" CalcError) via
     MonadUnliftIO CalcError IO
   deriving (HasCatch "calc" CalcError) via
