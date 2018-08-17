@@ -6,6 +6,7 @@
 
 module Accessors
   ( Coerce (..)
+  , Rename (..)
   , Field (..)
   , Pos (..)
   , Ctor (..)
@@ -19,6 +20,11 @@ import GHC.TypeLits (Nat, Symbol)
 
 -- | Coerce the type in the context @m@ to @to@.
 newtype Coerce to m a = Coerce (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
+
+-- | Rename the tag.
+newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 
