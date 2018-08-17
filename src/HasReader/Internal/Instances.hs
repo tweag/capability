@@ -129,6 +129,19 @@ instance
     {-# INLINE reader_ #-}
 
 
+-- | Rename the tag.
+instance HasReader oldtag r m => HasReader newtag r (Rename oldtag m) where
+  ask_ _ = coerce @(m r) $ ask @oldtag
+  {-# INLINE ask_ #-}
+  local_ :: forall a.
+    Proxy# newtag -> (r -> r) -> Rename oldtag m a -> Rename oldtag m a
+  local_ _ = coerce @((r -> r) -> m a -> m a) $ local @oldtag
+  {-# INLINE local_ #-}
+  reader_ :: forall a. Proxy# newtag -> (r -> a) -> Rename oldtag m a
+  reader_ _ = coerce @((r -> a) -> m a) $ reader @oldtag
+  {-# INLINE reader_ #-}
+
+
 -- | Zoom in on the record field @field@ of type @v@
 -- in the environment @record@.
 instance

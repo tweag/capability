@@ -67,6 +67,17 @@ instance
     {-# INLINE state_ #-}
 
 
+-- | Rename the tag.
+instance HasState oldtag s m => HasState newtag s (Rename oldtag m) where
+  get_ _ = coerce @(m s) $ get @oldtag
+  {-# INLINE get_ #-}
+  put_ _ = coerce @(s -> m ()) $ put @oldtag
+  {-# INLINE put_ #-}
+  state_ :: forall a. Proxy# newtag -> (s -> (a, s)) -> Rename oldtag m a
+  state_ _ = coerce @((s -> (a, s)) -> m a) $ state @oldtag
+  {-# INLINE state_ #-}
+
+
 -- | Zoom in on the record field @field@ of type @v@ in the state @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
