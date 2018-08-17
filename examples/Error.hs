@@ -69,20 +69,8 @@ data CalcError
 -- | Calculator application
 --
 -- Prompts for positive numbers and prints their square roots.
---
--- The @HasCatch "calc"@ constraint is used to catch errors that can occur in
--- any of the components: "parser", or "math".
---
--- The @HasThrow "parser"/"math"@ constraints are imposed by the components.
---
--- XXX: It might be preferable to have a combinator that eliminates the
---   @HasThrow "parser"/"math"@ constraints by wrapping the corresponding
---   exceptions with @ParserError/MathError@ and renaming the tags.
---   @calculator@ would then have just one @HasThrow "calc"@ constraint.
 calculator ::
-  ( HasThrow "ParserError" ParserError m
-  , HasThrow "MathError" MathError m
-  , HasCatch "CalcError" CalcError m, MonadIO m )
+  ( HasCatch "CalcError" CalcError m, MonadIO m )
   => m ()
 calculator = do
   liftIO $ putStr "Enter positive number or 'Q' to quit\n> "
@@ -92,8 +80,12 @@ calculator = do
     input -> do
       catch @"CalcError"
         do
-          num <- parseNumber input
-          root <- sqrtNumber num
+          -- Errors in the parser or math component are converted to a
+          -- @CalcError@ by wrapping with the corresponding constructor.
+          num <- wrapError @"CalcError" @"ParserError" $
+            parseNumber input
+          root <- wrapError @"CalcError" @"MathError" $
+            sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
         \e -> liftIO $ putStrLn $ "Error: " ++ show e
       calculator
@@ -114,20 +106,12 @@ nested n = do
 -- Instances
 
 -- | Deriving @HasThrow/HasCatch@ from @unliftio@.
---
--- @ParserError@s are wrapped as @CalcError@s using the @ParserError@
--- constructor, and @MathError@s are wrapped as @CalcError@s using the
--- @MathError@ constructor.
 newtype Calculator a = Calculator { runCalculator :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO)
-  deriving (HasThrow "ParserError" ParserError) via
-    Ctor "ParserError" "CalcError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "MathError" MathError) via
-    Ctor "MathError" "CalcError" (MonadUnliftIO CalcError IO)
-  deriving (HasThrow "CalcError" CalcError) via
-    MonadUnliftIO CalcError IO
-  deriving (HasCatch "CalcError" CalcError) via
-    MonadUnliftIO CalcError IO
+  deriving
+    ( HasThrow "CalcError" CalcError
+    , HasCatch "CalcError" CalcError
+    ) via MonadUnliftIO CalcError IO
 
 
 -- | Deriving separate @HasThrow@ capabilities from different transformer

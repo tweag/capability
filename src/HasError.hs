@@ -21,6 +21,7 @@ module HasError
   , HasCatch (..)
   , catch
   , catchJust
+  , wrapError
   , MonadError (..)
   , MonadThrow (..)
   , MonadCatch (..)
@@ -51,6 +52,10 @@ import qualified UnliftIO.Exception as UnliftIO
 import Accessors
 
 
+-- | Capability to throw exceptions of type @e@ under @tag@.
+--
+-- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
+-- See 'HasCatch'.
 class Monad m
   => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -63,10 +68,20 @@ throw = throw_ (proxy# @_ @tag)
 {-# INLINE throw #-}
 
 
--- XXX: Should catch only catch exceptions thrown under the same tag?
---   Or should we consider colliding tags on the same transformer illegal,
---   the same way it is illegal in @HasReader@ or @HasState@?
-
+-- | Capability to catch exceptions of type @e@ under @tag@.
+--
+-- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
+-- In particular, the following program should throw @SomeError@ and not
+-- return @()@.
+-- > example ::
+-- >   (HasThrow "Left" SomeError m, HasCatch "Right" SomeError m)
+-- >   => m ()
+-- > example =
+-- >   catch @"Left"
+-- >     (throw @"Right" SomeError)
+-- >     \_ -> pure ()
+--
+-- See 'wrapError' for a way to combine multiple exception types into one.
 class HasThrow tag e m
   => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -86,6 +101,14 @@ catchJust :: forall tag e m a b. HasCatch tag e m
   => (e -> Maybe b) -> m a -> (b -> m a) -> m a
 catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
+
+
+-- | Wrap exceptions @e@ originating from the given action in @ctor@ to convert
+-- them to @sum@.
+wrapError :: forall tag ctor sum e m a.
+  (HasCatch tag sum m, Generic.AsConstructor' ctor sum e)
+  => (forall m'. HasCatch ctor e m' => m' a) -> m a
+wrapError action = coerce @(Ctor ctor tag m a) action
 
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
