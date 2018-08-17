@@ -7,6 +7,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -49,7 +50,7 @@ import qualified Control.Monad.IO.Unlift as UnliftIO
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Control (MonadTransControl(..))
-import Data.Coerce (coerce)
+import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Sum.Constructors as Generic
 import Data.Typeable (Typeable)
 import GHC.Exts (Proxy#, proxy#)
@@ -114,12 +115,24 @@ catchJust :: forall tag e m a b. HasCatch tag e m
 catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
 
--- | Wrap exceptions @e@ originating from the given action in @ctor@ to convert
--- them to @sum@.
-wrapError :: forall tag ctor sum e m a.
-  (HasCatch tag sum m, Generic.AsConstructor' ctor sum e)
-  => (forall m'. HasCatch ctor e m' => m' a) -> m a
-wrapError action = coerce @(Ctor ctor tag m a) action
+-- | Wrap exceptions @inner@ originating from the given action according to
+-- the accessor @t@.
+--
+-- Example:
+--
+-- > wrapError
+-- >   @"AppError" @"ComponentError" @(Ctor "ComponentError" "AppError")
+-- >   component
+-- >
+-- > component :: HasError "ComponentError" ComponentError m => m ()
+-- > data AppError = ComponentError ComponentError
+wrapError :: forall outertag innertag t outer inner m a.
+  ( forall x. Coercible (t m x) (m x)
+  , forall m'. HasCatch outertag outer m'
+    => HasCatch innertag inner (t m')
+  , HasCatch outertag outer m )
+  => (forall m'. HasCatch innertag inner m' => m' a) -> m a
+wrapError action = coerce @(t m a) action
 {-# INLINE wrapError #-}
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
