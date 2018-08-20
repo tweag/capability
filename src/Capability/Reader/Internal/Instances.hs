@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -7,9 +8,11 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -214,3 +217,11 @@ instance (HasReader tag r m, MonadTransControl t, Monad (t m))
     reader_ :: forall a. Proxy# tag -> (r -> a) -> Lift (t m) a
     reader_ _ = coerce @((r -> a) -> t m a) $ lift . reader @tag
     {-# INLINE reader_ #-}
+
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasReader tag r (t2 (t1 m)) )
+  => HasReader tag r ((t2 :.: t1) m)

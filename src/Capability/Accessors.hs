@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 
 module Capability.Accessors
@@ -11,6 +12,7 @@ module Capability.Accessors
   , Pos(..)
   , Ctor(..)
   , Lift(..)
+  , (:.:)(..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -46,3 +48,17 @@ newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
 -- penalty.
 newtype Lift m (a :: *) = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
+
+-- | Compose two accessors.
+--
+-- This is not necessary in deriving via clauses, but in places where a
+-- transformer is expected as a type argument. E.g. 'HasError.wrapError'.
+newtype (:.:)
+  (t2 :: (* -> *) -> * -> *)
+  (t1 :: (* -> *) -> * -> *)
+  (m :: * -> *)
+  (a :: *)
+  = (:.:) (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+infixr 9 :.:

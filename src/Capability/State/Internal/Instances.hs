@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -7,9 +8,11 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -130,6 +133,13 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Lift (t m) a
     state_ _ = coerce $ lift @t @m . state @tag @s @m @a
     {-# INLINE state_ #-}
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasState tag s (t2 (t1 m)) )
+  => HasState tag s ((t2 :.: t1) m)
 
 -- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
 --
