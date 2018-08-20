@@ -6,6 +6,7 @@ module HasState
   , modify
   , modify'
   , gets
+  , zoom
   , MonadState (..)
   , ReaderIORef (..)
   , ReaderRef (..)
