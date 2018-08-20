@@ -7,6 +7,7 @@ module Capability.State
   , modify
   , modify'
   , gets
+  , zoom
     -- * Strategies
   , MonadState(..)
   , ReaderIORef(..)
