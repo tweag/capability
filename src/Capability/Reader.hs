@@ -5,6 +5,7 @@ module Capability.Reader
   , asks
   , local
   , reader
+  , magnify
     -- * Strategies
   , MonadReader(..)
   , ReadStatePure(..)
