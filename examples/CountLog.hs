@@ -68,7 +68,7 @@ loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 newtype LogM m (a :: *) = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Logger via
-    (TheLoggerReader (Field "logger"
+    (TheLoggerReader (Field "logger" ()
     (MonadReader (ReaderT LogCtx m))))
 
 runLogM :: LogCtx -> LogM m a -> m a
@@ -144,10 +144,10 @@ data CountLogCtx = CountLogCtx
 newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
-    TheCounterState (ReaderIORef (Field "countCtx"
-    (MonadReader (ReaderT CountLogCtx m))))
+    TheCounterState (ReaderIORef (Rename "countCtx" (Field "countCtx" ()
+    (MonadReader (ReaderT CountLogCtx m)))))
   deriving Logger via
-    (TheLoggerReader (Field "logger" (Field "logCtx"
+    (TheLoggerReader (Field "logger" "logCtx" (Field "logCtx" ()
     (MonadReader (ReaderT CountLogCtx m)))))
 
 runCountLogM :: MonadIO m => CountLogM m b -> m b

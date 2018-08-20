@@ -43,9 +43,11 @@ data TwoStates = TwoStates
 newtype TwoStatesM a = TwoStatesM (ReaderT TwoStates IO a)
   deriving (Functor, Applicative, Monad)
   deriving (HasState "foo" Int) via
-    ReaderIORef (Field "tsFoo" (MonadReader (ReaderT TwoStates IO)))
+    ReaderIORef (Rename "tsFoo" (Field "tsFoo" ()
+    (MonadReader (ReaderT TwoStates IO))))
   deriving (HasState "bar" Int) via
-    ReaderIORef (Field "tsBar" (MonadReader (ReaderT TwoStates IO)))
+    ReaderIORef (Rename "tsBar" (Field "tsBar" ()
+    (MonadReader (ReaderT TwoStates IO))))
 
 runTwoStatesM :: TwoStatesM a -> IO (a, (Int, Int))
 runTwoStatesM (TwoStatesM m) = do
@@ -65,9 +67,9 @@ runTwoStatesM (TwoStatesM m) = do
 newtype PairStateM a = PairStateM (State (Int, Int) a)
   deriving (Functor, Applicative, Monad)
   deriving (HasState "foo" Int) via
-    Pos 1 (MonadState (State (Int, Int)))
+    Rename 1 (Pos 1 () (MonadState (State (Int, Int))))
   deriving (HasState "bar" Int) via
-    Pos 2 (MonadState (State (Int, Int)))
+    Rename 2 (Pos 2 () (MonadState (State (Int, Int))))
 
 runPairStateM :: PairStateM a -> (a, (Int, Int))
 runPairStateM (PairStateM m) = runState m (0, 0)

@@ -67,9 +67,9 @@ data FooBar = FooBar
 newtype FooBarReader a = FooBarReader (ReaderT FooBar IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
   deriving (HasReader "foo" Int) via
-    Field "foo" (MonadReader (ReaderT FooBar IO))
+    Field "foo" () (MonadReader (ReaderT FooBar IO))
   deriving (HasReader "bar" Int) via
-    Field "bar" (MonadReader (ReaderT FooBar IO))
+    Field "bar" () (MonadReader (ReaderT FooBar IO))
 
 runFooBarReader :: FooBarReader a -> IO a
 runFooBarReader (FooBarReader m) = runReaderT m FooBar { foo = 1, bar = 2 }

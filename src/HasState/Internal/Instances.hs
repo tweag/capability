@@ -67,23 +67,37 @@ instance
     {-# INLINE state_ #-}
 
 
+-- | Rename the tag.
+instance HasState oldtag s m => HasState newtag s (Rename oldtag m) where
+  get_ _ = coerce @(m s) $ get @oldtag
+  {-# INLINE get_ #-}
+  put_ _ = coerce @(s -> m ()) $ put @oldtag
+  {-# INLINE put_ #-}
+  state_ :: forall a. Proxy# newtag -> (s -> (a, s)) -> Rename oldtag m a
+  state_ _ = coerce @((s -> (a, s)) -> m a) $ state @oldtag
+  {-# INLINE state_ #-}
+
+
 -- | Zoom in on the record field @field@ of type @v@ in the state @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic.HasField' field record v, HasState tag record m )
-  => HasState tag v (Field field m)
+  ( tag ~ field, Generic.HasField' field record v, HasState oldtag record m )
+  => HasState tag v (Field field oldtag m)
   where
     get_ _ = coerce @(m v) $
-      gets @tag $ view (Generic.field' @field)
+      gets @oldtag $ view (Generic.field' @field)
     {-# INLINE get_ #-}
     put_ _ = coerce @(v -> m ()) $
-      modify @tag . set (Generic.field' @field @record)
+      modify @oldtag . set (Generic.field' @field @record)
     {-# INLINE put_ #-}
-    state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Field field m a
+    state_ :: forall a.
+      Proxy# tag
+      -> (v -> (a, v))
+      -> Field field oldtag m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
-      state @tag . Generic.field' @field @_ @_ @((,) a)
+      state @oldtag . Generic.field' @field @_ @_ @((,) a)
     {-# INLINE state_ #-}
 
 
@@ -92,18 +106,21 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasPosition'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic.HasPosition' pos struct v, HasState tag struct m )
-  => HasState tag v (Pos pos m)
+  ( tag ~ pos, Generic.HasPosition' pos struct v, HasState oldtag struct m )
+  => HasState tag v (Pos pos oldtag m)
   where
     get_ _ = coerce @(m v) $
-      gets @tag $ view (Generic.position' @pos)
+      gets @oldtag $ view (Generic.position' @pos)
     {-# INLINE get_ #-}
     put_ _ = coerce @(v -> m ()) $
-      modify @tag . set (Generic.position' @pos @struct)
+      modify @oldtag . set (Generic.position' @pos @struct)
     {-# INLINE put_ #-}
-    state_ :: forall a. Proxy# tag -> (v -> (a, v)) -> Pos pos m a
+    state_ :: forall a.
+      Proxy# tag
+      -> (v -> (a, v))
+      -> Pos pos oldtag m a
     state_ _ = coerce @((v -> (a, v)) -> m a) $
-      state @tag . Generic.position' @pos @_ @_ @((,) a)
+      state @oldtag . Generic.position' @pos @_ @_ @((,) a)
     {-# INLINE state_ #-}
 
 

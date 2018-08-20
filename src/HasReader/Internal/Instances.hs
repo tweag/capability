@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -128,26 +129,45 @@ instance
     {-# INLINE reader_ #-}
 
 
+-- | Rename the tag.
+instance HasReader oldtag r m => HasReader newtag r (Rename oldtag m) where
+  ask_ _ = coerce @(m r) $ ask @oldtag
+  {-# INLINE ask_ #-}
+  local_ :: forall a.
+    Proxy# newtag -> (r -> r) -> Rename oldtag m a -> Rename oldtag m a
+  local_ _ = coerce @((r -> r) -> m a -> m a) $ local @oldtag
+  {-# INLINE local_ #-}
+  reader_ :: forall a. Proxy# newtag -> (r -> a) -> Rename oldtag m a
+  reader_ _ = coerce @((r -> a) -> m a) $ reader @oldtag
+  {-# INLINE reader_ #-}
+
+
 -- | Zoom in on the record field @field@ of type @v@
 -- in the environment @record@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic.HasField' field record v, HasReader tag record m )
-  => HasReader tag v (Field field m)
+  ( tag ~ field, Generic.HasField' field record v, HasReader oldtag record m )
+  => HasReader tag v (Field field oldtag m)
   where
     ask_ _ = coerce @(m v) $
-      asks @tag $ view (Generic.field' @field)
+      asks @oldtag $ view (Generic.field' @field)
     {-# INLINE ask_ #-}
-    local_
-      :: forall a. Proxy# tag -> (v -> v) -> Field field m a -> Field field m a
-    local_ tag = coerce @((v -> v) -> m a -> m a) $
-      local_ tag . over (Generic.field' @field)
+    local_ :: forall a.
+      Proxy# tag
+      -> (v -> v)
+      -> Field field oldtag m a
+      -> Field field oldtag m a
+    local_ _ = coerce @((v -> v) -> m a -> m a) $
+      local @oldtag . over (Generic.field' @field)
     {-# INLINE local_ #-}
-    reader_ :: forall a. Proxy# tag -> (v -> a) -> Field field m a
-    reader_ tag f = coerce @(m a) $
-      reader_ tag $ f . view (Generic.field' @field)
+    reader_ :: forall a.
+      Proxy# tag
+      -> (v -> a)
+      -> Field field oldtag m a
+    reader_ _ f = coerce @(m a) $
+      reader @oldtag $ f . view (Generic.field' @field)
     {-# INLINE reader_ #-}
 
 
@@ -157,20 +177,26 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasPosition'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( Generic.HasPosition' pos struct v, HasReader tag struct m )
-  => HasReader tag v (Pos pos m)
+  ( tag ~ pos, Generic.HasPosition' pos struct v, HasReader oldtag struct m )
+  => HasReader tag v (Pos pos oldtag m)
   where
     ask_ _ = coerce @(m v) $
-      asks @tag $ view (Generic.position' @pos)
+      asks @oldtag $ view (Generic.position' @pos)
     {-# INLINE ask_ #-}
-    local_
-      :: forall a. Proxy# tag -> (v -> v) -> Pos pos m a -> Pos pos m a
-    local_ tag = coerce @((v -> v) -> m a -> m a) $
-      local_ tag . over (Generic.position' @pos)
+    local_ :: forall a.
+      Proxy# tag
+      -> (v -> v)
+      -> Pos pos oldtag m a
+      -> Pos pos oldtag m a
+    local_ _ = coerce @((v -> v) -> m a -> m a) $
+      local @oldtag . over (Generic.position' @pos)
     {-# INLINE local_ #-}
-    reader_ :: forall a. Proxy# tag -> (v -> a) -> Pos pos m a
-    reader_ tag f = coerce @(m a) $
-      reader_ tag $ f . view (Generic.position' @pos)
+    reader_ :: forall a.
+      Proxy# tag
+      -> (v -> a)
+      -> Pos pos oldtag m a
+    reader_ _ f = coerce @(m a) $
+      reader @oldtag $ f . view (Generic.position' @pos)
     {-# INLINE reader_ #-}
 
 
