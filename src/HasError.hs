@@ -11,8 +11,10 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -364,3 +366,19 @@ instance
       coerce @((e -> Maybe b) -> t m a -> (b -> t m a) -> t m a) $ \f m h ->
         liftWith (\run -> catchJust_ tag f (run m) (run . h)) >>= restoreT . pure
     {-# INLINE catchJust_ #-}
+
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasThrow tag e (t2 (t1 m)) )
+  => HasThrow tag e ((t2 :.: t1) m)
+
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasCatch tag e (t2 (t1 m)) )
+  => HasCatch tag e ((t2 :.: t1) m)

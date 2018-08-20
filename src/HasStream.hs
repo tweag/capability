@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -6,9 +7,12 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -22,7 +26,7 @@ module HasStream
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
-import Data.Coerce (coerce)
+import Data.Coerce (Coercible, coerce)
 import Data.DList (DList)
 import qualified Data.DList as DList
 import GHC.Exts (Proxy#, proxy#)
@@ -73,3 +77,11 @@ instance (HasStream tag a m, MonadTrans t, Monad (t m))
   where
     yield_ _ = coerce @(a -> t m ()) $ lift . yield @tag
     {-# INLINE yield_ #-}
+
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasStream tag a (t2 (t1 m)) )
+  => HasStream tag a ((t2 :.: t1) m)
