@@ -39,6 +39,13 @@ useZoom = do
   -- Zoom in on the first element in the current state, rename tag 1 to "foo".
   zoom @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar") $
     incFoo
+  -- Derive @HasState "foo" Int@ and @HasState "bar" Int@ from the tuple
+  -- elements in @HasState "foobar" (Int, Int)@.
+  access
+    @'[ HasState "foo" Int `Via` Rename 2 :.: Pos 2 "foobar"
+      , HasState "bar" Int `Via` Rename 1 :.: Pos 1 "foobar"
+      ] $
+    twoStates
   gets @"foobar" (\(foo, bar) -> foo + bar)
 
 

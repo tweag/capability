@@ -1,7 +1,12 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 
@@ -13,10 +18,15 @@ module Accessors
   , Ctor (..)
   , Lift (..)
   , (:.:) (..)
+  , Via
+  , Combine (..)
+  , access
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
+import Data.Coerce (coerce)
+import GHC.Exts (Constraint)
 import GHC.TypeLits (Nat, Symbol)
 
 
@@ -68,3 +78,28 @@ newtype (:.:)
   = (:.:) (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 infixr 9 :.:
+
+
+data Via
+  (capability :: (* -> *) -> Constraint)
+  (strategy :: (* -> *) -> * -> *)
+infix 8 `Via`
+
+
+newtype Combine (vias :: [*]) m (a :: *) = Combine (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
+
+access :: forall vias m a.
+  ApplyCapabilities vias (Combine vias m)
+  => (forall m'. ApplyCapabilities vias m' => m' a)
+  -> m a
+access m = coerce @(Combine vias m a) m
+{-# INLINE access #-}
+
+
+type family ApplyCapabilities (vias :: [*]) (m :: * -> *) :: Constraint
+  where
+    ApplyCapabilities '[] _ = ()
+    ApplyCapabilities '[Via c _] m = (c m)
+    ApplyCapabilities (Via c _ ': vias) m = (c m, ApplyCapabilities vias m)

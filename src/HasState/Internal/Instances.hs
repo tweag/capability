@@ -148,6 +148,17 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
   => HasState tag s ((t2 :.: t1) m)
 
 
+deriving via ((t :: (* -> *) -> * -> *) m)
+  instance
+  ( s ~ s', Monad m, forall x. Coercible (m x) (t m x), HasState tag s' (t m) )
+  => HasState tag s (Combine (HasState tag s' `Via` t ': vias) m)
+
+deriving via (Combine vias m)
+  instance {-# OVERLAPPABLE #-}
+    (Monad m, HasState tag s (Combine vias m))
+    => HasState tag s (Combine (via ': vias) m)
+
+
 -- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
 --
 -- Example:
