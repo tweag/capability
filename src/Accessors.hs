@@ -1,7 +1,11 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -9,6 +13,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 
 module Accessors
   ( Coerce (..)
@@ -91,15 +97,17 @@ newtype Combine (vias :: [*]) m (a :: *) = Combine (m a)
 
 
 access :: forall vias m a.
-  ApplyCapabilities vias (Combine vias m)
-  => (forall m'. ApplyCapabilities vias m' => m' a)
+  AllCapabilities vias (Combine vias m)
+  => (forall m'. AllCapabilities vias m' => m' a)
   -> m a
 access m = coerce @(Combine vias m a) m
 {-# INLINE access #-}
 
 
-type family ApplyCapabilities (vias :: [*]) (m :: * -> *) :: Constraint
+class AllCapabilitiesF vias m => AllCapabilities vias m
+instance AllCapabilitiesF vias m => AllCapabilities vias m
+type family AllCapabilitiesF (vias :: [*]) (m :: * -> *) :: Constraint
   where
-    ApplyCapabilities '[] _ = ()
-    ApplyCapabilities '[Via c _] m = (c m)
-    ApplyCapabilities (Via c _ ': vias) m = (c m, ApplyCapabilities vias m)
+    AllCapabilitiesF '[] _ = ()
+    AllCapabilitiesF '[Via c _] m = (c m)
+    AllCapabilitiesF (Via c _ ': vias) m = (c m, AllCapabilitiesF vias m)
