@@ -4,6 +4,7 @@ module HasReader
   , asks
   , local
   , reader
+  , magnify
   , MonadReader (..)
   , ReadStatePure (..)
   , ReadState (..)
