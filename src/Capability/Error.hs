@@ -17,18 +17,22 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module Capability.Error
-  ( HasThrow(..)
+  ( -- * Interface
+    HasThrow(..)
   , throw
   , HasCatch(..)
   , catch
   , catchJust
   , wrapError
+    -- * Strategies
   , MonadError(..)
   , MonadThrow(..)
   , MonadCatch(..)
   , SafeExceptions(..)
   , MonadUnliftIO(..)
+    -- ** Modifiers
   , module Capability.Accessors
+    -- * Re-exported
   , Exception(..)
   , Typeable
   ) where
@@ -55,6 +59,10 @@ import qualified UnliftIO.Exception as UnliftIO
 --
 -- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
 -- See 'HasCatch'.
+--
+-- An instance should fulfill the following laws.
+--
+-- XXX: What laws?
 class Monad m
   => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
@@ -80,6 +88,10 @@ throw = throw_ (proxy# @_ @tag)
 -- >     \_ -> pure ()
 --
 -- See 'wrapError' for a way to combine multiple exception types into one.
+--
+-- An instance should fulfill the following laws.
+--
+-- XXX: What laws?
 class HasThrow tag e m
   => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where

@@ -1,12 +1,15 @@
 module Capability.Reader
-  ( HasReader(..)
+  ( -- * Interface
+    HasReader(..)
   , ask
   , asks
   , local
   , reader
+    -- * Strategies
   , MonadReader(..)
   , ReadStatePure(..)
   , ReadState(..)
+    -- ** Modifiers
   , module Capability.Accessors
   ) where
 
