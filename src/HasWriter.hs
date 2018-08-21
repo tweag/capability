@@ -31,12 +31,16 @@
 -- ensures your code is restricted to the writer monad interface and does
 -- not misuse the underlying state monad.
 module HasWriter
-  ( HasWriter (..)
+  ( -- * Interface
+    HasWriter (..)
   , writer
   , tell
   , listen
   , pass
+    -- * Strategies
   , WriterLog (..)
+    -- ** Modifiers
+  , module Accessors
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -44,29 +48,48 @@ import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
+import Accessors
 import HasState
 
 
+-- | Writer capability
+--
+-- An instance should fulfill the following laws.
+-- See <https://github.com/haskell/mtl/issues/5>.
+--
+-- XXX: What laws?
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
+    -- | Use 'writer' instead.
     writer_ :: Proxy# tag -> (a, w) -> m a
+    -- | Use 'tell' instead.
     tell_ :: Proxy# tag -> w -> m ()
+    -- | Use 'listen' instead.
     listen_ :: Proxy# tag -> m a -> m (a, w)
+    -- | Use 'pass' instead.
     pass_ :: Proxy# tag -> m (a, w -> w) -> m a
 
+-- | @writer \@tag (a, w)@
+-- Write the output @w@ and return the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
 writer = writer_ (proxy# @_ @tag)
 {-# INLINE writer #-}
 
+-- | @tell \@tag w@
+-- Write the output @w@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
 tell = tell_ (proxy# @_ @tag)
 {-# INLINE tell #-}
 
+-- | @listen \@tag m@
+-- Execute @m@ and return its output along with its result.
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
 listen = listen_ (proxy# @_ @tag)
 {-# INLINE listen #-}
 
+-- | @pass \@tag m@
+-- Execute @m@ and modify its output according to the function it returns.
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}

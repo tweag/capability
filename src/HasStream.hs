@@ -13,10 +13,14 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasStream
-  ( HasStream (..)
+  ( -- * Interface
+    HasStream (..)
   , yield
+    -- * Strategies
   , StreamStack (..)
   , StreamDList (..)
+    -- ** Modifiers
+  , module Accessors
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -29,11 +33,16 @@ import GHC.Exts (Proxy#, proxy#)
 import Streaming
 import qualified Streaming.Prelude as S
 
+import Accessors
 import HasState
 import HasWriter
 
 
 -- | Streaming capability.
+--
+-- An instance should fulfill the following laws.
+--
+-- XXX: What laws?
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
   where

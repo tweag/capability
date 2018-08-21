@@ -1,12 +1,15 @@
 module HasReader
-  ( HasReader (..)
+  ( -- * Interface
+    HasReader (..)
   , ask
   , asks
   , local
   , reader
+    -- * Strategies
   , MonadReader (..)
   , ReadStatePure (..)
   , ReadState (..)
+    -- ** Modifiers
   , module Accessors
   ) where
 
