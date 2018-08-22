@@ -78,6 +78,7 @@ test-suite examples
                        State
                        Stream
                        Test.Common
+                       WordCount
                        Writer
   main-is:             Test.hs
   build-depends:       base
@@ -85,10 +86,12 @@ test-suite examples
                      , containers
                      , hspec
                      , hspec-jenkins
+                     , lens
                      , mtl
                      , silently
                      , streaming
                      , temporary
+                     , text
                      , unliftio
   ghc-options:         -Wall
   hs-source-dirs:      examples
