@@ -70,6 +70,7 @@ library
 test-suite examples
   type: exitcode-stdio-1.0
   other-modules:
+    WordCount
     CountLog
     Error
     Reader
@@ -84,10 +85,12 @@ test-suite examples
     , containers
     , hspec
     , hspec-jenkins
+    , lens
     , mtl
     , silently
     , streaming
     , temporary
+    , text
     , unliftio
   ghc-options: -Wall
   hs-source-dirs: examples

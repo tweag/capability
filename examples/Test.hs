@@ -12,6 +12,7 @@ import qualified Reader
 import qualified State
 import qualified Stream
 import qualified Writer
+import qualified WordCount
 
 
 spec :: Spec
@@ -22,6 +23,7 @@ spec = do
   describe "State" State.spec
   describe "Stream" Stream.spec
   describe "Writer" Writer.spec
+  describe "WordCount" WordCount.spec
 
 
 main :: IO ()
