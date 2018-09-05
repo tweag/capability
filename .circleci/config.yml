@@ -9,7 +9,7 @@ jobs:
           name: Setup Cachix
           command: |
             apk --no-progress update
-            apk --no-progress add bash ca-certificates
+            apk --no-progress add ca-certificates
             nix-channel --update
             # Install cachix and activate project cache
             nix-env -iA cachix -f https://github.com/NixOS/nixpkgs/tarball/1d4de0d552ae9aa66a5b8dee5fb0650a4372d148
