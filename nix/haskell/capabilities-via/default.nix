@@ -1,7 +1,7 @@
 { mkDerivation, base, containers, dlist, exceptions, generic-lens
-, hspec, lens, monad-control, monad-unlift, mtl, mutable-containers
-, primitive, safe-exceptions, silently, stdenv, streaming
-, temporary, transformers, unliftio, unliftio-core
+, hspec, hspec-jenkins, lens, monad-control, monad-unlift, mtl
+, mutable-containers, primitive, safe-exceptions, silently, stdenv
+, streaming, temporary, transformers, unliftio, unliftio-core
 }:
 mkDerivation {
   pname = "capabilities-via";
@@ -13,7 +13,8 @@ mkDerivation {
     transformers unliftio unliftio-core
   ];
   testHaskellDepends = [
-    base containers hspec mtl silently streaming temporary unliftio
+    base containers hspec hspec-jenkins mtl silently streaming
+    temporary unliftio
   ];
   homepage = "https://github.com/tweag/capabilities-via";
   license = stdenv.lib.licenses.bsd3;

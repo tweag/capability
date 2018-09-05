@@ -12,6 +12,9 @@ self: super:
         overrides = hsself: hssuper: {
           capabilities-via = hssuper.callPackage ./capabilities-via {};
 
+          # blaze-markup's test-suite requires tasty.
+          # tasty doesn't build with GHC 8.6.
+          blaze-markup = super.haskell.lib.dontCheck hssuper.blaze-markup;
           generic-lens = super.haskell.lib.dontCheck hssuper.generic-lens;
           # temporary's test-suite requires tasty.
           # tasty doesn't build with GHC 8.6.
@@ -26,6 +29,10 @@ self: super:
           split = super.haskell.lib.doJailbreak hssuper.split;
           StateVar = super.haskell.lib.doJailbreak hssuper.StateVar;
           unliftio-core = super.haskell.lib.doJailbreak hssuper.unliftio-core;
+
+          hspec-jenkins = super.haskell.lib.appendPatch hssuper.hspec-jenkins
+            ./hspec-jenkins-hspec_2_5_1.patch
+          ;
 
           adjunctions = super.haskell.lib.overrideCabal hssuper.adjunctions (attrs: {
             postPatch = ''

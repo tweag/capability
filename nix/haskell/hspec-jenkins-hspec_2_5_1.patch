@@ -1,0 +1,75 @@
+diff --git a/hspec-jenkins.cabal b/hspec-jenkins.cabal
+index 37eaf4f..3f631fe 100644
+--- a/hspec-jenkins.cabal
++++ b/hspec-jenkins.cabal
+@@ -20,8 +20,8 @@ source-repository head
+ 
+ library
+   build-depends:
+-      base == 4.*
+-    , hspec >= 1.4
++      base >= 4.7 && < 5
++    , hspec == 2.*
+     , blaze-markup
+   hs-source-dirs: lib
+   ghc-options: -Wall -W
+diff --git a/lib/Test/Hspec/Formatters/Jenkins.hs b/lib/Test/Hspec/Formatters/Jenkins.hs
+index 07721b2..d1f6e5e 100644
+--- a/lib/Test/Hspec/Formatters/Jenkins.hs
++++ b/lib/Test/Hspec/Formatters/Jenkins.hs
+@@ -39,23 +39,35 @@ message = customAttribute "message" . stringValue
+ testcase :: Path -> Markup -> Markup
+ testcase (xs,x) = customParent "testcase" ! name x ! className (intercalate "." xs)
+ 
++reasonAsString :: FailureReason -> String
++reasonAsString reason =
++  case reason of
++    NoReason -> "no reason given"
++    Reason x -> x
++    ExpectedButGot Nothing expected got ->
++      "Expected " ++ expected ++ " but got " ++ got
++    ExpectedButGot (Just src) expected got ->
++      src ++ " expected " ++ expected ++ " but got " ++ got
++    Error Nothing err -> show err
++    Error (Just s) err -> s ++ (show err)
++
+ -- | Format Hspec result to Jenkins-friendly XML.
+ xmlFormatter :: Formatter
+ xmlFormatter = silent {
+     headerFormatter = do
+       writeLine "<?xml version='1.0' encoding='UTF-8'?>"
+       writeLine "<testsuite>"
+-  , exampleSucceeded = \path -> do
++  , exampleSucceeded = \path _ -> do
+       writeLine $ renderMarkup $
+         testcase path ""
+-  , exampleFailed = \path err -> do
++  , exampleFailed = \path _ err -> do
+       writeLine $ renderMarkup $
+         testcase path $
+-          failure ! message (either formatException id err) $ ""
+-  , examplePending = \path mdesc -> do
++          failure ! message (reasonAsString err) $ ""
++  , examplePending = \path _ reason -> do
+       writeLine $ renderMarkup $
+         testcase path $
+-          case mdesc of
++          case reason of
+             Just desc -> skipped ! message desc  $ ""
+             Nothing -> skipped ""
+   , footerFormatter = do
+diff --git a/stack.yaml b/stack.yaml
+new file mode 100644
+index 0000000..cb9aee2
+--- /dev/null
++++ b/stack.yaml
+@@ -0,0 +1,9 @@
++resolver: lts-11.9
++packages:
++- '.'
++extra-deps:
++- hspec-core-2.5.1
++- hspec-2.5.1
++- hspec-discover-2.5.1
++- hspec-expectations-0.8.2
++- call-stack-0.1.0

@@ -84,6 +84,7 @@ test-suite examples
                      , capabilities-via
                      , containers
                      , hspec
+                     , hspec-jenkins
                      , mtl
                      , silently
                      , streaming
