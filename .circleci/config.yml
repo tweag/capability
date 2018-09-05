@@ -3,6 +3,9 @@ jobs:
   build:
     docker:
       - image: nixos/nix:2.0
+    environment:
+      GHC_WARNING_FLAGS:
+        "-Wall -Werror -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wnoncanonical-monad-instances"
     steps:
       - checkout
       - run:
@@ -22,17 +25,17 @@ jobs:
       - run:
           name: Build library
           command: |
-            nix-shell --pure --run '
+            nix-shell --pure --run "
               cabal configure --disable-tests && \
-              cabal build --only --ghc-options="-Wall -Werror"
-              '
+              cabal build --only --ghc-options=\"${GHC_WARNING_FLAGS}\"
+              "
       - run:
           name: Build tests
           command: |
-            nix-shell --pure --run '
+            nix-shell --pure --run "
               cabal configure --enable-tests && \
-              cabal build --only --ghc-options="-Wall -Werror"
-              '
+              cabal build --only --ghc-options=\"${GHC_WARNING_FLAGS}\"
+              "
       - run:
           name: Run tests
           command: |
