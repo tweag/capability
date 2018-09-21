@@ -38,13 +38,13 @@ import Test.Common
 newtype Accum map = Accum map
 
 instance (Ord k, Semigroup v)
-  => Monoid (Accum (Map k v)) where
-    mempty = coerce $ Map.empty @k @v
-    mappend = coerce $ Map.unionWith @k @v (<>)
+  => Semigroup (Accum (Map k v)) where
+    (<>) = coerce $ Map.unionWith @k @v (<>)
 
 instance (Ord k, Semigroup v)
-  => Semigroup (Accum (Map k v)) where
-    (<>) = mappend
+  => Monoid (Accum (Map k v)) where
+    mempty = coerce $ Map.empty @k @v
+    mappend = (<>)
 
 
 -- | Counts occurrences of values @k@.
@@ -53,7 +53,7 @@ newtype Occurrences k = Occurrences (Map k Int)
   deriving Show
 
 -- | A single occurrence of the given value.
-oneOccurrence :: Ord k => k -> Occurrences k
+oneOccurrence :: k -> Occurrences k
 oneOccurrence k = Occurrences $ Map.singleton k 1
 
 
