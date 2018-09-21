@@ -23,14 +23,14 @@ import GHC.Exts (Proxy#, proxy#)
 -- | State capability
 --
 -- An instance should fulfill the following laws.
--- See <https://github.com/haskell/mtl/issues/5>.
+-- At this point these laws are not definitive,
+-- see <https://github.com/haskell/mtl/issues/5>.
 --
 -- prop> get @t >>= \s1 -> get @t >>= \s2 -> pure (s1, s2) = get @t >>= \s -> pure (s, s)
 -- prop> get @t >>= \_ -> put @t s = put @t s
 -- prop> put @t s1 >> put @t s2 = put @t s2
 -- prop> put @t s >> get @t = put @t s >> pure s
---
--- XXX: What laws does 'state' fulfill?
+-- prop> state @t f = get @t >>= \s -> let (a, s') = f s in put @t s' >> pure a
 class Monad m
   => HasState (tag :: k) (s :: *) (m :: * -> *) | tag m -> s
   where

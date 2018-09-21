@@ -55,9 +55,14 @@ import GHC.Exts (Proxy#, proxy#)
 -- | Writer capability
 --
 -- An instance should fulfill the following laws.
--- See <https://github.com/haskell/mtl/issues/5>.
+-- At this point these laws are not definitive,
+-- see <https://github.com/haskell/mtl/issues/5>.
 --
--- XXX: What laws?
+-- prop> listen @t (pure a) = pure (a, mempty)
+-- prop> listen @t (tell @t w) = tell @t w >> pure (w, w)
+-- prop> listen @t (m >>= k) = listen @t m >>= \(a, w1) -> listen @t (k a) >>= \(b, w2) -> pure (b, w1 `mappend` w2)
+-- prop> pass @t (tell @t w >> pure (a, f)) = tell @t (f w) >> pure a
+-- prop> writer @t (a, w) = tell @t w >> pure a
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where

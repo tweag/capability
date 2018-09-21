@@ -21,7 +21,8 @@ import GHC.Exts (Proxy#, proxy#)
 -- | Reader capability
 --
 -- An instance should fulfill the following laws.
--- See <https://github.com/haskell/mtl/issues/5>.
+-- At this point these laws are not definitive,
+-- see <https://github.com/haskell/mtl/issues/5>.
 --
 -- prop> k <*> ask @t = ask @t <**> k
 -- prop> ask @t *> m = m = m <* ask @t
@@ -29,8 +30,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> local @t f . local @t g = local @t (g . f)
 -- prop> local @t f (pure x) = pure x
 -- prop> local @t f (m >>= \x -> k x) = local @t f m >>= \x -> local @t f (k x)
---
--- XXX: What laws does 'reader' fulfill?
+-- prop> reader @t f = f <$> ask @t
 class Monad m
   => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r
   where

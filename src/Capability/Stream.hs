@@ -39,8 +39,6 @@ import qualified Streaming.Prelude as S
 -- | Streaming capability.
 --
 -- An instance should fulfill the following laws.
---
--- XXX: What laws?
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
   where
