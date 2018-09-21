@@ -21,6 +21,7 @@ jobs:
           name: Push Cachix
           command: |
             # Instantiate nix-shell and push closure to project cache
+            nix-shell --pure --run :
             nix-store -qR --include-outputs $(nix-instantiate shell.nix) | cachix push capabilities-via
       - run:
           name: Build library
