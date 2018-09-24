@@ -12,13 +12,7 @@ Some of this package's dependencies require patches to build with GHC 8.6.
 These patches are defined in
 [`nix/haskell/default.nix`](nix/haskell/default.nix).
 A development environment with all patched dependencies in scope is defined in
-[`shell.nix`](shell.nix). When additional dependencies are added to the Cabal
-file, execute the following line to add these new dependencies to the Nix
-shell.
-
-```
-$ ./nix/scripts/update-haskell-deps
-```
+[`shell.nix`](shell.nix).
 
 ## Cachix Nix Cache
 
