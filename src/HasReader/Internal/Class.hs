@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeInType #-}
 
 module HasReader.Internal.Class
-  ( HasReader (..)
+  ( HasReader(..)
   , ask
   , asks
   , local
@@ -17,7 +17,6 @@ module HasReader.Internal.Class
   ) where
 
 import GHC.Exts (Proxy#, proxy#)
-
 
 class Monad m
   => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r

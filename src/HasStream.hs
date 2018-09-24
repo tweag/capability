@@ -13,10 +13,10 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module HasStream
-  ( HasStream (..)
+  ( HasStream(..)
   , yield
-  , StreamStack (..)
-  , StreamDList (..)
+  , StreamStack(..)
+  , StreamDList(..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -32,7 +32,6 @@ import qualified Streaming.Prelude as S
 import HasState
 import HasWriter
 
-
 -- | Streaming capability.
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
@@ -45,14 +44,12 @@ yield :: forall tag a m. HasStream tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 {-# INLINE yield #-}
 
-
 -- | Accumulate streamed values in a reverse order list.
 newtype StreamStack m (a :: *) = StreamStack (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance HasState tag [a] m => HasStream tag a (StreamStack m) where
   yield_ _ a = coerce @(m ()) $ modify' @tag (a:)
   {-# INLINE yield_ #-}
-
 
 -- | Accumulate streamed values in forward order in a difference list.
 newtype StreamDList m (a :: *) = StreamDList (m a)
@@ -61,11 +58,9 @@ instance HasWriter tag (DList a) m => HasStream tag a (StreamDList m) where
   yield_ _ = coerce @(a -> m ()) $ tell @tag . DList.singleton
   {-# INLINE yield_ #-}
 
-
 instance Monad m => HasStream tag a (S.Stream (Of a) m) where
   yield_ _ = S.yield
   {-# INLINE yield_ #-}
-
 
 -- | Lift one layer in a monad transformer stack.
 instance (HasStream tag a m, MonadTrans t, Monad (t m))

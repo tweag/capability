@@ -1,14 +1,14 @@
 module HasState
-  ( HasState (..)
+  ( HasState(..)
   , get
   , put
   , state
   , modify
   , modify'
   , gets
-  , MonadState (..)
-  , ReaderIORef (..)
-  , ReaderRef (..)
+  , MonadState(..)
+  , ReaderIORef(..)
+  , ReaderRef(..)
   , module Accessors
   ) where
 

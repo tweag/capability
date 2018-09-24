@@ -1,4 +1,18 @@
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+-- | Defines a writer monad capability.
+--
+-- The interface of 'HasWriter' follows that of
+-- 'Control.Monad.Writer.Class.MonadWriter'. However, we do
+-- not provide a strategy to derive a @HasWriter@ instance from a
+-- @MonadWriter@ instance. Implementations of @MonadWriter@ based on
+-- 'Control.Monad.Writer.Strict.WriterT' or similar have a space-leak, see this
+-- <https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks blog post>
+-- by Getty Ritter.
+--
+-- Instead, we provide the 'WriterLog' strategy that implements the writer
+-- monad on a state monad. Using 'HasWriter' instead of 'HasState' directly
+-- ensures your code is restricted to the writer monad interface and does
+-- not misuse the underlying state monad.
+
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
@@ -16,27 +30,15 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Defines a writer monad capability.
---
--- The interface of 'HasWriter' follows that of
--- 'Control.Monad.Writer.Class.MonadWriter'. However, we do
--- not provide a strategy to derive a @HasWriter@ instance from a
--- @MonadWriter@ instance. Implementations of @MonadWriter@ based on
--- 'Control.Monad.Writer.Strict.WriterT' or similar have a space-leak, see this
--- <https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks blog post>
--- by Getty Ritter.
---
--- Instead, we provide the 'WriterLog' strategy that implements the writer
--- monad on a state monad. Using 'HasWriter' instead of 'HasState' directly
--- ensures your code is restricted to the writer monad interface and does
--- not misuse the underlying state monad.
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+
 module HasWriter
-  ( HasWriter (..)
+  ( HasWriter(..)
   , writer
   , tell
   , listen
   , pass
-  , WriterLog (..)
+  , WriterLog(..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -45,7 +47,6 @@ import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 import HasState
-
 
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
@@ -71,9 +72,9 @@ pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}
 
-
 newtype WriterLog m a = WriterLog (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)
   where

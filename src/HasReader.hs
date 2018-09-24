@@ -1,12 +1,12 @@
 module HasReader
-  ( HasReader (..)
+  ( HasReader(..)
   , ask
   , asks
   , local
   , reader
-  , MonadReader (..)
-  , ReadStatePure (..)
-  , ReadState (..)
+  , MonadReader(..)
+  , ReadStatePure(..)
+  , ReadState(..)
   , module Accessors
   ) where
 

@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -15,10 +13,13 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+
 module HasReader.Internal.Instances
-  ( MonadReader (..)
-  , ReadStatePure (..)
-  , ReadState (..)
+  ( MonadReader(..)
+  , ReadStatePure(..)
+  , ReadState(..)
   ) where
 
 import Control.Lens (over, view)
@@ -27,7 +28,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.Reader.Class as Reader
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Control (MonadTransControl (..))
+import Control.Monad.Trans.Control (MonadTransControl(..))
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
@@ -37,11 +38,11 @@ import Accessors
 import HasReader.Internal.Class
 import HasState.Internal.Class
 
-
 -- | Derive 'HasReader' from @m@'s
 -- 'Control.Monad.Reader.Class.MonadReader' instance.
 newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   ask_ _ = coerce @(m r) Reader.ask
   {-# INLINE ask_ #-}
@@ -71,6 +72,7 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
 -- See 'ReadState.
 newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
   deriving (Functor, Applicative, Monad)
+
 instance HasState tag r m => HasReader tag r (ReadStatePure m) where
   ask_ _ = coerce @(m r) $ get @tag
   {-# INLINE ask_ #-}
@@ -92,6 +94,7 @@ instance HasState tag r m => HasReader tag r (ReadStatePure m) where
 -- See 'ReadStatePure'.
 newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance
   (HasState tag r m, MonadMask m)
   => HasReader tag r (ReadState m)
@@ -170,7 +173,6 @@ instance
       reader @oldtag $ f . view (Generic.field' @field)
     {-# INLINE reader_ #-}
 
-
 -- | Zoom in on the field at position @pos@ of type @v@
 -- in the environment @struct@.
 instance
@@ -198,7 +200,6 @@ instance
     reader_ _ f = coerce @(m a) $
       reader @oldtag $ f . view (Generic.position' @pos)
     {-# INLINE reader_ #-}
-
 
 -- | Lift one layer in a monad transformer stack.
 instance (HasReader tag r m, MonadTransControl t, Monad (t m))

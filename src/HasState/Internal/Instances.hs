@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -15,10 +13,13 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+
 module HasState.Internal.Instances
-  ( MonadState (..)
-  , ReaderIORef (..)
-  , ReaderRef (..)
+  ( MonadState(..)
+  , ReaderIORef(..)
+  , ReaderRef(..)
   ) where
 
 import Control.Lens (set, view)
@@ -37,11 +38,11 @@ import Accessors
 import HasReader.Internal.Class
 import HasState.Internal.Class
 
-
 -- | Derive 'HasState' from @m@'s
 -- 'Control.Monad.State.Class.MonadState' instance.
 newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance State.MonadState s m => HasState tag s (MonadState m) where
   get_ _ = coerce @(m s) State.get
   {-# INLINE get_ #-}
@@ -50,7 +51,6 @@ instance State.MonadState s m => HasState tag s (MonadState m) where
   state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> MonadState m a
   state_ _ = coerce @((s -> (a, s)) -> m a) State.state
   {-# INLINE state_ #-}
-
 
 -- | Convert the state using safe coercion.
 instance
@@ -66,7 +66,6 @@ instance
     state_ tag = coerce @((from -> (a, from)) -> m a) $ state_ tag
     {-# INLINE state_ #-}
 
-
 -- | Rename the tag.
 instance HasState oldtag s m => HasState newtag s (Rename oldtag m) where
   get_ _ = coerce @(m s) $ get @oldtag
@@ -76,7 +75,6 @@ instance HasState oldtag s m => HasState newtag s (Rename oldtag m) where
   state_ :: forall a. Proxy# newtag -> (s -> (a, s)) -> Rename oldtag m a
   state_ _ = coerce @((s -> (a, s)) -> m a) $ state @oldtag
   {-# INLINE state_ #-}
-
 
 -- | Zoom in on the record field @field@ of type @v@ in the state @record@.
 instance
@@ -100,7 +98,6 @@ instance
       state @oldtag . Generic.field' @field @_ @_ @((,) a)
     {-# INLINE state_ #-}
 
-
 -- | Zoom in on the field at position @pos@ of type @v@ in the state @struct@.
 instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
@@ -123,7 +120,6 @@ instance
       state @oldtag . Generic.position' @pos @_ @_ @((,) a)
     {-# INLINE state_ #-}
 
-
 -- | Lift one layer in a monad transformer stack.
 instance (HasState tag s m, MonadTrans t, Monad (t m))
   => HasState tag s (Lift (t m))
@@ -135,7 +131,6 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
     state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Lift (t m) a
     state_ _ = coerce $ lift @t @m . state @tag @s @m @a
     {-# INLINE state_ #-}
-
 
 -- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
 --
@@ -149,6 +144,7 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
 -- See 'ReaderRef' for a more generic strategy.
 newtype ReaderIORef m a = ReaderIORef (m a)
   deriving (Functor, Applicative, Monad)
+
 instance
   (HasReader tag (IORef s) m, MonadIO m)
   => HasState tag s (ReaderIORef m)
@@ -168,7 +164,6 @@ instance
         swap (a, b) = (b, a)
     {-# INLINE state_ #-}
 
-
 -- | Derive a state monad from a reader over a mutable reference.
 --
 -- Mutable references are available in a 'Control.Monad.Primitive.PrimMonad'.
@@ -187,6 +182,7 @@ instance
 -- See 'ReaderIORef' for a specialized version over 'Data.IORef.IORef'.
 newtype ReaderRef m (a :: *) = ReaderRef (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance
   ( MutableRef ref, RefElement ref ~ s
   , HasReader tag ref m, PrimMonad m, PrimState m ~ MCState ref )
