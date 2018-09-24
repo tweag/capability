@@ -24,29 +24,6 @@ library
     HasStream
     HasWriter
     HasWriter.Discouraged
-  other-extensions:
-    AllowAmbiguousTypes
-    BangPatterns
-    DataKinds
-    DeriveGeneric
-    DerivingVia
-    FlexibleContexts
-    FlexibleInstances
-    FunctionalDependencies
-    GeneralizedNewtypeDeriving
-    InstanceSigs
-    KindSignatures
-    MagicHash
-    MultiParamTypeClasses
-    QuantifiedConstraints
-    RankNTypes
-    ScopedTypeVariables
-    StandaloneDeriving
-    TypeApplications
-    TypeFamilies
-    TypeInType
-    UnboxedTuples
-    UndecidableInstances
   build-depends:
       base >=4.10 && <4.13
     , exceptions
