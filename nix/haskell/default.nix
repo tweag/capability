@@ -12,26 +12,21 @@ self: super:
         overrides = hsself: hssuper: {
           capabilities-via = hssuper.callPackage ./capabilities-via {};
 
-          # blaze-markup's test-suite requires tasty.
-          # tasty doesn't build with GHC 8.6.
-          blaze-markup = super.haskell.lib.dontCheck hssuper.blaze-markup;
+          # generic-lens's inspection-testing test-suite fails.
           generic-lens = super.haskell.lib.dontCheck hssuper.generic-lens;
-          # temporary's test-suite requires tasty.
-          # tasty doesn't build with GHC 8.6.
-          temporary = super.haskell.lib.dontCheck hssuper.temporary;
 
-          cabal-doctest = super.haskell.lib.doJailbreak hssuper.cabal-doctest;
           contravariant = super.haskell.lib.doJailbreak hssuper.contravariant;
           doctest = super.haskell.lib.doJailbreak hssuper.doctest;
           free = super.haskell.lib.doJailbreak hssuper.free;
-          inspection-testing = super.haskell.lib.doJailbreak hssuper.inspection-testing;
           safe-exceptions = super.haskell.lib.doJailbreak hssuper.safe-exceptions;
-          split = super.haskell.lib.doJailbreak hssuper.split;
-          StateVar = super.haskell.lib.doJailbreak hssuper.StateVar;
           unliftio-core = super.haskell.lib.doJailbreak hssuper.unliftio-core;
 
           hspec-jenkins = super.haskell.lib.appendPatch hssuper.hspec-jenkins
-            ./hspec-jenkins-hspec_2_5_1.patch
+            (super.fetchpatch {
+              name = "hspec-jenkins-pr-5.patch";
+              url = "https://github.com/worksap-ate/hspec-jenkins/pull/5.patch";
+              sha256 = "0vzldzfmbs99rssi6yns2fnv0p6jcyc9zsp6a64b4ffm6swqhq7w";
+            })
           ;
 
           adjunctions = super.haskell.lib.overrideCabal hssuper.adjunctions (attrs: {
@@ -53,6 +48,33 @@ self: super:
                 /import Data\.Functor\.Contravariant/s/import/import "contravariant"/;
                 1i{-# LANGUAGE PackageImports #-}' \
                 src/Control/Foldl.hs
+            '';
+          });
+          haskell-src-exts = super.haskell.lib.overrideCabal hssuper.haskell-src-exts (attrs: {
+            jailbreak = true;
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              sed -i '
+                1i{-# LANGUAGE NoMonadFailDesugaring #-}' \
+                src/Language/Haskell/Exts/InternalLexer.hs \
+                src/Language/Haskell/Exts/ParseUtils.hs
+            '';
+          });
+          hspec-core = super.haskell.lib.overrideCabal hssuper.hspec-core (attrs: {
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              sed -i '
+                1i{-# LANGUAGE NoMonadFailDesugaring #-}' \
+                test/Test/Hspec/Core/Example/LocationSpec.hs
+            '';
+          });
+          inspection-testing = super.haskell.lib.overrideCabal hssuper.inspection-testing (attrs: {
+            jailbreak = true;
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              sed -i '
+                1i{-# LANGUAGE NoMonadFailDesugaring #-}' \
+                Test/Inspection/Plugin.hs
             '';
           });
           invariant = super.haskell.lib.overrideCabal hssuper.invariant (attrs: {
@@ -85,8 +107,17 @@ self: super:
                 $(grep -Rl "import\s\+Data\.Functor\.Contravariant$")
             '';
           });
-          profunctors = super.haskell.lib.overrideCabal hssuper.profunctors (attrs: {
+          polyparse = super.haskell.lib.overrideCabal hssuper.polyparse (attrs: {
             jailbreak = true;
+            postPatch = ''
+              ${attrs.postPatch or ""}
+              sed -i '
+                1i{-# LANGUAGE NoMonadFailDesugaring #-}' \
+                src/Text/Parse.hs \
+                src/Text/Parse/ByteString.hs
+            '';
+          });
+          profunctors = super.haskell.lib.overrideCabal hssuper.profunctors (attrs: {
             postPatch = ''
               ${attrs.postPatch or ""}
               sed -i '
@@ -112,17 +143,19 @@ self: super:
                 src/Data/Semigroupoid.hs
             '';
           });
+          unliftio = hssuper.unliftio.overrideAttrs (attrs: {
+            patchPhase = ''
+              ${attrs.patchPhase or ""}
+              sed -i '
+                168s/Int/Natural/;
+                /import/iimport GHC.Natural (Natural)
+                ' src/UnliftIO/STM.hs
+            '';
+          });
           unordered-containers = hssuper.unordered-containers.overrideAttrs (attrs: {
             patchPhase = ''
               ${attrs.patchPhase or ""}
               sed -i '230s/M\.fold/M.foldr/' tests/HashMapProperties.hs
-            '';
-          });
-          vector-algorithms = hssuper.vector-algorithms.overrideAttrs (attrs: {
-            postPatch = ''
-              ${attrs.postPatch or ""}
-              # See https://ghc.haskell.org/trac/ghc/wiki/Migration/8.6#DPHisgone
-              sed -i 's/-Odph/-O2 -fmax-simplifier-iterations=20/' vector-algorithms.cabal
             '';
           });
         };
