@@ -3,12 +3,12 @@
 This package defines strategies to generate implementations of capabilities
 using the `DerivingVia` language extension added in GHC 8.6.
 
-This package is not available on Hackage, as many of its dependencies
+This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
 
 ## Nix Shell
 
-Many of this package's dependencies require patches to build with GHC 8.6.
+Some of this package's dependencies require patches to build with GHC 8.6.
 These patches are defined in
 [`nix/haskell/default.nix`](nix/haskell/default.nix).
 A development environment with all patched dependencies in scope is defined in
