@@ -6,7 +6,7 @@ with (import ./nix {});
 
 mkShell {
   inputsFrom = [
-    haskellPackages.capabilities-via.env
+    haskellPackages.capability.env
   ];
   nativeBuildInputs = [
     cabal-install

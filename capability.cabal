@@ -1,6 +1,6 @@
-name: capabilities-via
+name: capability
 version: 0.1.0.0
-homepage: https://github.com/tweag/capabilities-via
+homepage: https://github.com/tweag/capability
 license: BSD3
 license-file: LICENSE
 maintainer: andreas.herrmann@tweag.io
@@ -57,7 +57,7 @@ test-suite examples
   main-is: Test.hs
   build-depends:
       base
-    , capabilities-via
+    , capability
     , containers
     , hspec
     , hspec-jenkins

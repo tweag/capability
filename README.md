@@ -1,4 +1,4 @@
-# capabilities-via
+# capability: effects, extensionally
 
 This package defines strategies to generate implementations of capabilities
 using the `DerivingVia` language extension added in GHC 8.6.

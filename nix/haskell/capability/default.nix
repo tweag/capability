@@ -4,7 +4,7 @@
 , streaming, temporary, text, transformers, unliftio, unliftio-core
 }:
 mkDerivation {
-  pname = "capabilities-via";
+  pname = "capability";
   version = "0.1.0.0";
   src = ../../..;
   libraryHaskellDepends = [
@@ -16,6 +16,6 @@ mkDerivation {
     base containers hspec hspec-jenkins lens mtl silently streaming
     temporary text unliftio
   ];
-  homepage = "https://github.com/tweag/capabilities-via";
+  homepage = "https://github.com/tweag/capability";
   license = stdenv.lib.licenses.bsd3;
 }

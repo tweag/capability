@@ -5,8 +5,8 @@
 set -eo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" && cd "$DIR/../.."
 
-mkdir -p nix/haskell/capabilities-via
-cd nix/haskell/capabilities-via
+mkdir -p nix/haskell/capability
+cd nix/haskell/capability
 cabal2nix ../../../ > default.nix
 
 # vim:ft=sh

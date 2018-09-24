@@ -5,12 +5,12 @@ self: super:
     packages = super.haskell.packages // {
       ghc843 = super.haskell.packages.ghc843.override {
         overrides = hsself: hssuper: {
-          capabilities-via = hssuper.callPackage ./capabilities-via {};
+          capability = hssuper.callPackage ./capability {};
         };
       };
       ghc861 = super.haskell.packages.ghc861.override {
         overrides = hsself: hssuper: {
-          capabilities-via = hssuper.callPackage ./capabilities-via {};
+          capability = hssuper.callPackage ./capability {};
 
           # generic-lens's inspection-testing test-suite fails.
           generic-lens = super.haskell.lib.dontCheck hssuper.generic-lens;

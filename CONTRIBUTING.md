@@ -11,7 +11,7 @@ tested and confirmed that the issue is resolved, close the issue. If
 you are not a member of the project, you will be asked for
 confirmation and we will close it.
 
-[new-issue]: https://github.com/tweag/capabilities-via/issues/new
+[new-issue]: https://github.com/tweag/capability/issues/new
 
 ## Code
 
@@ -38,7 +38,7 @@ confirmation and we will close it.
    * A patch must adhere to the [code style guidelines][style-guide]
      of the project.
 
-[issue-tracker]: https://github.com/tweag/capabilities-via/issues
+[issue-tracker]: https://github.com/tweag/capability/issues
 [tests]: ./examples
 [create-pull-request]: https://help.github.com/articles/creating-a-pull-request/
 [style-guide]: https://github.com/tweag/guides/blob/master/style/

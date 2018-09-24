@@ -27,7 +27,7 @@ shouldNotPrint action expected = do
 -- | Execute the given action with @stdin@ redirected to read the given input.
 withInput :: IO a -> String -> IO a
 withInput action input =
-  withSystemTempFile "capabilities-via-mock-input" $ \tmpFile tmpOut -> do
+  withSystemTempFile "capability-mock-input" $ \tmpFile tmpOut -> do
     -- write input to temp-file
     hPutStr tmpOut input
     hClose tmpOut
