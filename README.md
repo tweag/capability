@@ -5,26 +5,26 @@ using the `DerivingVia` language extension added in GHC 8.6.
 
 ## Examples
 
-An example is provided in [`CountLog`](examples/CountLog.hs).
+An example is provided in [`WordCount`](examples/WordCount.hs).
 Execute the following commands to try it out:
 
 ```
 $ nix-shell --pure --run "cabal configure --enable-tests"
 $ nix-shell --pure --run "cabal repl examples"
 
-ghci> runLogM regularLogger $ logNum 4
-num: 4
-ghci> runLogM loudLogger $ logNum 4
-NUM: 4
-ghci> runCounterM doubleCount
-(2,2)
-ghci> runCounter'M doubleCount
-2
-ghci> runCountLogM mixed
-num: 2
-num: 4
-ghci> runCountLogM $ logNum 4
-num: 4
+ghci> wordAndLetterCount "ab ba"
+Letters
+'a': 2
+'b': 2
+Words
+"ab": 1
+"ba": 1
+```
+
+To execute all examples and see if they produce the expected results run
+
+```
+$ nix-shell --pure --run "cabal test examples --show-details=streaming --test-option=--color"
 ```
 
 ## Nix Shell
