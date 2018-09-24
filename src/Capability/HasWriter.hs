@@ -32,7 +32,7 @@
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module HasWriter
+module Capability.HasWriter
   ( HasWriter(..)
   , writer
   , tell
@@ -41,12 +41,11 @@ module HasWriter
   , WriterLog(..)
   ) where
 
+import Capability.HasState
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
-
-import HasState
 
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w

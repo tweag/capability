@@ -8,17 +8,14 @@
 -- | Example uses and instances of the @HasStream@ capability.
 module Stream where
 
+import Capability.HasState
+import Capability.HasStream
 import Control.Monad.State.Strict (State, StateT (..), evalStateT, runState)
 import qualified Data.Set as Set
 import Streaming (Stream, Of)
 import qualified Streaming.Prelude as S
-import Test.Hspec
-
-import HasState
-import HasStream
-
 import Test.Common
-
+import Test.Hspec
 
 ----------------------------------------------------------------------
 -- Example Programs

@@ -10,14 +10,12 @@
 -- | Example uses and instances of the @HasReader@ capability.
 module Reader where
 
+import Capability.HasReader
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import GHC.Generics (Generic)
-import Test.Hspec
-
-import HasReader
-
 import Test.Common
+import Test.Hspec
 
 
 ----------------------------------------------------------------------

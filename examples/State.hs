@@ -9,15 +9,13 @@
 -- | Example uses and instances of the @HasState@ capability.
 module State where
 
+import Capability.HasReader
+import Capability.HasState
 import Control.Monad.Reader (ReaderT (..))
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import Data.IORef
 import GHC.Generics (Generic)
 import Test.Hspec
-
-import HasReader
-import HasState
-
 
 ----------------------------------------------------------------------
 -- Example Programs

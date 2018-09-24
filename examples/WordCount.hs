@@ -12,6 +12,9 @@
 
 module WordCount where
 
+import Capability.HasReader
+import Capability.HasState
+import Capability.HasWriter
 import Control.Lens (ifor_)
 import Data.Coerce (coerce)
 import Data.Map.Strict (Map)
@@ -22,14 +25,8 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Monoid (Sum (..))
 import GHC.Generics (Generic)
-import Test.Hspec
-
-import HasReader
-import HasState
-import HasWriter
-
 import Test.Common
-
+import Test.Hspec
 
 -- | Accumulating key-value mapping.
 --

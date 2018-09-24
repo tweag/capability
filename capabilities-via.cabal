@@ -12,17 +12,17 @@ cabal-version: >=1.10
 
 library
   exposed-modules:
-    Accessors
-    HasError
-    HasReader
-    HasReader.Internal.Class
-    HasReader.Internal.Instances
-    HasState
-    HasState.Internal.Class
-    HasState.Internal.Instances
-    HasStream
-    HasWriter
-    HasWriter.Discouraged
+    Capability.Accessors
+    Capability.HasError
+    Capability.HasReader
+    Capability.HasReader.Internal.Class
+    Capability.HasReader.Internal.Instances
+    Capability.HasState
+    Capability.HasState.Internal.Class
+    Capability.HasState.Internal.Instances
+    Capability.HasStream
+    Capability.HasWriter
+    Capability.HasWriter.Discouraged
   build-depends:
       base >=4.10 && <4.13
     , exceptions

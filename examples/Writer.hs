@@ -8,13 +8,11 @@
 -- | Example uses and instances of the @HasWriter@ capability.
 module Writer where
 
+import Capability.HasState
+import Capability.HasWriter
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import Data.Monoid (Sum (..))
 import Test.Hspec
-
-import HasState
-import HasWriter
-
 
 ----------------------------------------------------------------------
 -- Example Programs
