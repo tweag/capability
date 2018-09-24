@@ -1,4 +1,4 @@
-# Revision history for capabilities-via
+# Revision history for capability
 
 ## 0.1.0.0 -- YYYY-mm-dd
 
