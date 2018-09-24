@@ -12,12 +12,12 @@
 
 -- | Defines discouraged instances of writer monad capabilities.
 
-module Capability.HasWriter.Discouraged
+module Capability.Writer.Discouraged
   ( module Capability.Accessors
   ) where
 
 import Capability.Accessors
-import Capability.HasWriter
+import Capability.Writer
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Unlift (MonadTransUnlift, Unlift(..), askUnlift)
 import Data.Coerce (coerce)

@@ -12,8 +12,8 @@
 -- | Demonstrates how to derive user-defined capabilities using this library.
 module CountLog where
 
-import Capability.HasReader
-import Capability.HasState
+import Capability.Reader
+import Capability.State
 import Control.Monad.IO.Class
 import Control.Monad.Reader (ReaderT (..), runReaderT)
 -- The @StateT@ constructor has to be imported even though it is not used

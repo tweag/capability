@@ -16,15 +16,15 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module Capability.HasReader.Internal.Instances
+module Capability.Reader.Internal.Instances
   ( MonadReader(..)
   , ReadStatePure(..)
   , ReadState(..)
   ) where
 
 import Capability.Accessors
-import Capability.HasReader.Internal.Class
-import Capability.HasState.Internal.Class
+import Capability.Reader.Internal.Class
+import Capability.State.Internal.Class
 import Control.Lens (over, view)
 import Control.Monad.Catch (MonadMask, bracket)
 import Control.Monad.IO.Class (MonadIO)

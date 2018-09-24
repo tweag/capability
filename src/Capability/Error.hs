@@ -16,7 +16,7 @@
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module Capability.HasError
+module Capability.Error
   ( HasThrow(..)
   , throw
   , HasCatch(..)

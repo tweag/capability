@@ -32,7 +32,7 @@
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module Capability.HasWriter
+module Capability.Writer
   ( HasWriter(..)
   , writer
   , tell
@@ -41,7 +41,7 @@ module Capability.HasWriter
   , WriterLog(..)
   ) where
 
-import Capability.HasState
+import Capability.State
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)

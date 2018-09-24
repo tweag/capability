@@ -12,9 +12,9 @@
 
 module WordCount where
 
-import Capability.HasReader
-import Capability.HasState
-import Capability.HasWriter
+import Capability.Reader
+import Capability.State
+import Capability.Writer
 import Control.Lens (ifor_)
 import Data.Coerce (coerce)
 import Data.Map.Strict (Map)

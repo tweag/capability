@@ -1,4 +1,4 @@
-module Capability.HasState
+module Capability.State
   ( HasState(..)
   , get
   , put
@@ -13,5 +13,5 @@ module Capability.HasState
   ) where
 
 import Capability.Accessors
-import Capability.HasState.Internal.Class
-import Capability.HasState.Internal.Instances
+import Capability.State.Internal.Class
+import Capability.State.Internal.Instances

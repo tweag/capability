@@ -12,15 +12,15 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Capability.HasStream
+module Capability.Stream
   ( HasStream(..)
   , yield
   , StreamStack(..)
   , StreamDList(..)
   ) where
 
-import Capability.HasState
-import Capability.HasWriter
+import Capability.State
+import Capability.Writer
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)

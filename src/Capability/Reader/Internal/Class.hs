@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 
-module Capability.HasReader.Internal.Class
+module Capability.Reader.Internal.Class
   ( HasReader(..)
   , ask
   , asks

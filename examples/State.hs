@@ -9,8 +9,8 @@
 -- | Example uses and instances of the @HasState@ capability.
 module State where
 
-import Capability.HasReader
-import Capability.HasState
+import Capability.Reader
+import Capability.State
 import Control.Monad.Reader (ReaderT (..))
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import Data.IORef

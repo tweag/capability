@@ -16,7 +16,7 @@
 -- | Example uses and instances of the @HasError@ capability.
 module Error where
 
-import Capability.HasError
+import Capability.Error
 import Control.Monad (when)
 import Control.Monad.Except (ExceptT (..))
 import Control.Monad.IO.Class (MonadIO, liftIO)

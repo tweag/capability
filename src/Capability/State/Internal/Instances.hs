@@ -16,15 +16,15 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module Capability.HasState.Internal.Instances
+module Capability.State.Internal.Instances
   ( MonadState(..)
   , ReaderIORef(..)
   , ReaderRef(..)
   ) where
 
 import Capability.Accessors
-import Capability.HasReader.Internal.Class
-import Capability.HasState.Internal.Class
+import Capability.Reader.Internal.Class
+import Capability.State.Internal.Class
 import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Primitive (PrimMonad)

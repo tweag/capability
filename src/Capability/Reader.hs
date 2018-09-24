@@ -1,4 +1,4 @@
-module Capability.HasReader
+module Capability.Reader
   ( HasReader(..)
   , ask
   , asks
@@ -11,5 +11,5 @@ module Capability.HasReader
   ) where
 
 import Capability.Accessors
-import Capability.HasReader.Internal.Class
-import Capability.HasReader.Internal.Instances
+import Capability.Reader.Internal.Class
+import Capability.Reader.Internal.Instances
