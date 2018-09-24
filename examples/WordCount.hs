@@ -148,6 +148,10 @@ spec = do
       wordAndLetterCount "banana" `shouldPrint`
         "Letters\n'a': 3\n'b': 1\n'n': 2\n\
         \Words\n\"banana\": 1\n"
+    it "handles two words" $
+      wordAndLetterCount "mississipi river" `shouldPrint`
+        "Letters\n'e': 1\n'i': 5\n'm': 1\n'p': 1\n'r': 2\n's': 4\n'v': 1\n\
+        \Words\n\"mississipi\": 1\n\"river\": 1\n"
     it "handles two lines" $
       wordAndLetterCount "banana apple\napple banana" `shouldPrint`
         "Letters\n'a': 8\n'b': 2\n'e': 2\n'l': 2\n'n': 4\n'p': 4\n\
