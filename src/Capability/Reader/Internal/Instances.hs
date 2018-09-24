@@ -16,12 +16,15 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module HasReader.Internal.Instances
+module Capability.Reader.Internal.Instances
   ( MonadReader(..)
   , ReadStatePure(..)
   , ReadState(..)
   ) where
 
+import Capability.Accessors
+import Capability.Reader.Internal.Class
+import Capability.State.Internal.Class
 import Control.Lens (over, view)
 import Control.Monad.Catch (MonadMask, bracket)
 import Control.Monad.IO.Class (MonadIO)
@@ -33,10 +36,6 @@ import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import GHC.Exts (Proxy#)
-
-import Accessors
-import HasReader.Internal.Class
-import HasState.Internal.Class
 
 -- | Derive 'HasReader' from @m@'s
 -- 'Control.Monad.Reader.Class.MonadReader' instance.

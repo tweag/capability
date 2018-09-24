@@ -16,7 +16,7 @@
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module HasError
+module Capability.Error
   ( HasThrow(..)
   , throw
   , HasCatch(..)
@@ -28,11 +28,12 @@ module HasError
   , MonadCatch(..)
   , SafeExceptions(..)
   , MonadUnliftIO(..)
-  , module Accessors
+  , module Capability.Accessors
   , Exception(..)
   , Typeable
   ) where
 
+import Capability.Accessors
 import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
 import Control.Lens (preview, review)
@@ -49,8 +50,6 @@ import qualified Data.Generics.Sum.Constructors as Generic
 import Data.Typeable (Typeable)
 import GHC.Exts (Proxy#, proxy#)
 import qualified UnliftIO.Exception as UnliftIO
-
-import Accessors
 
 -- | Capability to throw exceptions of type @e@ under @tag@.
 --

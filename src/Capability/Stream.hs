@@ -12,13 +12,15 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module HasStream
+module Capability.Stream
   ( HasStream(..)
   , yield
   , StreamStack(..)
   , StreamDList(..)
   ) where
 
+import Capability.State
+import Capability.Writer
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
@@ -28,9 +30,6 @@ import qualified Data.DList as DList
 import GHC.Exts (Proxy#, proxy#)
 import Streaming
 import qualified Streaming.Prelude as S
-
-import HasState
-import HasWriter
 
 -- | Streaming capability.
 class Monad m

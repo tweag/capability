@@ -16,17 +16,14 @@
 -- | Example uses and instances of the @HasError@ capability.
 module Error where
 
+import Capability.Error
 import Control.Monad (when)
 import Control.Monad.Except (ExceptT (..))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import GHC.Generics (Generic)
+import Test.Common
 import Test.Hspec
 import Text.Read (readEither)
-
-import HasError
-
-import Test.Common
-
 
 ----------------------------------------------------------------------
 -- Example Programs

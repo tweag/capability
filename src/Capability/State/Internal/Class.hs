@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 
-module HasState.Internal.Class
+module Capability.State.Internal.Class
   ( HasState(..)
   , get
   , put

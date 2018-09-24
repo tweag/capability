@@ -16,12 +16,15 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module HasState.Internal.Instances
+module Capability.State.Internal.Instances
   ( MonadState(..)
   , ReaderIORef(..)
   , ReaderRef(..)
   ) where
 
+import Capability.Accessors
+import Capability.Reader.Internal.Class
+import Capability.State.Internal.Class
 import Control.Lens (set, view)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Primitive (PrimMonad)
@@ -33,10 +36,6 @@ import qualified Data.Generics.Product.Positions as Generic
 import Data.IORef
 import Data.Mutable
 import GHC.Exts (Proxy#)
-
-import Accessors
-import HasReader.Internal.Class
-import HasState.Internal.Class
 
 -- | Derive 'HasState' from @m@'s
 -- 'Control.Monad.State.Class.MonadState' instance.

@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UnboxedTuples #-}
 
-module Accessors
+module Capability.Accessors
   ( Coerce(..)
   , Rename(..)
   , Field(..)
