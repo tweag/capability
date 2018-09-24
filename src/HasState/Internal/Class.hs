@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeInType #-}
 
 module HasState.Internal.Class
-  ( HasState (..)
+  ( HasState(..)
   , get
   , put
   , state
@@ -19,7 +19,6 @@ module HasState.Internal.Class
   ) where
 
 import GHC.Exts (Proxy#, proxy#)
-
 
 class Monad m
   => HasState (tag :: k) (s :: *) (m :: * -> *) | tag m -> s

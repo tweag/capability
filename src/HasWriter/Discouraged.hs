@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MagicHash #-}
@@ -9,19 +7,22 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+
 -- | Defines discouraged instances of writer monad capabilities.
+
 module HasWriter.Discouraged
   ( module Accessors
   ) where
 
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Unlift (MonadTransUnlift, Unlift (..), askUnlift)
+import Control.Monad.Trans.Unlift (MonadTransUnlift, Unlift(..), askUnlift)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#)
 
 import Accessors
 import HasWriter
-
 
 -- | Lift one layer in a monad transformer stack.
 --

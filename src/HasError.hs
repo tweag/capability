@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -15,24 +14,26 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+
 module HasError
-  ( HasThrow (..)
+  ( HasThrow(..)
   , throw
-  , HasCatch (..)
+  , HasCatch(..)
   , catch
   , catchJust
   , wrapError
-  , MonadError (..)
-  , MonadThrow (..)
-  , MonadCatch (..)
-  , SafeExceptions (..)
-  , MonadUnliftIO (..)
+  , MonadError(..)
+  , MonadThrow(..)
+  , MonadCatch(..)
+  , SafeExceptions(..)
+  , MonadUnliftIO(..)
   , module Accessors
-  , Exception (..)
+  , Exception(..)
   , Typeable
   ) where
 
-import Control.Exception (Exception (..))
+import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
 import Control.Lens (preview, review)
 import Control.Monad ((<=<))
@@ -42,7 +43,7 @@ import Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.IO.Unlift as UnliftIO
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
-import Control.Monad.Trans.Control (MonadTransControl (..))
+import Control.Monad.Trans.Control (MonadTransControl(..))
 import Data.Coerce (coerce)
 import qualified Data.Generics.Sum.Constructors as Generic
 import Data.Typeable (Typeable)
@@ -50,7 +51,6 @@ import GHC.Exts (Proxy#, proxy#)
 import qualified UnliftIO.Exception as UnliftIO
 
 import Accessors
-
 
 -- | Capability to throw exceptions of type @e@ under @tag@.
 --
@@ -66,7 +66,6 @@ class Monad m
 throw :: forall tag e m a. HasThrow tag e m => e -> m a
 throw = throw_ (proxy# @_ @tag)
 {-# INLINE throw #-}
-
 
 -- | Capability to catch exceptions of type @e@ under @tag@.
 --
@@ -102,7 +101,6 @@ catchJust :: forall tag e m a b. HasCatch tag e m
 catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
 
-
 -- | Wrap exceptions @e@ originating from the given action in @ctor@ to convert
 -- them to @sum@.
 wrapError :: forall tag ctor sum e m a.
@@ -111,18 +109,18 @@ wrapError :: forall tag ctor sum e m a.
 wrapError action = coerce @(Ctor ctor tag m a) action
 {-# INLINE wrapError #-}
 
-
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?
 --   What would the meaning of the tag be?
-
 
 -- | Derive 'HasError from @m@'s 'Control.Monad.Except.MonadError' instance.
 newtype MonadError m (a :: *) = MonadError (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance Except.MonadError e m => HasThrow tag e (MonadError m) where
   throw_ :: forall a. Proxy# tag -> e -> MonadError m a
   throw_ _ = coerce @(e -> m a) $ Except.throwError
   {-# INLINE throw_ #-}
+
 instance Except.MonadError e m => HasCatch tag e (MonadError m) where
   catch_ :: forall a.
     Proxy# tag -> MonadError m a -> (e -> MonadError m a) -> MonadError m a
@@ -137,10 +135,10 @@ instance Except.MonadError e m => HasCatch tag e (MonadError m) where
   catchJust_ tag f m h = catch_ tag m $ \e -> maybe (throw_ tag e) h $ f e
   {-# INLINE catchJust_ #-}
 
-
 -- | Derive 'HasThrow' from @m@'s 'Control.Monad.Catch.MonadThrow' instance.
 newtype MonadThrow (e :: *) m (a :: *) = MonadThrow (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance (Catch.Exception e, Catch.MonadThrow m)
   => HasThrow tag e (MonadThrow e m)
   where
@@ -148,11 +146,11 @@ instance (Catch.Exception e, Catch.MonadThrow m)
     throw_ _ = coerce @(e -> m a) $ Catch.throwM
     {-# INLINE throw_ #-}
 
-
 -- | Derive 'HasCatch from @m@'s 'Control.Monad.Catch.MonadCatch instance.
 newtype MonadCatch (e :: *) m (a :: *) = MonadCatch (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
   deriving (HasThrow tag e) via MonadThrow e m
+
 instance (Catch.Exception e, Catch.MonadCatch m)
   => HasCatch tag e (MonadCatch e m)
   where
@@ -178,12 +176,14 @@ instance (Catch.Exception e, Catch.MonadCatch m)
 -- package.
 newtype SafeExceptions (e :: *) m (a :: *) = SafeExceptions (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance (Safe.Exception e, Safe.MonadThrow m)
   => HasThrow tag e (SafeExceptions e m)
   where
     throw_ :: forall a. Proxy# tag -> e -> SafeExceptions e m a
     throw_ _ = coerce @(e -> m a) $ Safe.throw
     {-# INLINE throw_ #-}
+
 instance (Safe.Exception e, Safe.MonadCatch m)
   => HasCatch tag e (SafeExceptions e m)
   where
@@ -204,16 +204,17 @@ instance (Safe.Exception e, Safe.MonadCatch m)
       Safe.catchJust
     {-# INLINE catchJust_ #-}
 
-
 -- | Derive 'HasError' using the functionality from the @unliftio@ package.
 newtype MonadUnliftIO (e :: *) m (a :: *) = MonadUnliftIO (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+
 instance (UnliftIO.Exception e, MonadIO m)
   => HasThrow tag e (MonadUnliftIO e m)
   where
     throw_ :: forall a. Proxy# tag -> e -> MonadUnliftIO e m a
     throw_ _ = coerce @(e -> m a) $ UnliftIO.throwIO
     {-# INLINE throw_ #-}
+
 instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
   => HasCatch tag e (MonadUnliftIO e m)
   where
@@ -233,7 +234,6 @@ instance (UnliftIO.Exception e, UnliftIO.MonadUnliftIO m)
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $
       UnliftIO.catchJust
     {-# INLINE catchJust_ #-}
-
 
 -- | Rename the tag.
 --
@@ -277,7 +277,6 @@ instance HasCatch oldtag e m => HasCatch newtag e (Rename oldtag m) where
     catchJust @oldtag
   {-# INLINE catchJust_ #-}
 
-
 -- | Wrap the exception @e@ with the constructor @ctor@ to throw an exception
 -- of type @sum@.
 instance
@@ -317,7 +316,6 @@ instance
     catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $ \f ->
       catchJust @oldtag @sum $ f <=< preview (Generic._Ctor' @ctor @sum)
     {-# INLINE catchJust_ #-}
-
 
 -- | Lift one layer in a monad transformer stack.
 instance
