@@ -3,9 +3,8 @@ version: 0.1.0.0
 homepage: https://github.com/tweag/capabilities-via
 license: BSD3
 license-file: LICENSE
-author: Andreas Herrmann
 maintainer: andreas.herrmann@tweag.io
-copyright: Tweag I/O
+copyright: 2018 EURL Tweag
 category: Control
 build-type: Simple
 extra-source-files: ChangeLog.md
