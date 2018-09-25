@@ -51,27 +51,30 @@ class Monad m
     state_ :: Proxy# tag -> (s -> (a, s)) -> m a
 
 -- | @get \@tag@
--- retrieve the current state of the state capability @\@tag@.
+-- retrieve the current state of the state capability @tag@.
 get :: forall tag s m. HasState tag s m => m s
 get = get_ (proxy# @_ @tag)
 {-# INLINE get #-}
 
 -- | @put \@tag s@
--- replace the current state of the state capability @\@tag@ with @s@.
+-- replace the current state of the state capability @tag@ with @s@.
 put :: forall tag s m. HasState tag s m => s -> m ()
 put = put_ (proxy# @_ @tag)
 {-# INLINE put #-}
 
 -- | @state \@tag f@
--- given the current state @s@ of the state capability @\@tag@
+-- lifts a pure state computation @f@ to a monadic action in an arbitrary
+-- monad @m@ with capability @HasState@.
+--
+-- Given the current state @s@ of the state capability @tag@
 -- and @(a, s') = f s@, update the state to @s'@ and return @a@. 
 state :: forall tag s m a. HasState tag s m => (s -> (a, s)) -> m a
 state = state_ (proxy# @_ @tag)
 {-# INLINE state #-}
 
 -- | @modify \@tag f@
--- given the current state @s@ of the state capability @\@tag@
--- and @s' = f s@, update the state to @s'@.
+-- given the current state @s@ of the state capability @tag@
+-- and @s' = f s@, updates the state of the capability @tag@ to @s'@.
 modify :: forall tag s m. HasState tag s m => (s -> s) -> m ()
 modify f = state @tag $ \s -> ((), f s)
 {-# INLINE modify #-}
@@ -85,7 +88,9 @@ modify' f = do
 
 -- | @gets \@tag f@
 -- retrieves the image, by @f@ of the current state
--- of the state capability @\@tag@.
+-- of the state capability @tag@.
+--
+-- prop> gets @tag f = f <$> get @tag
 gets :: forall tag s m a. HasState tag s m => (s -> a) -> m a
 gets f = do
   s <- get @tag

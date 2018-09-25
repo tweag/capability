@@ -88,29 +88,33 @@ class (Monoid w, Monad m)
     pass_ :: Proxy# tag -> m (a, w -> w) -> m a
 
 -- | @writer \@tag (a, w)@
--- writes @w@ to the output of the writer capability @\@tag@
+-- lifts a pure writer action @(a, w)@ to a monadic action in an arbitrary
+-- monad @m@ with capability @HasWriter@.
+--
+-- Appends @w@ to the output of the writer capability @tag@
 -- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
 writer = writer_ (proxy# @_ @tag)
 {-# INLINE writer #-}
 
 -- | @tell \@tag w@
--- writes @w@ to the output of the writer capability @\@tag@.
+-- appends @w@ to the output of the writer capability @tag@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
 tell = tell_ (proxy# @_ @tag)
 {-# INLINE tell #-}
 
 -- | @listen \@tag m@
 -- executes the action @m@ and returns the output of @m@
--- in the writer capability @\@tag@ along with result of @m@.
+-- in the writer capability @tag@ along with result of @m@.
+-- Appends the output of @m@ to the output of the writer capability @tag@.
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
 listen = listen_ (proxy# @_ @tag)
 {-# INLINE listen #-}
 
 -- | @pass \@tag m@
--- executes the action @m@. Assuming @m@ returns @(a, f)@ and writes
--- @w@ to the output of the writer capability @\@tag@.
--- @pass \@tag m@ instead writes @w' = f w@ to the output and returns @a@.
+-- executes the action @m@. Assuming @m@ returns @(a, f)@ and appends
+-- @w@ to the output of the writer capability @tag@.
+-- @pass \@tag m@ instead appends @w' = f w@ to the output and returns @a@.
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}

@@ -38,7 +38,8 @@ import qualified Streaming.Prelude as S
 
 -- | Streaming capability.
 --
--- An instance should fulfill the following laws.
+-- An instance does not need to fulfill any additional laws
+-- besides the monad laws.
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
   where
@@ -48,7 +49,8 @@ class Monad m
     -- See 'yield' for more documentation.
     yield_ :: Proxy# tag -> a -> m ()
 
--- | Emit the given value in the given stream capability.
+-- | @yield \@tag a@
+-- emits @a@ in the stream capability @tag@.
 yield :: forall tag a m. HasStream tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 {-# INLINE yield #-}

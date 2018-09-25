@@ -51,14 +51,14 @@ class Monad m
     reader_ :: Proxy# tag -> (r -> a) -> m a
 
 -- | @ask \@tag@
--- retrieves the environment of the reader capability @\@tag@.
+-- retrieves the environment of the reader capability @tag@.
 ask :: forall tag r m. HasReader tag r m => m r
 ask = ask_ (proxy# @_ @tag)
 {-# INLINE ask #-}
 
 -- | @asks \@tag@
--- retrieves the image, by @f@ of the environment
--- of the reader capability @\@tag@.
+-- retrieves the image by @f@ of the environment
+-- of the reader capability @tag@.
 --
 -- prop> asks @tag f = f <$> ask @tag
 asks :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
@@ -67,7 +67,7 @@ asks f = f <$> ask @tag
 
 -- | @local \@tag f m@
 -- runs the monadic action @m@ in a modified environment @e' = f e@,
--- where @e@ is the environment of the reader capability @\@tag@.
+-- where @e@ is the environment of the reader capability @tag@.
 -- Symbolically: @return e = ask \@tag@.
 local :: forall tag r m a. HasReader tag r m => (r -> r) -> m a -> m a
 local = local_ (proxy# @_ @tag)
