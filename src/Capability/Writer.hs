@@ -33,40 +33,88 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module Capability.Writer
-  ( HasWriter(..)
+  ( -- * Interface
+    HasWriter(..)
   , writer
   , tell
   , listen
   , pass
+    -- * Strategies
   , WriterLog(..)
+    -- ** Modifiers
+  , module Capability.Accessors
   ) where
 
+import Capability.Accessors
 import Capability.State
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
+-- | Writer capability
+--
+-- An instance should fulfill the following laws.
+-- At this point these laws are not definitive,
+-- see <https://github.com/haskell/mtl/issues/5>.
+--
+-- prop> listen @t (pure a) = pure (a, mempty)
+-- prop> listen @t (tell @t w) = tell @t w >> pure (w, w)
+-- prop> listen @t (m >>= k) = listen @t m >>= \(a, w1) -> listen @t (k a) >>= \(b, w2) -> pure (b, w1 `mappend` w2)
+-- prop> pass @t (tell @t w >> pure (a, f)) = tell @t (f w) >> pure a
+-- prop> writer @t (a, w) = tell @t w >> pure a
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'writer'.
+    -- See 'writer' for more documentation.
     writer_ :: Proxy# tag -> (a, w) -> m a
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'tell'.
+    -- See 'tell' for more documentation.
     tell_ :: Proxy# tag -> w -> m ()
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'listen'.
+    -- See 'listen' for more documentation.
     listen_ :: Proxy# tag -> m a -> m (a, w)
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'pass'.
+    -- See 'pass' for more documentation.
     pass_ :: Proxy# tag -> m (a, w -> w) -> m a
 
+-- | @writer \@tag (a, w)@
+-- lifts a pure writer action @(a, w)@ to a monadic action in an arbitrary
+-- monad @m@ with capability @HasWriter@.
+--
+-- Appends @w@ to the output of the writer capability @tag@
+-- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
 writer = writer_ (proxy# @_ @tag)
 {-# INLINE writer #-}
 
+-- | @tell \@tag w@
+-- appends @w@ to the output of the writer capability @tag@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
 tell = tell_ (proxy# @_ @tag)
 {-# INLINE tell #-}
 
+-- | @listen \@tag m@
+-- executes the action @m@ and returns the output of @m@
+-- in the writer capability @tag@ along with result of @m@.
+-- Appends the output of @m@ to the output of the writer capability @tag@.
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
 listen = listen_ (proxy# @_ @tag)
 {-# INLINE listen #-}
 
+-- | @pass \@tag m@
+-- executes the action @m@. Assuming @m@ returns @(a, f)@ and appends
+-- @w@ to the output of the writer capability @tag@.
+-- @pass \@tag m@ instead appends @w' = f w@ to the output and returns @a@.
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}

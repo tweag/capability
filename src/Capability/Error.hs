@@ -17,18 +17,22 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module Capability.Error
-  ( HasThrow(..)
+  ( -- * Interface
+    HasThrow(..)
   , throw
   , HasCatch(..)
   , catch
   , catchJust
   , wrapError
+    -- * Strategies
   , MonadError(..)
   , MonadThrow(..)
   , MonadCatch(..)
   , SafeExceptions(..)
   , MonadUnliftIO(..)
+    -- ** Modifiers
   , module Capability.Accessors
+    -- * Re-exported
   , Exception(..)
   , Typeable
   ) where
@@ -58,10 +62,13 @@ import qualified UnliftIO.Exception as UnliftIO
 class Monad m
   => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
-    -- | Use 'throw' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'throw'.
+    -- See 'throw' for more documentation.
     throw_ :: Proxy# tag -> e -> m a
 
--- | Throw an exception.
+-- | Throw an exception in the specified exception capability.
 throw :: forall tag e m a. HasThrow tag e m => e -> m a
 throw = throw_ (proxy# @_ @tag)
 {-# INLINE throw #-}
@@ -83,12 +90,19 @@ throw = throw_ (proxy# @_ @tag)
 class HasThrow tag e m
   => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
   where
-    -- | Use 'catch' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'catch'.
+    -- See 'catch' for more documentation.
     catch_ :: Proxy# tag -> m a -> (e -> m a) -> m a
-    -- | Use 'catchJust' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'catchJust'.
+    -- See 'catchJust' for more documentation.
     catchJust_ :: Proxy# tag -> (e -> Maybe b) -> m a -> (b -> m a) -> m a
 
--- | Provide a handler for exceptions thrown in the given action.
+-- | Provide a handler for exceptions thrown in the given action
+-- in the given exception capability.
 catch :: forall tag e m a. HasCatch tag e m => m a -> (e -> m a) -> m a
 catch = catch_ (proxy# @_ @tag)
 {-# INLINE catch #-}

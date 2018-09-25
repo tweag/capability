@@ -13,12 +13,17 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module Capability.Stream
-  ( HasStream(..)
+  ( -- * Interface
+    HasStream(..)
   , yield
+    -- * Strategies
   , StreamStack(..)
   , StreamDList(..)
+    -- ** Modifiers
+  , module Capability.Accessors
   ) where
 
+import Capability.Accessors
 import Capability.State
 import Capability.Writer
 import Control.Monad.IO.Class (MonadIO)
@@ -32,13 +37,20 @@ import Streaming
 import qualified Streaming.Prelude as S
 
 -- | Streaming capability.
+--
+-- An instance does not need to fulfill any additional laws
+-- besides the monad laws.
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
   where
-    -- | Use 'yield' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'yield'.
+    -- See 'yield' for more documentation.
     yield_ :: Proxy# tag -> a -> m ()
 
--- | Emit the given value.
+-- | @yield \@tag a@
+-- emits @a@ in the stream capability @tag@.
 yield :: forall tag a m. HasStream tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 {-# INLINE yield #-}
