@@ -1,3 +1,28 @@
+-- | Defines capabilities for actions that may fail or throw exceptions,
+-- and optionally may catch exceptions.
+--
+-- Monads based on @IO@ can use the underlying @IO@ exception mechanism
+-- to that end. The details of synchronous and asynchronous exception
+-- handling depend on the strategy used.
+-- See 'MonadThrow', 'SafeExceptions', 'MonadUnliftIO'.
+--
+-- The associated tag can be used to select the exception type, or to
+-- select a layer in monad transformer stacks. Note, that it is illegal
+-- to have multiple tags refer to overlapping exception types in the same
+-- layer. Consider the following example
+--
+-- @
+-- newtype M a = M (IO a)
+--   deriving (HasThrow "foo" IOException) via
+--     MonadUnliftIO IO
+--   deriving (HasThrow "bar" SomeException) via
+--     MonadUnliftIO IO
+-- @
+--
+-- In this case the tags @"foo"@ and @"bar"@ refer to overlapping exception
+-- types in the same layer, because @catch \@"bar"@ may also catch an exception
+-- thrown under @"foo"@.
+
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}

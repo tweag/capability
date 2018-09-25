@@ -1,3 +1,14 @@
+-- | Defines a capability for computations that produce a stream of values
+-- as part of their execution.
+--
+-- This can be thought of as a writer capability of a list of values
+-- @HasWriter tag [v]@ with @\\x -> tell \@tag [x]@ as primitive operation.
+-- However, that implementation would be inefficient.
+--
+-- For example using the 'Streaming.Prelude.Stream' instance a producer
+-- defined using this capability can be consumed efficiently
+-- in a streaming fashion.
+
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
