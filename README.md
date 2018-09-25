@@ -6,6 +6,11 @@ using the `DerivingVia` language extension added in GHC 8.6.
 This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
 
+Haddocks can be found on the [CircleCI project][circleci]
+on the artifacts tab of a successful build.
+
+[circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
+
 ## Nix Shell
 
 Some of this package's dependencies require patches to build with GHC 8.6.
