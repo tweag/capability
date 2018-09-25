@@ -42,10 +42,13 @@ import qualified Streaming.Prelude as S
 class Monad m
   => HasStream (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
   where
-    -- | Use 'yield' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'yield'.
+    -- See 'yield' for more documentation.
     yield_ :: Proxy# tag -> a -> m ()
 
--- | Emit the given value.
+-- | Emit the given value in the given stream capability.
 yield :: forall tag a m. HasStream tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 {-# INLINE yield #-}

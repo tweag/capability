@@ -66,35 +66,51 @@ import GHC.Exts (Proxy#, proxy#)
 class (Monoid w, Monad m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
-    -- | Use 'writer' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'writer'.
+    -- See 'writer' for more documentation.
     writer_ :: Proxy# tag -> (a, w) -> m a
-    -- | Use 'tell' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'tell'.
+    -- See 'tell' for more documentation.
     tell_ :: Proxy# tag -> w -> m ()
-    -- | Use 'listen' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'listen'.
+    -- See 'listen' for more documentation.
     listen_ :: Proxy# tag -> m a -> m (a, w)
-    -- | Use 'pass' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'pass'.
+    -- See 'pass' for more documentation.
     pass_ :: Proxy# tag -> m (a, w -> w) -> m a
 
 -- | @writer \@tag (a, w)@
--- Write the output @w@ and return the value @a@.
+-- writes @w@ to the output of the writer capability @\@tag@
+-- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
 writer = writer_ (proxy# @_ @tag)
 {-# INLINE writer #-}
 
 -- | @tell \@tag w@
--- Write the output @w@.
+-- writes @w@ to the output of the writer capability @\@tag@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
 tell = tell_ (proxy# @_ @tag)
 {-# INLINE tell #-}
 
 -- | @listen \@tag m@
--- Execute @m@ and return its output along with its result.
+-- executes the action @m@ and returns the output of @m@
+-- in the writer capability @\@tag@ along with result of @m@.
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
 listen = listen_ (proxy# @_ @tag)
 {-# INLINE listen #-}
 
 -- | @pass \@tag m@
--- Execute @m@ and modify its output according to the function it returns.
+-- executes the action @m@. Assuming @m@ returns @(a, f)@ and writes
+-- @w@ to the output of the writer capability @\@tag@.
+-- @pass \@tag m@ instead writes @w' = f w@ to the output and returns @a@.
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}

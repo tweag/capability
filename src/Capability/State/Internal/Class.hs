@@ -34,33 +34,44 @@ import GHC.Exts (Proxy#, proxy#)
 class Monad m
   => HasState (tag :: k) (s :: *) (m :: * -> *) | tag m -> s
   where
-    -- | Use 'get' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasState.
+    -- Otherwise, you will want to use 'get'.
+    -- See 'get' for more documentation.
     get_ :: Proxy# tag -> m s
-    -- | Use 'put' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasState.
+    -- Otherwise, you will want to use 'put'.
+    -- See 'put' for more documentation.
     put_ :: Proxy# tag -> s -> m ()
-    -- | Use 'state' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasState.
+    -- Otherwise, you will want to use 'state'.
+    -- See 'state' for more documentation.
     state_ :: Proxy# tag -> (s -> (a, s)) -> m a
 
 -- | @get \@tag@
--- Retrieve the current state under @tag@.
+-- retrieve the current state of the state capability @\@tag@.
 get :: forall tag s m. HasState tag s m => m s
 get = get_ (proxy# @_ @tag)
 {-# INLINE get #-}
 
 -- | @put \@tag s@
--- Replace the current state under @tag@ with @s@.
+-- replace the current state of the state capability @\@tag@ with @s@.
 put :: forall tag s m. HasState tag s m => s -> m ()
 put = put_ (proxy# @_ @tag)
 {-# INLINE put #-}
 
 -- | @state \@tag f@
--- Update the state under @tag@ and return another value according to @f@.
+-- given the current state @s@ of the state capability @\@tag@
+-- and @(a, s') = f s@, update the state to @s'@ and return @a@. 
 state :: forall tag s m a. HasState tag s m => (s -> (a, s)) -> m a
 state = state_ (proxy# @_ @tag)
 {-# INLINE state #-}
 
 -- | @modify \@tag f@
--- Update the state under @tag@ according to @f@.
+-- given the current state @s@ of the state capability @\@tag@
+-- and @s' = f s@, update the state to @s'@.
 modify :: forall tag s m. HasState tag s m => (s -> s) -> m ()
 modify f = state @tag $ \s -> ((), f s)
 {-# INLINE modify #-}
@@ -73,7 +84,8 @@ modify' f = do
 {-# INLINE modify' #-}
 
 -- | @gets \@tag f@
--- Retrieve a projection of the current state according to @f@.
+-- retrieves the image, by @f@ of the current state
+-- of the state capability @\@tag@.
 gets :: forall tag s m a. HasState tag s m => (s -> a) -> m a
 gets f = do
   s <- get @tag
