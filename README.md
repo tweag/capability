@@ -52,6 +52,7 @@ Execute the following commands to try it out:
 $ nix-shell --pure --run "cabal configure --enable-tests"
 $ nix-shell --pure --run "cabal repl examples"
 
+ghci> :set -XOverloadedStrings
 ghci> wordAndLetterCount "ab ba"
 Letters
 'a': 2
