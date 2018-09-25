@@ -34,35 +34,50 @@ import GHC.Exts (Proxy#, proxy#)
 class Monad m
   => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r
   where
-    -- | Use 'ask' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'ask'.
+    -- See 'ask' for more documentation.
     ask_ :: Proxy# tag -> m r
-    -- | Use 'local' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'local'.
+    -- See 'local' for more documentation.
     local_ :: Proxy# tag -> (r -> r) -> m a -> m a
-    -- | User 'reader' instead.
+    -- | For technical reasons, this method needs an extra proxy argument.
+    -- You only need it if you are defining new instances of 'HasReader'.
+    -- Otherwise, you will want to use 'reader'.
+    -- See 'reader' for more documentation.
     reader_ :: Proxy# tag -> (r -> a) -> m a
 
 -- | @ask \@tag@
--- Retrieve the environment.
+-- retrieves the environment of the reader capability @\@tag@.
 ask :: forall tag r m. HasReader tag r m => m r
 ask = ask_ (proxy# @_ @tag)
 {-# INLINE ask #-}
 
 -- | @asks \@tag@
--- Retrieve a projection of environment according to @f@.
+-- retrieves the image, by @f@ of the environment
+-- of the reader capability @\@tag@.
 --
--- XXX: Seems identical to 'reader'. Is 'asks' redundant?
+-- prop> asks @tag f = f <$> ask @tag
 asks :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 asks f = f <$> ask @tag
 {-# INLINE asks #-}
 
 -- | @local \@tag f m@
--- Execute @m@ with the environment updated according to @f@.
+-- runs the monadic action @m@ in a modified environment @e' = f e@,
+-- where @e@ is the environment of the reader capability @\@tag@.
+-- Symbolically: @return e = ask \@tag@.
 local :: forall tag r m a. HasReader tag r m => (r -> r) -> m a -> m a
 local = local_ (proxy# @_ @tag)
 {-# INLINE local #-}
 
--- | @reader \@tag@
--- Retrieve a projection of environment according to @f@.
+-- | @reader \@tag act@
+-- lifts a purely environment-dependent action @act@ to a monadic action
+-- in an arbitrary monad @m@ with capability @HasReader@.
+--
+-- It happens to coincide with @asks@: @reader = asks@.
 reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
 reader = reader_ (proxy# @_ @tag)
 {-# INLINE reader #-}
