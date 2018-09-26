@@ -30,18 +30,6 @@ $ cachix use tweag
 
 [cachix]: https://cachix.org/
 
-## Build
-
-The build instructions assume that you have [Nix][nix] installed.
-Execute the following command to build the library.
-
-```
-$ nix-shell --pure --run "cabal configure"
-$ nix-shell --pure --run "cabal build"
-```
-
-[nix]: https://nixos.org/nix/
-
 ## Examples
 
 An example is provided in [`WordCount`](examples/WordCount.hs).
@@ -66,3 +54,15 @@ To execute all examples and see if they produce the expected results run
 ```
 $ nix-shell --pure --run "cabal test examples --show-details=streaming --test-option=--color"
 ```
+
+## Build
+
+The build instructions assume that you have [Nix][nix] installed.
+Execute the following command to build the library.
+
+```
+$ nix-shell --pure --run "cabal configure"
+$ nix-shell --pure --run "cabal build"
+```
+
+[nix]: https://nixos.org/nix/
