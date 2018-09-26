@@ -1,6 +1,14 @@
 -- | Defines a capability for computations that produce a stream of values
 -- as part of their execution.
 --
+-- Programs producing streams of data are common.
+-- For example emitting events on input, or emitting events whenever certain
+-- conditions are observed. For those familiar with Python, generators form a
+-- similar abstraction.
+--
+-- The 'HasStream' capability allows to separate the logic responsible for
+-- emitting such events from that responsible for collecting or handling them.
+--
 -- This can be thought of as a writer capability of a list of values
 -- @HasWriter tag [v]@ with @\\x -> tell \@tag [x]@ as primitive operation.
 -- However, that implementation would be inefficient.
