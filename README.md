@@ -25,7 +25,7 @@ A Nix cache for this package's dependencies is provided via [cachix][cachix].
 If you have [cachix][cachix] installed, then you can activate it by executing
 
 ```
-$ cachix use capabilities-via
+$ cachix use tweag
 ```
 
 [cachix]: https://cachix.org/
