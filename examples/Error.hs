@@ -10,6 +10,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -35,10 +36,10 @@ data ParserError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-parseNumber :: HasThrow "ParserError" ParserError m
+parseNumber :: HasThrow "parser" ParserError m
   => String -> m Int
 parseNumber input = case readEither input of
-  Left err -> throw @"ParserError" $ InvalidInput err
+  Left err -> throw @"parser" $ InvalidInput err
   Right num -> pure num
 
 
@@ -47,10 +48,10 @@ data MathError
   deriving (Show, Typeable)
   deriving anyclass Exception
 
-sqrtNumber :: HasThrow "MathError" MathError m
+sqrtNumber :: HasThrow "math" MathError m
   => Int -> m Int
 sqrtNumber num
-  | num < 0 = throw @"MathError" NegativeInput
+  | num < 0 = throw @"math" NegativeInput
   | otherwise = pure $ round $ sqrt @Double $ fromIntegral num
 
 
@@ -67,7 +68,7 @@ data CalcError
 --
 -- Prompts for positive numbers and prints their square roots.
 calculator ::
-  ( HasCatch "CalcError" CalcError m, MonadIO m )
+  ( HasCatch "calc" CalcError m, MonadIO m )
   => m ()
 calculator = do
   liftIO $ putStr "Enter positive number or 'Q' to quit\n> "
@@ -75,14 +76,16 @@ calculator = do
   case line of
     "Q" -> pure ()
     input -> do
-      catch @"CalcError"
+      catch @"calc"
         do
           -- Errors in the parser or math component are converted to a
           -- @CalcError@ by wrapping with the corresponding constructor.
-          num <- wrapError @"CalcError" @"ParserError" $
-            parseNumber input
-          root <- wrapError @"CalcError" @"MathError" $
-            sqrtNumber num
+          let wrapParserError = wrapError @"calc" @"parser"
+                @(Rename "ParserError" :.: Ctor "ParserError" "calc")
+              wrapMathError = wrapError @"calc" @"math"
+                @(Rename "MathError" :.: Ctor "MathError" "calc")
+          num <- wrapParserError $ parseNumber input
+          root <- wrapMathError $ sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
         \e -> liftIO $ putStrLn $ "Error: " ++ show e
       calculator
@@ -106,8 +109,8 @@ nested n = do
 newtype Calculator a = Calculator { runCalculator :: IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO)
   deriving
-    ( HasThrow "CalcError" CalcError
-    , HasCatch "CalcError" CalcError
+    ( HasThrow "calc" CalcError
+    , HasCatch "calc" CalcError
     ) via MonadUnliftIO CalcError IO
 
 

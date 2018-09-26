@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -16,8 +17,10 @@ module Capability.State.Internal.Class
   , modify
   , modify'
   , gets
+  , zoom
   ) where
 
+import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | State capability
@@ -96,3 +99,22 @@ gets f = do
   s <- get @tag
   pure (f s)
 {-# INLINE gets #-}
+
+-- | Execute the given state action on a sub-component of the current state
+-- as defined by the given transformer @t@.
+--
+-- Example:
+--
+-- > zoom @"foobar" @"foo" @(Field "foo" "foobar") foo
+-- >   :: HasState "foobar" FooBar m => m ()
+-- >
+-- > foo :: HasState "foo" Int m => m ()
+-- > data FooBar = FooBar { foo :: Int, bar :: String }
+zoom :: forall outertag innertag t outer inner m a.
+  ( forall x. Coercible (t m x) (m x)
+  , forall m'. HasState outertag outer m'
+    => HasState innertag inner (t m')
+  , HasState outertag outer m )
+  => (forall m'. HasState innertag inner m' => m' a) -> m a
+zoom m = coerce @(t m a) m
+{-# INLINE zoom #-}

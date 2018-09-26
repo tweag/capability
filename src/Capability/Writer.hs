@@ -23,10 +23,13 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -49,7 +52,7 @@ import Capability.Accessors
 import Capability.State
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
-import Data.Coerce (coerce)
+import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Writer capability
@@ -118,6 +121,13 @@ listen = listen_ (proxy# @_ @tag)
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @_ @tag)
 {-# INLINE pass #-}
+
+-- | Compose two accessors.
+deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+  instance
+  ( forall x. Coercible (m x) (t2 (t1 m) x)
+  , Monad m, HasWriter tag w (t2 (t1 m)) )
+  => HasWriter tag w ((t2 :.: t1) m)
 
 newtype WriterLog m a = WriterLog (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)

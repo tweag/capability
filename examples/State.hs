@@ -3,8 +3,10 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- | Example uses and instances of the @HasState@ capability.
 module State where
@@ -20,10 +22,22 @@ import Test.Hspec
 ----------------------------------------------------------------------
 -- Example Programs
 
+incFoo :: HasState "foo" Int m => m ()
+incFoo = modify @"foo" (+1)
+
 twoStates :: (HasState "foo" Int m, HasState "bar" Int m) => m ()
 twoStates = do
-  modify @"foo" (+1)
+  incFoo
   modify @"bar" (subtract 1)
+
+
+useZoom :: HasState "foobar" (Int, Int) m => m Int
+useZoom = do
+  put @"foobar" (2, 2)
+  -- Zoom in on the first element in the current state, rename tag 1 to "foo".
+  zoom @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar") $
+    incFoo
+  gets @"foobar" (\(foo, bar) -> foo + bar)
 
 
 ----------------------------------------------------------------------
@@ -87,6 +101,12 @@ runNestedStatesM :: NestedStatesM a -> ((a, Int), Int)
 runNestedStatesM (NestedStatesM m) = runState (runStateT m 0) 0
 
 
+runFooBarState
+  :: (forall m. HasState "foobar" (Int, Int) m => m a)
+  -> (Int, Int) -> (a, (Int, Int))
+runFooBarState (MonadState m) = runState m
+
+
 ----------------------------------------------------------------------
 -- Test Cases
 
@@ -101,3 +121,6 @@ spec = do
   describe "NestedStatesM" $
     it "evaluates twoStates" $
       runNestedStatesM twoStates `shouldBe` (((), 1), -1)
+  describe "runFooBarState" $
+    it "evaluates useZoom" $
+      runFooBarState useZoom (0, 0) `shouldBe` (5, (3, 2))
