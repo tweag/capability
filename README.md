@@ -1,7 +1,16 @@
 # capability: effects, extensionally
 
-This package defines strategies to generate implementations of capabilities
-using the `DerivingVia` language extension added in GHC 8.6.
+This library defines a set of standard, reusable capability type classes,
+such as `HasReader` and `HasState`,
+which provide the standard reader and state monad interface.
+These type classes are parameterized by a name (aka tag),
+which makes it possible to combine multiple versions of the same capability,
+e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`.
+
+Furthermore, this library provides newtypes
+to derive instances of these capability type-classes
+in deriving-via clauses using the `DerivingVia` language extension
+introduced in GHC 8.6.
 
 This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
