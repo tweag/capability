@@ -153,6 +153,9 @@ catchJust = catchJust_ (proxy# @_ @tag)
 -- >
 -- > component :: HasError "ComponentError" ComponentError m => m ()
 -- > data AppError = ComponentError ComponentError
+--
+-- This function is experimental and subject to change.
+-- See <https://github.com/tweag/capability/issues/46>.
 wrapError :: forall outertag innertag t outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasCatch outertag outer m'

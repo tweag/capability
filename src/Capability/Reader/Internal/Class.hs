@@ -89,6 +89,9 @@ reader = reader_ (proxy# @_ @tag)
 -- as defined by the given transformer @t@.
 --
 -- See 'Capability.State.zoom'.
+--
+-- This function is experimental and subject to change.
+-- See <https://github.com/tweag/capability/issues/46>.
 magnify :: forall outertag innertag t outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasReader outertag outer m'
