@@ -110,6 +110,9 @@ gets f = do
 -- >
 -- > foo :: HasState "foo" Int m => m ()
 -- > data FooBar = FooBar { foo :: Int, bar :: String }
+--
+-- This function is experimental and subject to change.
+-- See <https://github.com/tweag/capability/issues/46>.
 zoom :: forall outertag innertag t outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasState outertag outer m'
