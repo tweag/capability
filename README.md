@@ -16,6 +16,29 @@ Instead this library provides newtype wrappers that define extensible strategies
 to derive capability instances in deriving-via clauses
 using the `DerivingVia` language extension introduced in GHC 8.6.
 
+In short, an example usage looks like this:
+
+``` haskell
+example :: (HasReader "foo" Int, HasState "bar" Bool) => m ()
+example = do
+  num <- ask @"foo"
+  put @"bar" (even num)
+
+data Ctx = Ctx { foo :: Int, bar :: IORef Bool }
+  deriving Generic
+
+newtype M a = M { runM :: Ctx -> IO a }
+  deriving (Functor, Applicative, Monad) via ReaderT Ctx IO
+  deriving (HasReader "foo" Int) via
+    Field "foo" "ctx" (MonadReader (ReaderT Ctx IO))
+  deriving (HasState "bar" Bool) via
+    ReaderIORef (Field "bar" "ctx" (MonadReader (ReaderT Ctx IO)))
+```
+
+Refer to the [Examples section](#examples)
+and the [`examples` subtree](./examples)
+for more complex examples.
+
 This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
 
