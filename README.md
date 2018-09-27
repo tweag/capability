@@ -65,25 +65,6 @@ on the artifacts tab of a successful build.
 [blog]: https://www.tweag.io/posts/2018-09-27-capability.html
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
 
-## Nix Shell
-
-Some of this package's dependencies require patches to build with GHC 8.6.
-These patches are defined in
-[`nix/haskell/default.nix`](nix/haskell/default.nix).
-A development environment with all patched dependencies in scope is defined in
-[`shell.nix`](shell.nix).
-
-## Cachix Nix Cache
-
-A Nix cache for this package's dependencies is provided via [cachix][cachix].
-If you have [cachix][cachix] installed, then you can activate it by executing
-
-```
-$ cachix use tweag
-```
-
-[cachix]: https://cachix.org/
-
 ## Examples
 
 An example is provided in [`WordCount`](examples/WordCount.hs).
@@ -109,7 +90,28 @@ To execute all examples and see if they produce the expected results run
 $ nix-shell --pure --run "cabal test examples --show-details=streaming --test-option=--color"
 ```
 
-## Build
+## Build instructions
+
+### Nix Shell
+
+Some of this package's dependencies require patches to build with GHC 8.6.
+These patches are defined in
+[`nix/haskell/default.nix`](nix/haskell/default.nix).
+A development environment with all patched dependencies in scope is defined in
+[`shell.nix`](shell.nix).
+
+### Cachix Nix Cache
+
+A Nix cache for this package's dependencies is provided via [cachix][cachix].
+If you have [cachix][cachix] installed, then you can activate it by executing
+
+```
+$ cachix use tweag
+```
+
+[cachix]: https://cachix.org/
+
+### Build
 
 The build instructions assume that you have [Nix][nix] installed.
 Execute the following command to build the library.
