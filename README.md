@@ -1,16 +1,20 @@
 # capability: effects, extensionally
 
-This library defines a set of standard, reusable capability type classes,
-such as `HasReader` and `HasState`,
-which provide the standard reader and state monad interface.
-These type classes are parameterized by a name (aka tag),
-which makes it possible to combine multiple versions of the same capability,
-e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`.
+This library defines a set of standard, reusable capability type classes.
+By capability we mean a type class that defines explicitly which effects
+a function is allowed to use. For example the `HasReader` and `HasState`
+capability provide the standard reader and state monad interface.
 
-Furthermore, this library provides newtypes
-to derive instances of these capability type-classes
-in deriving-via clauses using the `DerivingVia` language extension
-introduced in GHC 8.6.
+These capability type classes are parameterized by a name (aka tag),
+which makes it possible to combine multiple versions of the same capability,
+e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`,
+where the tags `"a"` and `"b"` refer to different states.
+
+Compared to the widely used [`mtl`][mtl] the capability type classes provided
+by this library are not tied to a particular implementation.
+Instead this library provides newtype wrappers that define extensible strategies
+to derive capability instances in deriving-via clauses
+using the `DerivingVia` language extension introduced in GHC 8.6.
 
 This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
@@ -19,6 +23,7 @@ Haddocks can be found on the [CircleCI project][circleci]
 on the artifacts tab of a successful build.
 
 [circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
+[mtl]: http://hackage.haskell.org/package/mtl
 
 ## Nix Shell
 
