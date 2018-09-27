@@ -32,6 +32,11 @@ import GHC.TypeLits (Nat, Symbol)
 --   deriving (HasReader "a" MyInt) via
 --     Coerce MyInt (MonadReader (Reader Int))
 -- @
+--
+-- Converts the @'Capability.Reader.HasReader' \"a\" Int@ instance of
+-- @'Capability.Reader.MonadReader' (Reader Int)@ to a
+-- @'Capability.Reader.HasReader' \"a\" MyInt@
+-- instance using @Coercible Int MyInt@.
 newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -40,10 +45,19 @@ newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
 -- Example:
 --
 -- @
--- newtype MyReader a = MyReader (Reader (Int, Bool) a)
+-- newtype MyReader a = MyReader (Reader Int a)
 --   deriving (HasReader "foo" Int) via
---     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
+--     Rename "bar" (MonadReader (Reader Int))
 -- @
+--
+-- Converts the @'Capability.Reader.HasReader' \"bar\" Int@ instance of
+-- @'Capability.Reader.MonadReader' (Reader Int)@ to a
+-- @'Capability.Reader.HasReader' \"foo\" Int@ instance by renaming the tag.
+--
+-- Note, that 'Capability.Reader.MonadReader' itself does not fix a tag,
+-- and @Rename@ is redundant in this example.
+--
+-- See 'Pos' below for a common use-case.
 newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -57,6 +71,13 @@ newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
 --   deriving (HasReader "foo" Int) via
 --     Field "foo" () (MonadReader (Reader Foo))
 -- @
+--
+-- Converts the @'Capability.Reader.HasReader' () Foo@ instance of
+-- @'Capability.Reader.MonadReader' (Reader Foo)@ to a
+-- @'Capability.Reader.HasReader' \"foo\" Int@
+-- instance by focusing on the field @foo@ in the @Foo@ record.
+--
+-- See 'Rename' for a way to change the tag.
 newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -68,6 +89,20 @@ newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
 -- newtype MyReader a = MyReader (Reader (Int, Bool) a)
 --   deriving (HasReader 1 Int) via
 --     Pos 1 () (MonadReader (Reader (Int, Bool)))
+-- @
+--
+-- Converts the @'Capability.Reader.HasReader' () (Int, Bool)@ instance of
+-- @'Capability.Reader.MonadReader' (Reader (Int, Bool))@ to a
+-- @'Capability.Reader.HasReader' 1 Int@ instance
+-- by focusing on the first element of the tuple.
+--
+-- The implied number tag can be renamed to a more descriptive name using
+-- the 'Rename' combinator:
+--
+-- @
+-- newtype MyReader a = MyReader (Reader (Int, Bool) a)
+--   deriving (HasReader "foo" Int) via
+--     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
 -- @
 newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
@@ -82,6 +117,11 @@ newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
 --   deriving (HasThrow \"ErrB" String) via
 --     Ctor \"ErrB" () (MonadError (ExceptT MyError Identity))
 -- @
+--
+-- Converts the @'Capability.Error.HasThrow' () \"MyError\"@ instance of
+-- @'Capability.Error.MonadError' (ExceptT MyError Identity)@ to a
+-- @'Capability.Error.HasThrow' \"ErrB\" String@
+-- instance by wrapping thrown @String@s in the @ErrB@ constructor.
 newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -97,6 +137,12 @@ newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
 --   deriving (HasState "foo" Bool) via
 --     Lift (StateT Int (MonadState (State Bool)))
 -- @
+--
+-- Uses the 'Control.Monad.Trans.Class.MonadTrans' instance of
+-- @StateT Int@ to lift
+-- the @'Capability.State.HasState' "\foo\" Bool@ instance of the underlying
+-- @'Capability.State.MonadState' (State Bool)@ over the
+-- @StateT Int@ monad transformer.
 newtype Lift m (a :: *) = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
