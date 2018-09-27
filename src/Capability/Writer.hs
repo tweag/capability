@@ -1,17 +1,20 @@
--- | Defines a writer monad capability.
+-- | This module defines a capability type class for writer effects. In a writer
+-- effect program can output values with 'tell'. The values output by two
+-- consecutive sub-computation are combined using a monoid's @mappend@.
 --
 -- The interface of 'HasWriter' follows that of
--- 'Control.Monad.Writer.Class.MonadWriter'. However, we do
--- not provide a strategy to derive a @HasWriter@ instance from a
--- @MonadWriter@ instance. Implementations of @MonadWriter@ based on
--- 'Control.Monad.Writer.Strict.WriterT' or similar have a space-leak, see this
--- <https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks blog post>
--- by Getty Ritter.
+-- 'Control.Monad.Writer.Class.MonadWriter'. However, this module does not
+-- include a strategy to provide a @HasWriter@ capability from a @MonadWriter@
+-- instance. It is generally a bad idea to use monads such as
+-- 'Control.Monad.Writer.Strict.WriterT', as they tend to leak space, as
+-- described in this
+-- <https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks
+-- blog post> by Getty Ritter.
 --
--- Instead, we provide the 'WriterLog' strategy that implements the writer
--- monad on a state monad. Using 'HasWriter' instead of 'HasState' directly
--- ensures your code is restricted to the writer monad interface and does
--- not misuse the underlying state monad.
+-- Instead, you should use the 'WriterLog' strategy that implements the writer
+-- monad on a state monad. There is no downside, as using 'HasWriter' instead of
+-- 'HasState' directly ensures your code is adheres to the writer monad
+-- interface and does not misuse the underlying state monad.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
