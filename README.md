@@ -39,6 +39,8 @@ Refer to the [Examples section](#examples)
 and the [`examples` subtree](./examples)
 for more complex examples.
 
+See the announcement [blog post][blog] for more information.
+
 This package is not available on Hackage, yet, as some of its dependencies
 have not been updated to GHC 8.6, yet.
 
@@ -47,6 +49,7 @@ on the artifacts tab of a successful build.
 
 [circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
 [mtl]: http://hackage.haskell.org/package/mtl
+[blog]: https://www.tweag.io/posts/2018-09-27-capability.html
 
 ## Nix Shell
 
