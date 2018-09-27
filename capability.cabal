@@ -12,6 +12,7 @@ cabal-version: >=1.10
 
 library
   exposed-modules:
+    Capability
     Capability.Accessors
     Capability.Error
     Capability.Reader
