@@ -32,6 +32,9 @@ import GHC.TypeLits (Nat, Symbol)
 --   deriving (HasReader "a" MyInt) via
 --     Coerce MyInt (MonadReader (Reader Int))
 -- @
+--
+-- Converts the @HasReader \"a\" Int@ instance of @MonadReader (Reader Int)@
+-- to a @HasReader \"a\" MyInt@ instance using @Coercible Int MyInt@.
 newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -44,6 +47,15 @@ newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
 --   deriving (HasReader "foo" Int) via
 --     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
 -- @
+--
+-- Converts the @HasReader 1 Int@ instance of
+-- @Pos 1 () (MonadReader (Reader (Int, Bool)))@ to a
+-- @HasReader \"foo\" Int@ instance by renaming the tag.
+--
+-- Note, that @MonadReader@ itself does not fix a tag, and @Rename@ would
+-- be redundant if it was applied directly to @MonadReader@.
+-- This example demonstrates a very common use-case, which is to create a
+-- more descriptive name than the number tag implied by @Pos@.
 newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -57,6 +69,12 @@ newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
 --   deriving (HasReader "foo" Int) via
 --     Field "foo" () (MonadReader (Reader Foo))
 -- @
+--
+-- Converts the @HasReader () Foo@ instance of @MonadReader (Reader Foo)@ to a
+-- @HasReader \"foo\" Int@ instance by focusing on the field @foo@ in
+-- the @Foo@ record.
+--
+-- See 'Rename' for a way to change the tag.
 newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -69,6 +87,12 @@ newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
 --   deriving (HasReader 1 Int) via
 --     Pos 1 () (MonadReader (Reader (Int, Bool)))
 -- @
+--
+-- Converts the @HasReader () (Int, Bool)@ instance of
+-- @MonadReader (Reader (Int, Bool))@ to a @HasReader 1 Int@ instance
+-- by focusing on the first element of the tuple.
+--
+-- See 'Rename' for a way to change the tag.
 newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -82,6 +106,11 @@ newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
 --   deriving (HasThrow \"ErrB" String) via
 --     Ctor \"ErrB" () (MonadError (ExceptT MyError Identity))
 -- @
+--
+-- Converts the @HasThrow () \"MyError\"@ instance of
+-- @MonadError (ExceptT MyError Identity)@ to a
+-- @HasThrow \"ErrB\" String@ instance by wrapping thrown @String@s
+-- in the @ErrB@ constructor.
 newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -97,6 +126,10 @@ newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
 --   deriving (HasState "foo" Bool) via
 --     Lift (StateT Int (MonadState (State Bool)))
 -- @
+--
+-- Uses the @MonadTrans@ instance of @StateT Int@ to lift
+-- the @HasState "\foo\" Bool@ instance of the underlying
+-- @MonadState (State Bool)@ over the @StateT Int@ monad transformer.
 newtype Lift m (a :: *) = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
