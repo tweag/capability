@@ -43,19 +43,19 @@ newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
 -- Example:
 --
 -- @
--- newtype MyReader a = MyReader (Reader (Int, Bool) a)
+-- newtype MyReader a = MyReader (Reader Int a)
 --   deriving (HasReader "foo" Int) via
---     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
+--     Rename "bar" (MonadReader (Reader Int))
 -- @
 --
--- Converts the @HasReader 1 Int@ instance of
--- @Pos 1 () (MonadReader (Reader (Int, Bool)))@ to a
+-- Converts the @HasReader \"bar\" Int@ instance of
+-- @MonadReader (Reader Int)@ to a
 -- @HasReader \"foo\" Int@ instance by renaming the tag.
 --
--- Note, that @MonadReader@ itself does not fix a tag, and @Rename@ would
--- be redundant if it was applied directly to @MonadReader@.
--- This example demonstrates a very common use-case, which is to create a
--- more descriptive name than the number tag implied by @Pos@.
+-- Note, that @MonadReader@ itself does not fix a tag,
+-- and @Rename@ is redundant in this example.
+--
+-- See 'Pos' below for a common use-case.
 newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -92,7 +92,14 @@ newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
 -- @MonadReader (Reader (Int, Bool))@ to a @HasReader 1 Int@ instance
 -- by focusing on the first element of the tuple.
 --
--- See 'Rename' for a way to change the tag.
+-- The implied number tag can be renamed to a more descriptive name using
+-- the 'Rename' combinator:
+--
+-- @
+-- newtype MyReader a = MyReader (Reader (Int, Bool) a)
+--   deriving (HasReader "foo" Int) via
+--     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
+-- @
 newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
