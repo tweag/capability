@@ -13,8 +13,7 @@
 -- | Defines discouraged instances of writer monad capabilities.
 
 module Capability.Writer.Discouraged
-  ( module Capability.Accessors
-  ) where
+  ( ) where
 
 import Capability.Accessors
 import Capability.Writer
