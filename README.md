@@ -10,12 +10,20 @@ which makes it possible to combine multiple versions of the same capability,
 e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`,
 where the tags `"a"` and `"b"` refer to different states.
 
-Compared to the widely used [`mtl`][mtl] the capability type classes provided
+Compared to the widely used [`mtl`][mtl], the capability type classes provided
 by this library are not tied to a particular implementation.
 Instead this library provides newtype wrappers that define extensible strategies
 to derive capability instances in deriving-via clauses
 using the [`DerivingVia`][deriving-via] language extension
 introduced in GHC 8.6.
+
+In summary, compared to the `mtl`:
+
+- Capabilities represent what effects a function can used, rather than
+  how the monad is constructed
+- Capabilities are named, rather than disambiguated by type
+- Capabilites are discharged with deriving-via combinators and
+ [`generic-lens`][generic-lens], rather than with instance resolution
 
 In short, an example usage looks like this:
 
@@ -64,6 +72,7 @@ on the artifacts tab of a successful build.
 [mtl]: http://hackage.haskell.org/package/mtl
 [blog]: https://www.tweag.io/posts/2018-09-27-capability.html
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
+[generic-lens]: https://hackage.haskell.org/package/generic-lens
 
 ## Examples
 
