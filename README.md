@@ -19,7 +19,7 @@ introduced in GHC 8.6.
 
 In summary, compared to the `mtl`:
 
-- Capabilities represent what effects a function can used, rather than
+- Capabilities represent what effects a function can use, rather than
   how the monad is constructed
 - Capabilities are named, rather than disambiguated by type
 - Capabilites are discharged with deriving-via combinators and

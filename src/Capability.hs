@@ -9,7 +9,7 @@
 -- instead of the mtl's monad-transformer type classes, when writing a program
 -- with capabilities. Because capabilities are not tied to a particular
 -- implementation of the monad, they cannot be discharged by instance
--- resolution. Instead this library provide combinators in the form of newtypes
+-- resolution. Instead this library provides combinators in the form of newtypes
 -- with instances, to be used with deriving-via. To learn about deriving via,
 -- watch Baldur Blondal's introductory video
 -- <https://skillsmatter.com/skillscasts/10934-lightning-talk-stolen-instances-taste-just-fine>.
@@ -59,7 +59,7 @@
 -- newtype should be seen as a combinator to be used with deriving-via to
 -- provide the capability). Many newtypes come from the common
 -- "Capability.Accessors" module (re-exported by each of the main modules),
--- which contains, in particular, a number of way to address components of a
+-- which contains, in particular, a number of ways to address components of a
 -- data type using the generic-lens library.
 --
 -- * "Capability.Reader" reader effects
@@ -68,17 +68,15 @@
 -- * "Capability.Error" throw and catch errors
 -- * "Capability.Stream" streaming effect (aka generators)
 --
--- Some of the capability module have a “discouraged” companion (such as
+-- Some of the capability modules have a “discouraged” companion (such as
 -- "Capability.Writer.Discouraged"). These modules contain deriving-via
 -- combinators which you can use if you absolutely must: they are correct, but
 -- inefficient, so we recommend that you do not.
 --
--- Consider
---
 -- == Further considerations
 --
 -- The tags of capabilities can be of any kind, they are not restricted to
--- symbols. When exporting function demanding capabilities libraries, it is
+-- symbols. When exporting functions demanding capabilities in libraries, it is
 -- recommended to use a type as follows:
 --
 -- @

@@ -1,5 +1,5 @@
--- | This module defines a capability type class for writer effects. In a writer
--- effect program can output values with 'tell'. The values output by two
+-- | This module defines a capability type class for writer effects. A writer
+-- program can output values with 'tell'. The values output by two
 -- consecutive sub-computation are combined using a monoid's @mappend@.
 --
 -- The interface of 'HasWriter' follows that of
@@ -13,7 +13,7 @@
 --
 -- Instead, you should use the 'WriterLog' strategy that implements the writer
 -- monad on a state monad. There is no downside, as using 'HasWriter' instead of
--- 'HasState' directly ensures your code is adheres to the writer monad
+-- 'HasState' directly ensures your code adheres to the writer monad
 -- interface and does not misuse the underlying state monad.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
