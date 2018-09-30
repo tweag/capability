@@ -1,21 +1,19 @@
 -- | Defines a capability for computations that produce a stream of values
 -- as part of their execution.
 --
--- Programs producing streams of data are common.
--- For example emitting events on input, or emitting events whenever certain
--- conditions are observed. For those familiar with Python, generators form a
--- similar abstraction.
+-- Programs producing streams of data are common. Examples: emitting events on
+-- input, or emitting events whenever certain conditions are observed. Streams
+-- are similar to Python generators.
 --
--- The 'HasStream' capability allows to separate the logic responsible for
--- emitting such events from that responsible for collecting or handling them.
+-- The 'HasStream' capability enables separating the logic responsible for
+-- emitting events from that responsible for collecting or handling them.
 --
--- This can be thought of as a writer capability of a list of values
--- @HasWriter tag [v]@ with @\\x -> tell \@tag [x]@ as primitive operation.
--- However, that implementation would be inefficient.
+-- This can be thought of as a writer capability of a list of values @HasWriter
+-- tag [v]@ with @\\x -> tell \@tag [x]@ as a primitive operation. However, that
+-- implementation would be inefficient.
 --
--- For example using the 'Streaming.Prelude.Stream' instance a producer
--- defined using this capability can be consumed efficiently
--- in a streaming fashion.
+-- For example using the 'Streaming.Prelude.Stream' instance, a producer defined
+-- using this capability can be consumed efficiently in a streaming fashion.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingVia #-}
@@ -102,7 +100,6 @@ instance (HasStream tag a m, MonadTrans t, Monad (t m))
   where
     yield_ _ = coerce @(a -> t m ()) $ lift . yield @tag
     {-# INLINE yield_ #-}
-
 
 -- | Compose two accessors.
 deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))

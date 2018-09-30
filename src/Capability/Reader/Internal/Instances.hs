@@ -40,8 +40,8 @@ import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import GHC.Exts (Proxy#)
 
--- | Derive 'HasReader' from @m@'s
--- 'Control.Monad.Reader.Class.MonadReader' instance.
+-- | Derive 'HasReader' from @m@'s 'Control.Monad.Reader.Class.MonadReader'
+-- instance.
 newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
@@ -56,22 +56,21 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
   {-# INLINE reader_ #-}
 
-
 -- | Convert a /pure/ state monad into a reader monad.
 --
--- /Pure/ meaning that the monad stack does not allow to catch exceptions.
--- Otherwise, an exception occurring in the action passed to 'local' could
--- cause the context to remain modified outside of the call to 'local'. E.g.
+-- /Pure/ meaning that the monad stack does not allow catching exceptions.
+-- Otherwise, an exception occurring in the action passed to 'local' could cause
+-- the context to remain modified outside of the call to 'local'. E.g.
 --
 -- > local @tag (const r') (throw MyException)
 -- > `catch` \MyException -> ask @tag
 --
 -- returns @r'@ instead of the previous value.
 --
--- Note, that no @MonadIO@ instance is provided, as this would allow to
--- catch exceptions.
+-- Note, that no @MonadIO@ instance is provided, as this would allow catching
+-- exceptions.
 --
--- See 'ReadState.
+-- See 'ReadState'.
 newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
   deriving (Functor, Applicative, Monad)
 
@@ -88,10 +87,9 @@ instance HasState tag r m => HasReader tag r (ReadStatePure m) where
   reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
   {-# INLINE reader_ #-}
 
-
 -- | Convert a state monad into a reader monad.
 --
--- Use this if the monad stack allows to catch exceptions.
+-- Use this if the monad stack allows catching exceptions.
 --
 -- See 'ReadStatePure'.
 newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
@@ -116,7 +114,6 @@ instance
     reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
     {-# INLINE reader_ #-}
 
-
 -- | Convert the environment using safe coercion.
 instance
   ( Coercible from to, HasReader tag from m
@@ -132,7 +129,6 @@ instance
     reader_ :: forall a. Proxy# tag -> (to -> a) -> Coerce to m a
     reader_ tag = coerce @((from -> a) -> m a) $ reader_ tag
     {-# INLINE reader_ #-}
-
 
 -- | Rename the tag.
 instance HasReader oldtag r m => HasReader newtag r (Rename oldtag m) where
@@ -217,7 +213,6 @@ instance (HasReader tag r m, MonadTransControl t, Monad (t m))
     reader_ :: forall a. Proxy# tag -> (r -> a) -> Lift (t m) a
     reader_ _ = coerce @((r -> a) -> t m a) $ lift . reader @tag
     {-# INLINE reader_ #-}
-
 
 -- | Compose two accessors.
 deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))

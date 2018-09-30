@@ -1,29 +1,36 @@
 # capability: effects, extensionally
 
-This library defines a set of standard, reusable capability type classes.
-By capability we mean a type class that defines explicitly which effects
-a function is allowed to use. For example the `HasReader` and `HasState`
-capability provide the standard reader and state monad interface.
+This library defines a set of standard, reusable *capability type
+classes*. By capability we mean a type class that defines explicitly
+which effects a function is allowed to use. For example the
+`HasReader` and `HasState` capabilities provide the standard
+environment and state modification effects, respectively.
 
-These capability type classes are parameterized by a name (aka tag),
-which makes it possible to combine multiple versions of the same capability,
-e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`,
-where the tags `"a"` and `"b"` refer to different states.
+Capability type classes are parameterized by a name (called a *tag*).
+This makes it possible to combine multiple versions of the same
+capability. For example,
 
-Compared to the widely used [`mtl`][mtl], the capability type classes provided
-by this library are not tied to a particular implementation.
-Instead this library provides newtype wrappers that define extensible strategies
-to derive capability instances in deriving-via clauses
-using the [`DerivingVia`][deriving-via] language extension
-introduced in GHC 8.6.
+```haskell
+twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()
+```
+
+Here, the tags `"a"` and `"b"` refer to different state spaces.
+
+This library is an alternative to [`mtl`][mtl]. Unlike `mtl`,
+capability type classes are not tied to a particular implementation.
+Instead, this library provides newtype wrappers that define extensible
+strategies to derive capability instances in deriving-via clauses
+using the [`DerivingVia`][deriving-via] language extension introduced
+in GHC 8.6.
 
 In summary, compared to the `mtl`:
 
-- Capabilities represent what effects a function can use, rather than
-  how the monad is constructed
-- Capabilities are named, rather than disambiguated by type
-- Capabilites are discharged with deriving-via combinators and
- [`generic-lens`][generic-lens], rather than with instance resolution
+- capabilities represent what effects a function can use, rather than
+  how the monad is constructed;
+- capabilities are named, rather than disambiguated by type;
+- capabilites are discharged with deriving-via combinators
+  and [`generic-lens`][generic-lens], rather than with instance
+  resolution.
 
 In short, an example usage looks like this:
 
@@ -56,17 +63,16 @@ example = do
     readIORef rEven >>= print
 ```
 
-Refer to the [Examples section](#examples)
-and the [`examples` subtree](./examples)
-for more complex examples.
+For more complex examples, see the [Examples section](#examples) and
+the [`examples` subtree](./examples).
 
 See the announcement [blog post][blog] for more information.
 
-This package is not available on Hackage, yet, as some of its dependencies
-have not been updated to GHC 8.6, yet.
+This package is not available on Hackage yet, as some of its
+dependencies have not been updated to GHC 8.6, yet.
 
-Haddocks can be found on the [CircleCI project][circleci]
-on the artifacts tab of a successful build.
+API documentation can be found in the artifacts tab of any successful
+build in the [CircleCI project][circleci].
 
 [circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
 [mtl]: http://hackage.haskell.org/package/mtl
