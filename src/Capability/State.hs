@@ -1,10 +1,12 @@
--- | Defines a capability for computations acting on a mutable state.
--- I.e. the well known state monad.
+-- | The module defines a capability type class for a state effect (like the
+-- classic state monad). A state capability provides a state which can be
+-- retrieved with 'get' and set with 'put'. As an analogy, each state capability
+-- is equivalent to making one @IORef@ available in an @IO@ computation (except,
+-- of course, that a state capability does not have to be provided by @IO@).
 --
--- Description taken from Mtl
--- <http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-State.html>
---
--- This module is inspired by the paper Functional Programming with Overloading and Higher-Order Polymorphism, Mark P Jones (<http://web.cecs.pdx.edu/~mpj/>) Advanced School of Functional Programming, 1995.
+-- This is a very expressive capability, it is often preferable to restrict to
+-- less powerful capabilities such as "Capability.Reader", "Capability.Writer",
+-- or "Capability.Stream".
 
 module Capability.State
   ( -- * Interface

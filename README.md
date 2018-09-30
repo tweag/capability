@@ -10,12 +10,20 @@ which makes it possible to combine multiple versions of the same capability,
 e.g. `twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()`,
 where the tags `"a"` and `"b"` refer to different states.
 
-Compared to the widely used [`mtl`][mtl] the capability type classes provided
+Compared to the widely used [`mtl`][mtl], the capability type classes provided
 by this library are not tied to a particular implementation.
 Instead this library provides newtype wrappers that define extensible strategies
 to derive capability instances in deriving-via clauses
 using the [`DerivingVia`][deriving-via] language extension
 introduced in GHC 8.6.
+
+In summary, compared to the `mtl`:
+
+- Capabilities represent what effects a function can use, rather than
+  how the monad is constructed
+- Capabilities are named, rather than disambiguated by type
+- Capabilites are discharged with deriving-via combinators and
+ [`generic-lens`][generic-lens], rather than with instance resolution
 
 In short, an example usage looks like this:
 
@@ -64,25 +72,7 @@ on the artifacts tab of a successful build.
 [mtl]: http://hackage.haskell.org/package/mtl
 [blog]: https://www.tweag.io/posts/2018-09-27-capability.html
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
-
-## Nix Shell
-
-Some of this package's dependencies require patches to build with GHC 8.6.
-These patches are defined in
-[`nix/haskell/default.nix`](nix/haskell/default.nix).
-A development environment with all patched dependencies in scope is defined in
-[`shell.nix`](shell.nix).
-
-## Cachix Nix Cache
-
-A Nix cache for this package's dependencies is provided via [cachix][cachix].
-If you have [cachix][cachix] installed, then you can activate it by executing
-
-```
-$ cachix use tweag
-```
-
-[cachix]: https://cachix.org/
+[generic-lens]: https://hackage.haskell.org/package/generic-lens
 
 ## Examples
 
@@ -109,7 +99,28 @@ To execute all examples and see if they produce the expected results run
 $ nix-shell --pure --run "cabal test examples --show-details=streaming --test-option=--color"
 ```
 
-## Build
+## Build instructions
+
+### Nix Shell
+
+Some of this package's dependencies require patches to build with GHC 8.6.
+These patches are defined in
+[`nix/haskell/default.nix`](nix/haskell/default.nix).
+A development environment with all patched dependencies in scope is defined in
+[`shell.nix`](shell.nix).
+
+### Cachix Nix Cache
+
+A Nix cache for this package's dependencies is provided via [cachix][cachix].
+If you have [cachix][cachix] installed, then you can activate it by executing
+
+```
+$ cachix use tweag
+```
+
+[cachix]: https://cachix.org/
+
+### Build
 
 The build instructions assume that you have [Nix][nix] installed.
 Execute the following command to build the library.
