@@ -21,17 +21,17 @@ a set of standard, reusable capability type classes. Such as the
 `HasReader` and `HasState` type classes which provide the standard
 reader and state effects, respectively.
 
-Because of the independence of capability type class from the monad
+Because of the independence of a capability type class from the monad
 implementation, capability type classes can unfortunately not be
 discharged by the instance resolution mechanism. Fortunately GHC 8.6
 introduced the [`DerivingVia`][deriving-via] language extension. Which
 greatly reduces the boilerplate of capability-style programming, and
-make it an appealing alternative to `mtl`-style programming.
+makes it an appealing alternative to `mtl`-style programming.
 
-A additional benefit of separating capabilities from their
+An additional benefit of separating capabilities from their
 implementation is that they avoid a pitfall of the `mtl`: in the `mtl`
 two different `MonadState` are disambiguated by their types, which
-means that it is difficult to have to `MonadState Int` in the same
+means that it is difficult to have two `MonadState Int` in the same
 monad stack. Capability type classes are parameterized by a name (also
 known as a *tag*).  This makes it possible to combine multiple
 versions of the same capability. For example,
