@@ -12,8 +12,8 @@ implementation. What this means in practice:
   effects.
 - You can use a writer effect without implementing it as a writer
   monad (which is known to [leak space][writer-space-leak]).
-- You can reason about effects: "if I have a reader effect of an
- `IORef` then I can implement a state effect".
+- You can reason about effects. For instance, if a monad provides a
+ reader effect at type `IORef A`, it also provides a state effect at type `A`
 
 For more on these, you may want to read the announcement [blog
  post][blog].
