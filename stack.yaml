@@ -1,0 +1,6 @@
+resolver: nightly-2018-09-29
+packages:
+- '.'
+extra-deps:
+- git: https://github.com/LeastAuthority/hspec-jenkins.git
+  commit: 2899766bbd36216b81b1719423a5c2443458ae06
