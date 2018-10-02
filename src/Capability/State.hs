@@ -28,4 +28,4 @@ module Capability.State
 
 import Capability.Accessors
 import Capability.State.Internal.Class
-import Capability.State.Internal.Instances
+import Capability.State.Internal.Strategies

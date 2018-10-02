@@ -19,7 +19,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
-module Capability.Reader.Internal.Instances
+module Capability.Reader.Internal.Strategies
   ( MonadReader(..)
   , ReadStatePure(..)
   , ReadState(..)
