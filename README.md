@@ -29,7 +29,9 @@ boilerplate: rote instance definitions for every new implementation of
 the capability. Fortunately GHC 8.6 introduced
 the [`DerivingVia`][deriving-via] language extension. We use it to
 remove the boilerplate, turning capability-style programming into an
-appealing alternative to `mtl`-style programming.
+appealing alternative to `mtl`-style programming. The
+[`generic-lens`][generic-lens] library is used to access fields of
+structure in the style of the [`ReaderT` pattern][readert].
 
 An additional benefit of separating capabilities from their
 implementation is that they avoid a pitfall of the `mtl`. In the
