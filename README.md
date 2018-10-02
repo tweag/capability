@@ -1,27 +1,51 @@
 # capability: effects, extensionally
 
-This library defines a set of standard, reusable *capability type
-classes*. By capability we mean a type class that defines explicitly
-which effects a function is allowed to use. For example the
-`HasReader` and `HasState` capabilities provide the standard
-environment and state modification effects, respectively.
+A capability is a type class that says explicitly which effects
+a function is allowed to use. The [`mtl`][mtl] works like this too.
+But unlike the `mtl`, this library decouples effects from their
+implementation. What this means in practice:
 
-Capability type classes are parameterized by a name (called a *tag*).
-This makes it possible to combine multiple versions of the same
-capability. For example,
+- You can implement large sets of capabilities using the
+  efficient [`ReaderT` pattern][readert], rather than a slow monad
+  transformer stack.
+- Capabilities compose well: e.g. it's easy to have multiple reader
+  effects.
+- You can use a writer effect without implementing it as a writer
+  monad (which is known to [leak space][writer-space-leak]).
+- You can reason about effects. For instance, if a monad provides a
+ reader effect at type `IORef A`, it also provides a state effect at type `A`
+
+For more on these, you may want to read the announcement [blog
+ post][blog].
+
+This library is an alternative to the [`mtl`][mtl]. It defines a set
+of standard, reusable capability type classes, such as the `HasReader`
+and `HasState` type classes, which provide the standard reader and
+state effects, respectively.
+
+Where `mtl` instances only need to be defined once and for all,
+capability-style programming has traditionally suffered from verbose
+boilerplate: rote instance definitions for every new implementation of
+the capability. Fortunately GHC 8.6 introduced
+the [`DerivingVia`][deriving-via] language extension. We use it to
+remove the boilerplate, turning capability-style programming into an
+appealing alternative to `mtl`-style programming. The
+[`generic-lens`][generic-lens] library is used to access fields of
+structure in the style of the [`ReaderT` pattern][readert].
+
+An additional benefit of separating capabilities from their
+implementation is that they avoid a pitfall of the `mtl`. In the
+`mtl`, two different `MonadState` are disambiguated by their types,
+which means that it is difficult to have two `MonadState Int` in the
+same monad stack. Capability type classes are parameterized by a name
+(also known as a *tag*). This makes it possible to combine multiple
+versions of the same capability. For example,
 
 ```haskell
 twoStates :: (HasState "a" Int m, HasState "b" Int m) => m ()
 ```
 
 Here, the tags `"a"` and `"b"` refer to different state spaces.
-
-This library is an alternative to [`mtl`][mtl]. Unlike `mtl`,
-capability type classes are not tied to a particular implementation.
-Instead, this library provides newtype wrappers that define extensible
-strategies to derive capability instances in deriving-via clauses
-using the [`DerivingVia`][deriving-via] language extension introduced
-in GHC 8.6.
 
 In summary, compared to the `mtl`:
 
@@ -32,7 +56,7 @@ In summary, compared to the `mtl`:
   and [`generic-lens`][generic-lens], rather than with instance
   resolution.
 
-In short, an example usage looks like this:
+An example usage looks like this:
 
 ``` haskell
 testParity :: (HasReader "foo" Int, HasState "bar" Bool) => m ()
@@ -66,8 +90,6 @@ example = do
 For more complex examples, see the [Examples section](#examples) and
 the [`examples` subtree](./examples).
 
-See the announcement [blog post][blog] for more information.
-
 This package is not available on Hackage yet, as some of its
 dependencies have not been updated to GHC 8.6, yet.
 
@@ -79,6 +101,8 @@ build in the [CircleCI project][circleci].
 [blog]: https://www.tweag.io/posts/2018-09-27-capability.html
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
 [generic-lens]: https://hackage.haskell.org/package/generic-lens
+[readert]: https://www.fpcomplete.com/blog/2017/06/readert-design-pattern
+[writer-space-leak]: https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks
 
 ## Examples
 
