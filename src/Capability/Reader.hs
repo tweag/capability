@@ -22,4 +22,4 @@ module Capability.Reader
 
 import Capability.Accessors
 import Capability.Reader.Internal.Class
-import Capability.Reader.Internal.Instances
+import Capability.Reader.Internal.Strategies

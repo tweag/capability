@@ -17,10 +17,10 @@ library
     Capability.Error
     Capability.Reader
     Capability.Reader.Internal.Class
-    Capability.Reader.Internal.Instances
+    Capability.Reader.Internal.Strategies
     Capability.State
     Capability.State.Internal.Class
-    Capability.State.Internal.Instances
+    Capability.State.Internal.Strategies
     Capability.Stream
     Capability.Writer
     Capability.Writer.Discouraged
