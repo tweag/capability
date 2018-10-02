@@ -1,39 +1,42 @@
 # capability: effects, extensionally
 
-A capability type class is a type class which defines explicitly which
-effects a function is allowed to use. This is akin to the [`mtl`][mtl]
-style of programming. However, unlike `mtl` classes, capability type
-classes are not tied to a particular monad implementation: they really
-just describe effects. This has a number of benefits:
+A capability is a type class that says explicitly which effects
+a function is allowed to use. The [`mtl`][mtl] works like this too.
+But unlike the `mtl`, this library decouples effects from their
+implementation. What this means in practice:
 
-- You can provide capabilities with an efficient [`ReaderT`
- pattern][readert], rather than a monad transformer stack
+- You can implement large sets of capabilities using the
+  efficient [`ReaderT` pattern][readert], rather than a slow monad
+  transformer stack.
+- Capabilities compose well: e.g. it's easy to have multiple reader
+  effects.
 - You can use a writer effect without implementing it as a writer
- monad (which is known to [leak space](https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks))
+  monad (which is known to [leak space][writer-space-leak]).
 - You can reason about effects: "if I have a reader effect of an
- `IORef` then I can implement a state effect"
+ `IORef` then I can implement a state effect".
 
 For more on these, you may want to read the announcement [blog
  post][blog].
 
-This library is an alternative to the [`mtl`][mtl], in that it defines
-a set of standard, reusable capability type classes. Such as the
-`HasReader` and `HasState` type classes which provide the standard
-reader and state effects, respectively.
+This library is an alternative to the [`mtl`][mtl]. It defines a set
+of standard, reusable capability type classes, such as the `HasReader`
+and `HasState` type classes, which provide the standard reader and
+state effects, respectively.
 
-Because of the independence of a capability type class from the monad
-implementation, capability type classes can unfortunately not be
-discharged by the instance resolution mechanism. Fortunately GHC 8.6
-introduced the [`DerivingVia`][deriving-via] language extension. Which
-greatly reduces the boilerplate of capability-style programming, and
-makes it an appealing alternative to `mtl`-style programming.
+Where `mtl` instances only need to be defined once and for all,
+capability-style programming has traditionally suffered from verbose
+boilerplate: rote instance definitions for every new implementation of
+the capability. Fortunately GHC 8.6 introduced
+the [`DerivingVia`][deriving-via] language extension. We use it to
+remove the boilerplate, turning capability-style programming into an
+appealing alternative to `mtl`-style programming.
 
 An additional benefit of separating capabilities from their
-implementation is that they avoid a pitfall of the `mtl`: in the `mtl`
-two different `MonadState` are disambiguated by their types, which
-means that it is difficult to have two `MonadState Int` in the same
-monad stack. Capability type classes are parameterized by a name (also
-known as a *tag*).  This makes it possible to combine multiple
+implementation is that they avoid a pitfall of the `mtl`. In the
+`mtl`, two different `MonadState` are disambiguated by their types,
+which means that it is difficult to have two `MonadState Int` in the
+same monad stack. Capability type classes are parameterized by a name
+(also known as a *tag*). This makes it possible to combine multiple
 versions of the same capability. For example,
 
 ```haskell
@@ -97,6 +100,7 @@ build in the [CircleCI project][circleci].
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
 [generic-lens]: https://hackage.haskell.org/package/generic-lens
 [readert]: https://www.fpcomplete.com/blog/2017/06/readert-design-pattern
+[writer-space-leak]: https://blog.infinitenegativeutility.com/2016/7/writer-monads-and-space-leaks
 
 ## Examples
 
