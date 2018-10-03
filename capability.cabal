@@ -8,7 +8,10 @@ copyright: 2018 EURL Tweag
 category: Control
 build-type: Simple
 extra-source-files: ChangeLog.md
-cabal-version: >=1.10
+cabal-version: >=1.18
+tested-with: GHC==8.6.1
+synopsis: Programming with effects modularly
+description: A library for programming with effects modularly.
 
 library
   exposed-modules:
@@ -25,21 +28,21 @@ library
     Capability.Writer
     Capability.Writer.Discouraged
   build-depends:
-      base >=4.10 && <4.13
-    , exceptions
-    , dlist
-    , generic-lens
-    , lens
-    , monad-control
-    , monad-unlift
-    , mtl
-    , mutable-containers
-    , primitive
-    , safe-exceptions
-    , streaming
-    , transformers
-    , unliftio
-    , unliftio-core
+      base >= 4.12 && < 5.0
+    , dlist >= 0.8 && < 0.9
+    , exceptions >= 0.6 && < 0.11
+    , generic-lens >= 1.0 && < 1.1
+    , lens >= 4.16 && < 5.0
+    , monad-control >= 1.0 && < 1.1
+    , monad-unlift >= 0.2 && < 0.3
+    , mtl >= 2.0 && < 3.0
+    , mutable-containers >= 0.3 && < 0.4
+    , primitive >= 0.6 && < 0.7
+    , safe-exceptions >= 0.1 && < 0.2
+    , streaming >= 0.2 && < 0.3
+    , transformers >= 0.5.5 && < 0.6
+    , unliftio >= 0.2 && < 0.3
+    , unliftio-core >= 0.1 && < 0.2
   ghc-options: -Wall
   hs-source-dirs: src
   default-language: Haskell2010
@@ -57,18 +60,18 @@ test-suite examples
     Writer
   main-is: Test.hs
   build-depends:
-      base
+      base >= 4.12 && < 5.0
     , capability
-    , containers
-    , hspec
+    , containers >= 0.6 && < 0.7
+    , hspec >= 2.0 && < 3.0
     , hspec-jenkins
-    , lens
-    , mtl
-    , silently
-    , streaming
-    , temporary
-    , text
-    , unliftio
+    , lens >= 4.16 && < 5.0
+    , mtl >= 2.0 && < 3.0
+    , silently >= 1.2 && < 1.3
+    , streaming >= 0.2 && < 0.3
+    , temporary >= 1.0 && < 1.4
+    , text >= 0.2 && < 1.3
+    , unliftio >= 0.2 && < 0.3
   ghc-options: -Wall
   hs-source-dirs: examples
   default-language: Haskell2010
