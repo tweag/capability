@@ -15,10 +15,10 @@ description: A library for programming with effects modularly.
 
 flag hspec-jenkins
   description:
-    You can disable the use of the `hspec-jenkins` package using `-f-hspec-jenkins`.
+    You can enable the use of the `hspec-jenkins` package using `-fhspec-jenkins`.
     .
     This package allows JUnit formatted test reporting for CI.
-  default: True
+  default: False
 
 library
   exposed-modules:
