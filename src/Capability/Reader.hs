@@ -6,16 +6,9 @@
 
 module Capability.Reader
   ( -- * Interface
-    HasReader(..)
-  , ask
-  , asks
-  , local
-  , reader
-  , magnify
+    module Capability.Reader.Internal.Class
     -- * Strategies
-  , MonadReader(..)
-  , ReadStatePure(..)
-  , ReadState(..)
+  , module Capability.Reader.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
   ) where

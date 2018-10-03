@@ -19,6 +19,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
+{-# OPTIONS_HADDOCK hide #-}
+
 module Capability.State.Internal.Strategies
   ( MonadState(..)
   , ReaderIORef(..)

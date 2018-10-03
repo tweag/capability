@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 
+{-# OPTIONS_HADDOCK hide #-}
+
 module Capability.State.Internal.Class
   ( HasState(..)
   , get
@@ -70,7 +72,7 @@ put = put_ (proxy# @_ @tag)
 -- monad @m@ with capability @HasState@.
 --
 -- Given the current state @s@ of the state capability @tag@
--- and @(a, s') = f s@, update the state to @s'@ and return @a@. 
+-- and @(a, s') = f s@, update the state to @s'@ and return @a@.
 state :: forall tag s m a. HasState tag s m => (s -> (a, s)) -> m a
 state = state_ (proxy# @_ @tag)
 {-# INLINE state #-}
