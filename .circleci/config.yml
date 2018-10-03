@@ -34,7 +34,7 @@ jobs:
           name: Build tests
           command: |
             nix-shell --pure --run "
-              cabal configure --enable-tests && \
+              cabal configure --enable-tests -fhspec-jenkins && \
               cabal build --only --ghc-options=\"${GHC_WARNING_FLAGS}\"
               "
       - run:
