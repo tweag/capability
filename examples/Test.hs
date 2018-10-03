@@ -1,10 +1,15 @@
+{-# LANGUAGE CPP #-}
+
 module Main
   ( main
   ) where
 
 import Test.Hspec
-import Test.Hspec.Formatters.Jenkins (xmlFormatter)
 import Test.Hspec.Runner
+
+#ifdef MIN_VERSION_hspec_jenkins
+import Test.Hspec.Formatters.Jenkins (xmlFormatter)
+#endif
 
 import qualified CountLog
 import qualified Error
@@ -28,5 +33,8 @@ spec = do
 
 main :: IO ()
 main = do
-  let cfg = defaultConfig { configFormatter = Just xmlFormatter }
+  let cfg = defaultConfig
+#ifdef MIN_VERSION_hspec_jenkins
+        { configFormatter = Just xmlFormatter }
+#endif
   hspecWith cfg spec
