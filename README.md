@@ -59,7 +59,7 @@ In summary, compared to the `mtl`:
 An example usage looks like this:
 
 ``` haskell
-testParity :: (HasReader "foo" Int, HasState "bar" Bool) => m ()
+testParity :: (HasReader "foo" Int m, HasState "bar" Bool m) => m ()
 testParity = do
   num <- ask @"foo"
   put @"bar" (even num)
