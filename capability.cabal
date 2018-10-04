@@ -8,10 +8,14 @@ copyright: 2018 EURL Tweag
 category: Control
 build-type: Simple
 extra-source-files: ChangeLog.md
-cabal-version: >=1.18
+cabal-version: 1.18
 tested-with: GHC==8.6.1
 synopsis: Programming with effects modularly
 description: A library for programming with effects modularly.
+
+source-repository head
+  type: git
+  location: https://github.com/tweag/capability
 
 flag hspec-jenkins
   description:
@@ -71,7 +75,6 @@ test-suite examples
     , capability
     , containers >= 0.6 && < 0.7
     , hspec >= 2.0 && < 3.0
-    , hspec-jenkins
     , lens >= 4.16 && < 5.0
     , mtl >= 2.0 && < 3.0
     , silently >= 1.2 && < 1.3
