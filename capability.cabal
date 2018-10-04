@@ -13,8 +13,10 @@ extra-source-files:
   README.md
 cabal-version: 1.18
 tested-with: GHC==8.6.1
-synopsis: Programming with effects modularly
-description: A library for programming with effects modularly.
+synopsis: Extensional capabilities and deriving combinators
+description:
+  Standard capability type classes for extensional effects and combinators
+  to derive capability instances with little boilerplate.
 
 source-repository head
   type: git
