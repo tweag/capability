@@ -98,7 +98,7 @@ build in the [CircleCI project][circleci].
 
 [circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
 [mtl]: http://hackage.haskell.org/package/mtl
-[blog]: https://www.tweag.io/posts/2018-09-27-capability.html
+[blog]: https://www.tweag.io/posts/2018-10-04-capability.html
 [deriving-via]: https://downloads.haskell.org/~ghc/8.6.1/docs/html/users_guide/glasgow_exts.html#deriving-via
 [generic-lens]: https://hackage.haskell.org/package/generic-lens
 [readert]: https://www.fpcomplete.com/blog/2017/06/readert-design-pattern
