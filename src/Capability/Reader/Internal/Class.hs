@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 
+{-# OPTIONS_HADDOCK hide #-}
+
 module Capability.Reader.Internal.Class
   ( HasReader(..)
   , ask

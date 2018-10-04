@@ -10,18 +10,9 @@
 
 module Capability.State
   ( -- * Interface
-    HasState(..)
-  , get
-  , put
-  , state
-  , modify
-  , modify'
-  , gets
-  , zoom
+    module Capability.State.Internal.Class
     -- * Strategies
-  , MonadState(..)
-  , ReaderIORef(..)
-  , ReaderRef(..)
+  , module Capability.State.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
   ) where
