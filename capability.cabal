@@ -8,7 +8,7 @@ copyright: 2018 EURL Tweag
 category: Control
 build-type: Simple
 extra-source-files: ChangeLog.md
-cabal-version: >=1.18
+cabal-version: 1.18
 tested-with: GHC==8.6.1
 synopsis: Programming with effects modularly
 description: A library for programming with effects modularly.
