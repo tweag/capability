@@ -13,6 +13,10 @@ tested-with: GHC==8.6.1
 synopsis: Programming with effects modularly
 description: A library for programming with effects modularly.
 
+source-repository head
+  type: git
+  location: https://github.com/tweag/capability
+
 flag hspec-jenkins
   description:
     You can enable the use of the `hspec-jenkins` package using `-fhspec-jenkins`.
