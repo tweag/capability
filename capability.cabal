@@ -75,7 +75,6 @@ test-suite examples
     , capability
     , containers >= 0.6 && < 0.7
     , hspec >= 2.0 && < 3.0
-    , hspec-jenkins
     , lens >= 4.16 && < 5.0
     , mtl >= 2.0 && < 3.0
     , silently >= 1.2 && < 1.3
