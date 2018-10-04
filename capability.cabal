@@ -7,7 +7,10 @@ maintainer: andreas.herrmann@tweag.io
 copyright: 2018 EURL Tweag
 category: Control
 build-type: Simple
-extra-source-files: ChangeLog.md
+extra-source-files:
+  ChangeLog.md
+  CONTRIBUTING.md
+  README.md
 cabal-version: 1.18
 tested-with: GHC==8.6.1
 synopsis: Programming with effects modularly
