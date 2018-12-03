@@ -40,13 +40,13 @@ module Capability.Stream
     -- * Strategies
   , StreamStack(..)
   , StreamDList(..)
+  , StreamLog(..)
     -- ** Modifiers
   , module Capability.Accessors
   ) where
 
 import Capability.Accessors
 import Capability.State
-import Capability.Writer
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.Trans.Class (MonadTrans, lift)
@@ -86,15 +86,34 @@ instance HasState tag [a] m => HasStream tag a (StreamStack m) where
 -- | Accumulate streamed values in forward order in a difference list.
 newtype StreamDList m (a :: *) = StreamDList (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
-instance HasWriter tag (DList a) m => HasStream tag a (StreamDList m) where
-  yield_ _ = coerce @(a -> m ()) $ tell @tag . DList.singleton
+instance HasStream tag (DList a) m => HasStream tag a (StreamDList m) where
+  yield_ _ = coerce @(a -> m ()) $ yield @tag . DList.singleton
   {-# INLINE yield_ #-}
+
+-- | Accumulate streamed values with their own monoid.
+newtype StreamLog m (a :: *) = StreamLog (m a)
+  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+instance (Monoid w, HasState tag w m) => HasStream tag w (StreamLog m) where
+    yield_ _ w = coerce @(m ()) $ modify' @tag (<> w)
+    {-# INLINE yield_ #-}
 
 instance Monad m => HasStream tag a (S.Stream (Of a) m) where
   yield_ _ = S.yield
   {-# INLINE yield_ #-}
 
 -- | Lift one layer in a monad transformer stack.
+--
+-- Note, that if the 'HasStream' instance is based on 'HasState', then it is
+-- more efficient to apply 'Lift' to the underlying state capability. E.g.
+-- you should favour
+--
+-- > deriving (HasStream tag w) via
+-- >   StreamLog (Lift (SomeTrans (MonadState SomeStateMonad)))
+--
+-- over
+--
+-- > deriving (HasStream tag w) via
+-- >   Lift (SomeTrans (StreamLog (MonadState SomeStateMonad)))
 instance (HasStream tag a m, MonadTrans t, Monad (t m))
   => HasStream tag a (Lift (t m))
   where
