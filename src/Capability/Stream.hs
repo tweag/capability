@@ -86,6 +86,18 @@ instance HasState tag [a] m => HasStream tag a (StreamStack m) where
 -- | Accumulate streamed values in forward order in a difference list.
 newtype StreamDList m (a :: *) = StreamDList (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+-- | This instance may seem a bit odd at first. All it does is wrap each
+-- 'yield'ed value in a single element difference list. How does re-yielding
+-- something else constitute a strategy for implementing 'HasStream' in the
+-- first place? The answer is that difference lists form a monoid, which allows
+-- a second stragegy to be used which accumulates all 'yield's in a single
+-- value, actually eliminating the 'HasStream' constraint this time.
+--
+-- 'StreamLog' below in fact does this, so the easiest way to fully eliminate
+-- the 'HasStream' constraint as described above is:
+--
+-- > deriving (HasStream tag w) via
+-- >   StreamDList (StreamLog (MonadState SomeStateMonad))
 instance HasStream tag (DList a) m => HasStream tag a (StreamDList m) where
   yield_ _ = coerce @(a -> m ()) $ yield @tag . DList.singleton
   {-# INLINE yield_ #-}

@@ -68,6 +68,21 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> listen @t (m >>= k) = listen @t m >>= \(a, w1) -> listen @t (k a) >>= \(b, w2) -> pure (b, w1 `mappend` w2)
 -- prop> pass @t (tell @t w >> pure (a, f)) = tell @t (f w) >> pure a
 -- prop> writer @t (a, w) = tell @t w >> pure a
+--
+-- = A note on the 'HasStream' super class.
+--
+-- 'HasStream' offers one 'yield' method with the same signature as 'tell'.
+-- Many people's intuition, however, wouldn't connect the two: 'yield'ing
+-- tosses the value down some black-box chute, while 'tell'ing grows and
+-- accumulation via the monoid. The connection is since the 'chute' is opaque,
+-- the tosser cannot rule out there being such an accumulation at the chutes
+-- other end.
+--
+-- Formally, we reach the same conclusion. 'HasStream' has no laws,
+-- indicating the user can make no assumptions beyond the signature of 'yield'.
+-- 'HasWriter', with 'tell' defined as 'yield', is thus always compatable
+-- regardless of whatever additional methods it provides and laws by which it
+-- abides.
 class (Monoid w, Monad m, HasStream tag w m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
