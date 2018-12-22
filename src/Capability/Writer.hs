@@ -47,6 +47,7 @@ module Capability.Writer
   , pass
     -- * Strategies
   , WriterLog
+  , StreamLog (..)
     -- ** Modifiers
   , module Capability.Accessors
   ) where
