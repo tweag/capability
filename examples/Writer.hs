@@ -21,9 +21,10 @@ import Test.Hspec
 -- | Increase a counter using a writer monad.
 useWriter :: HasWriter "count" (Sum Int) m => m ()
 useWriter = do
-  tell @"count" 1
-  tell @"count" 2
-  tell @"count" 3
+  -- Add 3 and retrieve result
+  ((), count) <- listen @"count" (tell @"count" 3)
+  -- Duplicate
+  tell @"count" count
 
 
 -- | Mix writer and state monad operations on the same tag.
