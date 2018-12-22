@@ -43,8 +43,6 @@ instance
     writer_ :: forall a. Proxy# tag -> (a, w) -> Lift (t m) a
     writer_ _ = coerce @((a, w) -> t m a) $ lift . writer @tag
     {-# INLINE writer_ #-}
-    tell_ _ = coerce @(w -> t m ()) $ lift . tell @tag
-    {-# INLINE tell_ #-}
     listen_ :: forall a. Proxy# tag -> Lift (t m) a -> Lift (t m) (a, w)
     listen_ _ = coerce @(t m a -> t m (a, w)) $ \m -> do
       u <- askUnlift

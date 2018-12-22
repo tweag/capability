@@ -46,15 +46,15 @@ module Capability.Writer
   , listen
   , pass
     -- * Strategies
-  , WriterLog(..)
+  , WriterLog
+  , StreamLog (..)
     -- ** Modifiers
   , module Capability.Accessors
   ) where
 
 import Capability.Accessors
 import Capability.State
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Primitive (PrimMonad)
+import Capability.Stream
 import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
 
@@ -69,7 +69,22 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> listen @t (m >>= k) = listen @t m >>= \(a, w1) -> listen @t (k a) >>= \(b, w2) -> pure (b, w1 `mappend` w2)
 -- prop> pass @t (tell @t w >> pure (a, f)) = tell @t (f w) >> pure a
 -- prop> writer @t (a, w) = tell @t w >> pure a
-class (Monoid w, Monad m)
+--
+-- = A note on the 'HasStream' super class.
+--
+-- 'HasStream' offers one 'yield' method with the same signature as 'tell'.
+-- Many people's intuition, however, wouldn't connect the two: 'yield'ing
+-- tosses the value down some black-box chute, while 'tell'ing grows and
+-- accumulation via the monoid. The connection is since the 'chute' is opaque,
+-- the tosser cannot rule out there being such an accumulation at the chutes
+-- other end.
+--
+-- Formally, we reach the same conclusion. 'HasStream' has no laws,
+-- indicating the user can make no assumptions beyond the signature of 'yield'.
+-- 'HasWriter', with 'tell' defined as 'yield', is thus always compatable
+-- regardless of whatever additional methods it provides and laws by which it
+-- abides.
+class (Monoid w, Monad m, HasStream tag w m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
     -- | For technical reasons, this method needs an extra proxy argument.
@@ -77,11 +92,6 @@ class (Monoid w, Monad m)
     -- Otherwise, you will want to use 'writer'.
     -- See 'writer' for more documentation.
     writer_ :: Proxy# tag -> (a, w) -> m a
-    -- | For technical reasons, this method needs an extra proxy argument.
-    -- You only need it if you are defining new instances of 'HasReader'.
-    -- Otherwise, you will want to use 'tell'.
-    -- See 'tell' for more documentation.
-    tell_ :: Proxy# tag -> w -> m ()
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
     -- Otherwise, you will want to use 'listen'.
@@ -106,7 +116,7 @@ writer = writer_ (proxy# @_ @tag)
 -- | @tell \@tag w@
 -- appends @w@ to the output of the writer capability @tag@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
-tell = tell_ (proxy# @_ @tag)
+tell = yield_ (proxy# @_ @tag)
 {-# INLINE tell #-}
 
 -- | @listen \@tag m@
@@ -132,16 +142,13 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
   , Monad m, HasWriter tag w (t2 (t1 m)) )
   => HasWriter tag w ((t2 :.: t1) m)
 
-newtype WriterLog m a = WriterLog (m a)
-  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
+type WriterLog = StreamLog
 
 instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)
   where
-    writer_ tag (a, w) = tell_ tag w >> pure a
+    writer_ tag (a, w) = yield_ tag w >> pure a
     {-# INLINE writer_ #-}
-    tell_ _ w = coerce @(m ()) $ modify' @tag (<> w)
-    {-# INLINE tell_ #-}
     listen_ :: forall a. Proxy# tag -> WriterLog m a -> WriterLog m (a, w)
     listen_ _ m = coerce @(m (a, w)) $ do
       w0 <- get @tag
