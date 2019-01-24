@@ -90,11 +90,8 @@ example = do
 For more complex examples, see the [Examples section](#examples) and
 the [`examples` subtree](./examples).
 
-This package is not available on Hackage yet, as some of its
-dependencies have not been updated to GHC 8.6, yet.
-
-API documentation can be found in the artifacts tab of any successful
-build in the [CircleCI project][circleci].
+API documentation can be found on
+[Hackage](http://hackage.haskell.org/package/capability).
 
 [circleci]: https://circleci.com/gh/tweag/capabilities-via/tree/master
 [mtl]: http://hackage.haskell.org/package/mtl
