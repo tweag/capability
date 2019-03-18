@@ -47,7 +47,7 @@ library
       base >= 4.12 && < 5.0
     , dlist >= 0.8 && < 0.9
     , exceptions >= 0.6 && < 0.11
-    , generic-lens >= 1.0 && < 1.1
+    , generic-lens >= 1.0 && < 1.2
     , lens >= 4.16 && < 5.0
     , monad-control >= 1.0 && < 1.1
     , monad-unlift >= 0.2 && < 0.3
