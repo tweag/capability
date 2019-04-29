@@ -16,6 +16,7 @@
 -- using this capability can be consumed efficiently in a streaming fashion.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -36,6 +37,7 @@
 module Capability.Stream
   ( -- * Interface
     HasStream(..)
+  , HasStream'
   , yield
     -- * Strategies
   , StreamStack(..)
@@ -138,3 +140,7 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasStream tag a (t2 (t1 m)) )
   => HasStream tag a ((t2 :.: t1) m)
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasStream'
+-- constraints without having to specify the type associated to a tag.
+type HasStream' (tag :: k) = HasStream tag (TypeOf k tag)

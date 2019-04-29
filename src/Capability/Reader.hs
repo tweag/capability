@@ -1,3 +1,7 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeInType #-}
+
 -- | Defines a capability type class for a reader effect. A reader provides an
 -- environment, say an initialization context or a configuration. The
 -- environment held in the reader effect can be changed (with 'local') within
@@ -11,8 +15,15 @@ module Capability.Reader
   , module Capability.Reader.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
+  , module Capability.TypeOf
+  , HasReader'
   ) where
 
 import Capability.Accessors
 import Capability.Reader.Internal.Class
 import Capability.Reader.Internal.Strategies
+import Capability.TypeOf
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasReader'
+-- constraints without having to specify the type associated to a tag.
+type HasReader' (tag :: k) = HasReader tag (TypeOf k tag)

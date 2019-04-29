@@ -17,6 +17,7 @@
 -- and does not misuse the underlying state monad.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -41,6 +42,7 @@
 module Capability.Writer
   ( -- * Interface
     HasWriter(..)
+  , HasWriter'
   , writer
   , tell
   , listen
@@ -167,3 +169,7 @@ instance (Monoid w, HasState tag w m)
       put @tag $! w0 <> f w
       pure a
     {-# INLINE pass_ #-}
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasWriter'
+-- constraints without having to specify the type associated to a tag.
+type HasWriter' (tag :: k) = HasWriter tag (TypeOf k tag)
