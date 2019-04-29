@@ -85,7 +85,7 @@ instance
   -- The constraint raises @-Wsimplifiable-class-constraints@.
   -- This could be avoided by instead placing @HasField'@s constraints here.
   -- Unfortunately, it uses non-exported symbols from @generic-lens@.
-  ( tag ~ field, Generic.HasField' field record v, HasState oldtag record m )
+  ( Generic.HasField' field record v, HasState oldtag record m )
   => HasState tag v (Field field oldtag m)
   where
     get_ _ = coerce @(m v) $
