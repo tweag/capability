@@ -41,6 +41,7 @@ library
     Capability.State.Internal.Class
     Capability.State.Internal.Strategies
     Capability.Stream
+    Capability.TypeOf
     Capability.Writer
     Capability.Writer.Discouraged
   build-depends:

@@ -1,3 +1,7 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeInType #-}
+
 -- | Defines a capability type class for a state effect. A state capability
 -- provides a state which can be retrieved with 'get' and set with 'put'. As an
 -- analogy, each state capability is equivalent to making one @IORef@ available
@@ -15,8 +19,15 @@ module Capability.State
   , module Capability.State.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
+  , module Capability.TypeOf
+  , HasState'
   ) where
 
 import Capability.Accessors
 import Capability.State.Internal.Class
 import Capability.State.Internal.Strategies
+import Capability.TypeOf
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasState'
+-- constraints without having to specify the type associated to a tag.
+type HasState' (tag :: k) = HasState tag (TypeOf k tag)

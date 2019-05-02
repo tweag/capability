@@ -24,6 +24,7 @@
 -- thrown under @"foo"@.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -47,8 +48,10 @@
 module Capability.Error
   ( -- * Interface
     HasThrow(..)
+  , HasThrow'
   , throw
   , HasCatch(..)
+  , HasCatch'
   , catch
   , catchJust
   , wrapError
@@ -66,6 +69,7 @@ module Capability.Error
   ) where
 
 import Capability.Accessors
+import Capability.TypeOf
 import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
 import Control.Lens (preview, review)
@@ -421,3 +425,11 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasCatch tag e (t2 (t1 m)) )
   => HasCatch tag e ((t2 :.: t1) m)
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasThrow'
+-- constraints without having to specify the type associated to a tag.
+type HasThrow' (tag :: k) = HasThrow tag (TypeOf k tag)
+
+-- | Type synonym using the 'TypeOf' type family to specify 'HasCatch'
+-- constraints without having to specify the type associated to a tag.
+type HasCatch' (tag :: k) = HasCatch tag (TypeOf k tag)
