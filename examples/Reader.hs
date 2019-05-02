@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -18,34 +18,35 @@ import GHC.Generics (Generic)
 import Test.Common
 import Test.Hspec
 
-data Tag = Foo | Bar
+data Foo
+data Bar
 
-type instance TypeOf Tag 'Foo = Int
-type instance TypeOf Tag 'Bar = Int
+type instance TypeOf * Foo = Int
+type instance TypeOf * Bar = Int
 
 ----------------------------------------------------------------------
 -- Example Programs
 
 -- | Returns the triple of the number in context "foo".
-tripleFoo :: HasReader' 'Foo m => m Int
+tripleFoo :: HasReader' Foo m => m Int
 tripleFoo = do
-  single <- ask @'Foo
-  double <- asks @'Foo (*2)
+  single <- ask @Foo
+  double <- asks @Foo (*2)
   pure $ single + double
 
 -- | Prints the triple and sixfold of the number in context "foo".
-fooExample :: (HasReader' 'Foo m, MonadIO m) => m ()
+fooExample :: (HasReader' Foo m, MonadIO m) => m ()
 fooExample = do
   liftIO . print =<< tripleFoo
-  liftIO . print =<< local @'Foo (*2) tripleFoo
+  liftIO . print =<< local @Foo (*2) tripleFoo
 
 
 -- | Prints the double of "bar" and the triple of "foo".
 fooBarExample
-  :: (HasReader' 'Foo m, HasReader' 'Bar m, MonadIO m) => m ()
+  :: (HasReader' Foo m, HasReader' Bar m, MonadIO m) => m ()
 fooBarExample = do
-  local @'Bar (*2) $ do
-    liftIO . print =<< ask @'Bar
+  local @Bar (*2) $ do
+    liftIO . print =<< ask @Bar
     liftIO . print =<< tripleFoo
 
 
@@ -55,7 +56,7 @@ fooBarExample = do
 -- | @HasReader@ instance derived via @MonadReader@.
 newtype FooReaderT m (a :: *) = FooReaderT (ReaderT Int m a)
   deriving (Functor, Applicative, Monad, MonadIO)
-  deriving (HasReader 'Foo Int) via MonadReader (ReaderT Int m)
+  deriving (HasReader Foo Int) via MonadReader (ReaderT Int m)
 
 runFooReaderT :: FooReaderT m a -> m a
 runFooReaderT (FooReaderT m) = runReaderT m 1
@@ -69,9 +70,9 @@ data FooBar = FooBar
 -- | Multiple @HasReader@ instances derived via record fields in @MonadReader@.
 newtype FooBarReader a = FooBarReader (ReaderT FooBar IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
-  deriving (HasReader 'Foo Int) via
+  deriving (HasReader Foo Int) via
     Rename "foo" (Field "foo" () (MonadReader (ReaderT FooBar IO)))
-  deriving (HasReader 'Bar Int) via
+  deriving (HasReader Bar Int) via
     Rename "bar" (Field "bar" () (MonadReader (ReaderT FooBar IO)))
 
 runFooBarReader :: FooBarReader a -> IO a
@@ -85,8 +86,8 @@ runFooBarReader (FooBarReader m) = runReaderT m FooBar { foo = 1, bar = 2 }
 -- in unexpected ways.
 newtype BadFooBarReader a = BadFooBarReader (ReaderT Int IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
-  deriving (HasReader 'Foo Int) via MonadReader (ReaderT Int IO)
-  deriving (HasReader 'Bar Int) via MonadReader (ReaderT Int IO)
+  deriving (HasReader Foo Int) via MonadReader (ReaderT Int IO)
+  deriving (HasReader Bar Int) via MonadReader (ReaderT Int IO)
 
 runBadFooBarReader :: BadFooBarReader a -> IO a
 runBadFooBarReader (BadFooBarReader m) = runReaderT m 1
