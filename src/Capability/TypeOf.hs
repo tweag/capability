@@ -20,10 +20,8 @@ module Capability.TypeOf where
 -- orphan instances.
 --
 -- Example:
--- @
---     {-# LANGUAGE EmptyDataDecls #-}
---     {-# LANGUAGE TypeFamilies #-}
 --
+-- @
 --     import Capability.Reader
 --
 --     data Foo
