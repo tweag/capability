@@ -25,7 +25,6 @@ module Capability.State.Internal.Class
   , zoom
   ) where
 
-import Data.Coerce (Coercible)
 import Data.Constraint
 import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
@@ -129,8 +128,7 @@ newtype WithConstraints cs r = WithConstraints (forall m'. All cs m' => m' r)
 -- See <https://github.com/tweag/capability/issues/46>.
 
 zoom :: forall outertag innertag (cs :: [(* -> *) -> Constraint]) t outer inner m a.
-  ( forall x. Coercible (t m x) (m x)
-  , forall m'. HasState outertag outer m'
+  ( forall m'. HasState outertag outer m'
     => HasState innertag inner (t m')
   , HasState outertag outer m
   , All cs m

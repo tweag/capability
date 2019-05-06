@@ -35,9 +35,6 @@ twoStates = do
   incFoo
   modify @"bar" (subtract 1)
 
-class Trivial (m :: * -> *)
-instance Trivial m
-
 
 useZoom :: HasState "foobar" (Int, Int) m => m Int
 useZoom = do
