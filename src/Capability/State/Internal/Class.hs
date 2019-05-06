@@ -7,12 +7,15 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 
 {-# OPTIONS_HADDOCK hide #-}
 
 module Capability.State.Internal.Class
   ( HasState(..)
+  , WithConstraints(..)
   , get
   , put
   , state
@@ -22,8 +25,11 @@ module Capability.State.Internal.Class
   , zoom
   ) where
 
-import Data.Coerce (Coercible, coerce)
+import Data.Coerce (Coercible)
+import Data.Constraint
+import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | State capability
 --
@@ -102,6 +108,12 @@ gets f = do
   pure (f s)
 {-# INLINE gets #-}
 
+type family All (xs :: [k -> Constraint]) a :: Constraint where
+  All '[] a = ()
+  All (x ':xs) a = (x a, All xs a)
+
+newtype WithConstraints cs r = WithConstraints (forall m'. All cs m' => m' r)
+
 -- | Execute the given state action on a sub-component of the current state
 -- as defined by the given transformer @t@.
 --
@@ -115,11 +127,21 @@ gets f = do
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-zoom :: forall outertag innertag t outer inner m a.
+
+zoom :: forall outertag innertag (cs :: [(* -> *) -> Constraint]) t outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasState outertag outer m'
     => HasState innertag inner (t m')
-  , HasState outertag outer m )
-  => (forall m'. HasState innertag inner m' => m' a) -> m a
-zoom m = coerce @(t m a) m
+  , HasState outertag outer m
+  , All cs m
+  )
+  -- => (forall m'. HasState innertag inner m' => m' a) -> m a
+  => (WithConstraints (HasState innertag inner ': cs) a) -> m a
+zoom (WithConstraints action) =
+  let constraintsDict =
+        unsafeCoerce
+          @(Dict (HasState innertag inner (t m)))
+          @(Dict (HasState innertag inner m)) Dict in
+  case constraintsDict of
+    Dict -> action
 {-# INLINE zoom #-}
