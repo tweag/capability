@@ -16,7 +16,6 @@
 
 module Capability.State.Internal.Class
   ( HasState(..)
-  , WithConstraints(..)
   , get
   , put
   , state
@@ -113,8 +112,6 @@ type family All (xs :: [k -> Constraint]) a :: Constraint where
   All '[] a = ()
   All (x ':xs) a = (x a, All xs a)
 
-newtype WithConstraints cs r = WithConstraints (forall m'. All cs m' => m' r)
-
 -- | Execute the given state action on a sub-component of the current state
 -- as defined by the given transformer @t@.
 --
@@ -136,9 +133,8 @@ zoom :: forall outertag innertag (cs :: [(* -> *) -> Constraint]) t outer inner 
   , HasState outertag outer m
   , All cs m
   )
-  -- => (forall m'. HasState innertag inner m' => m' a) -> m a
-  => (WithConstraints (HasState innertag inner ': cs) a) -> m a
-zoom (WithConstraints action) =
+  => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
+zoom action =
   let constraintsDict =
         unsafeCoerce
           @(Dict (HasState innertag inner (t m)))

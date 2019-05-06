@@ -41,9 +41,8 @@ useZoom = do
   put @"foobar" (2, 2)
   -- Zoom in on the first element in the current state, rename tag 1 to "foo".
   zoom @"foobar" @"foo" @('[HasState "foobar" (Int,Int)]) @(Rename 1 :.: Pos 1 "foobar") $
-    WithConstraints $ do
-      incFoo
-      incFoobar
+    do incFoo
+       incFoobar
   gets @"foobar" (\(foo, bar) -> foo + bar)
 
 
