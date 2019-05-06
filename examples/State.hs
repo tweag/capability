@@ -1,7 +1,9 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
@@ -25,6 +27,9 @@ import Test.Hspec
 incFoo :: HasState "foo" Int m => m ()
 incFoo = modify @"foo" (+1)
 
+incFoobar :: HasState "foobar" (Int,Int) m => m ()
+incFoobar = modify @"foobar" $ \(x,y) -> (x+1, y+1)
+
 twoStates :: (HasState "foo" Int m, HasState "bar" Int m) => m ()
 twoStates = do
   incFoo
@@ -34,9 +39,13 @@ twoStates = do
 useZoom :: HasState "foobar" (Int, Int) m => m Int
 useZoom = do
   put @"foobar" (2, 2)
-  -- Zoom in on the first element in the current state, rename tag 1 to "foo".
-  zoom @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar") $
-    incFoo
+  -- Zoom in on the first element in the current state, renaming tag 1 to "foo",
+  -- while retaining the original 'HasState "foobar" (Int, Int)' capability.
+  zoom
+    @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar")
+    @('[HasState "foobar" (Int,Int)]) $ do
+      incFoo
+      incFoobar
   gets @"foobar" (\(foo, bar) -> foo + bar)
 
 
@@ -123,4 +132,4 @@ spec = do
       runNestedStatesM twoStates `shouldBe` (((), 1), -1)
   describe "runFooBarState" $
     it "evaluates useZoom" $
-      runFooBarState useZoom (0, 0) `shouldBe` (5, (3, 2))
+      runFooBarState useZoom (0, 0) `shouldBe` (7, (4, 3))

@@ -33,6 +33,7 @@ library
   exposed-modules:
     Capability
     Capability.Accessors
+    Capability.Constraints
     Capability.Error
     Capability.Reader
     Capability.Reader.Internal.Class
