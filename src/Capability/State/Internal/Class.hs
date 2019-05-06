@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures #-}
@@ -26,6 +27,7 @@ module Capability.State.Internal.Class
   ) where
 
 import Data.Constraint
+import Data.Coerce (Coercible)
 import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
 import Unsafe.Coerce (unsafeCoerce)
@@ -128,7 +130,8 @@ newtype WithConstraints cs r = WithConstraints (forall m'. All cs m' => m' r)
 -- See <https://github.com/tweag/capability/issues/46>.
 
 zoom :: forall outertag innertag (cs :: [(* -> *) -> Constraint]) t outer inner m a.
-  ( forall m'. HasState outertag outer m'
+  ( forall x. Coercible (m x) (t m x)
+  , forall m'. HasState outertag outer m'
     => HasState innertag inner (t m')
   , HasState outertag outer m
   , All cs m
