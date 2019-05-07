@@ -26,10 +26,9 @@ module Capability.State.Internal.Class
   ) where
 
 import Capability.Constraints
+import Capability.Context (context)
 import Data.Coerce (Coercible)
-import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
-import Unsafe.Coerce (unsafeCoerce)
 
 -- | State capability
 --
@@ -130,22 +129,13 @@ gets f = do
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-zoom :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
-  ( forall x. Coercible (m x) (t m x)
+zoom :: forall outertag innertag t (cs :: [Capability]) outer inner m a.
+  ( forall x. Coercible (t m x) (m x)
   , forall m'. HasState outertag outer m'
     => HasState innertag inner (t m')
   , HasState outertag outer m
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
-zoom action =
-  let constraintsDict =
-        -- Note: this use of 'unsafeCoerce' is safe thanks the Coercible
-        -- constraint between 'm x' and 't m x'. However, dictionaries
-        -- themselves aren't coercible since the type role of 'c' in 'Dict c' is
-        -- nominal.
-        unsafeCoerce
-          @(Dict (HasState innertag inner (t m)))
-          @(Dict (HasState innertag inner m)) Dict in
-  case constraintsDict of
-    Dict -> action
+zoom =
+  context @t @(HasState outertag outer) @(HasState innertag inner) @cs
 {-# INLINE zoom #-}

@@ -23,9 +23,9 @@ module Capability.Reader.Internal.Class
   ) where
 
 import Capability.Constraints
+import Capability.Context (context)
 import Data.Coerce (Coercible)
 import GHC.Exts (Proxy#, proxy#)
-import Unsafe.Coerce (unsafeCoerce)
 
 -- | Reader capability
 --
@@ -100,19 +100,13 @@ reader = reader_ (proxy# @_ @tag)
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-magnify :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
+magnify :: forall outertag innertag t (cs :: [Capability]) outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasReader outertag outer m'
     => HasReader innertag inner (t m')
   , HasReader outertag outer m
   , All cs m)
   => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
-magnify action =
-  -- See comment in 'Capability.State.zoom'.
-  let constraintsDict =
-        unsafeCoerce
-          @(Dict (HasReader innertag inner (t m)))
-          @(Dict (HasReader innertag inner m)) Dict in
-  case constraintsDict of
-    Dict -> action
+magnify =
+  context @t @(HasReader outertag outer) @(HasReader innertag inner) @cs
 {-# INLINE magnify #-}
