@@ -39,10 +39,13 @@ twoStates = do
 useZoom :: HasState "foobar" (Int, Int) m => m Int
 useZoom = do
   put @"foobar" (2, 2)
-  -- Zoom in on the first element in the current state, rename tag 1 to "foo".
-  zoom @"foobar" @"foo" @('[HasState "foobar" (Int,Int)]) @(Rename 1 :.: Pos 1 "foobar") $
-    do incFoo
-       incFoobar
+  -- Zoom in on the first element in the current state, renaming tag 1 to "foo",
+  -- while retaining the original 'HasState "foobar" (Int, Int)' capability.
+  zoom
+    @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar")
+    @('[HasState "foobar" (Int,Int)]) $ do
+      incFoo
+      incFoobar
   gets @"foobar" (\(foo, bar) -> foo + bar)
 
 

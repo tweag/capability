@@ -25,7 +25,7 @@ module Capability.State.Internal.Class
   , zoom
   ) where
 
-import Data.Constraint
+import Capability.Constraints
 import Data.Coerce (Coercible)
 import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
@@ -108,16 +108,13 @@ gets f = do
   pure (f s)
 {-# INLINE gets #-}
 
-type family All (xs :: [k -> Constraint]) a :: Constraint where
-  All '[] a = ()
-  All (x ':xs) a = (x a, All xs a)
-
--- | Execute the given state action on a sub-component of the current state
--- as defined by the given transformer @t@.
+-- | Execute the given state action on a sub-component of the current state as
+-- defined by the given transformer @t@. The set of retained capabilities must
+-- be passed as an extra type parameter.
 --
 -- Example:
 --
--- > zoom @"foobar" @"foo" @(Field "foo" "foobar") foo
+-- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @None foo
 -- >   :: HasState "foobar" FooBar m => m ()
 -- >
 -- > foo :: HasState "foo" Int m => m ()
@@ -126,13 +123,12 @@ type family All (xs :: [k -> Constraint]) a :: Constraint where
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
 
-zoom :: forall outertag innertag (cs :: [(* -> *) -> Constraint]) t outer inner m a.
+zoom :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
   ( forall x. Coercible (m x) (t m x)
   , forall m'. HasState outertag outer m'
     => HasState innertag inner (t m')
   , HasState outertag outer m
-  , All cs m
-  )
+  , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
 zoom action =
   let constraintsDict =
