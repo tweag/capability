@@ -110,9 +110,10 @@ gets f = do
 
 -- | Execute the given state action on a sub-component of the current state as
 -- defined by the given transformer @t@. The set of retained capabilities must
--- be passed as an extra type parameter.
+-- be passed as an extra type parameter. If no capabilities are required,
+-- 'Capabilities.Constraints.None' can be used.
 --
--- Example:
+-- Examples:
 --
 -- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @None foo
 -- >   :: HasState "foobar" FooBar m => m ()
@@ -120,9 +121,15 @@ gets f = do
 -- > foo :: HasState "foo" Int m => m ()
 -- > data FooBar = FooBar { foo :: Int, bar :: String }
 --
+-- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @('[MonadIO]) bar
+-- >   :: (MonadIO m, HasState "foobar" FooBar m) => m ()
+-- >
+-- > foo :: HasState "foo" Int m => m ()
+-- > bar :: (MonadIO m, HasState "foo" Int m) => m ()
+-- > data FooBar = FooBar { foo :: Int, bar :: String }
+--
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-
 zoom :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
   ( forall x. Coercible (m x) (t m x)
   , forall m'. HasState outertag outer m'

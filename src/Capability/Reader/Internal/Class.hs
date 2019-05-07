@@ -92,7 +92,7 @@ reader = reader_ (proxy# @_ @tag)
 {-# INLINE reader #-}
 
 -- | Execute the given reader action on a sub-component of the current context
--- as defined by the given transformer @t@.
+-- as defined by the given transformer @t@, retaining arbitrary capabilities.
 --
 -- See 'Capability.State.zoom'.
 --
