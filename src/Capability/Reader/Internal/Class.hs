@@ -100,13 +100,11 @@ reader = reader_ (proxy# @_ @tag)
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-magnify :: forall outertag innertag t (cs :: [Capability]) outer inner m a.
+magnify :: forall innertag t (cs :: [Capability]) inner m a.
   ( forall x. Coercible (t m x) (m x)
-  , forall m'. HasReader outertag outer m'
-    => HasReader innertag inner (t m')
-  , HasReader outertag outer m
+  , HasReader innertag inner (t m)
   , All cs m)
   => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
 magnify =
-  context @t @(HasReader outertag outer) @(HasReader innertag inner) @cs
+  context @t @(HasReader innertag inner) @cs
 {-# INLINE magnify #-}

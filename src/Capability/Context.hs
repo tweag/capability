@@ -17,10 +17,9 @@ import Unsafe.Coerce (unsafeCoerce)
 -- | Execute the given action with an additional @inner@ capability derived from
 -- @outer@ via the @t@ wrapper, retaining the list @cs@ of capabilities.
 context ::
-  forall t (outer :: Capability) (inner :: Capability) (cs :: [Capability]) m a.
+  forall t (inner :: Capability) (cs :: [Capability]) m a.
   ( forall x. Coercible (t m x) (m x)
-  , forall m'. outer m' => inner (t m')
-  , outer m
+  , inner (t m)
   , All cs m)
   => (forall m'. All (inner ': cs) m' => m' a) -> m a
 context action =

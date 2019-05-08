@@ -129,13 +129,11 @@ gets f = do
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-zoom :: forall outertag innertag t (cs :: [Capability]) outer inner m a.
+zoom :: forall innertag t (cs :: [Capability]) inner m a.
   ( forall x. Coercible (t m x) (m x)
-  , forall m'. HasState outertag outer m'
-    => HasState innertag inner (t m')
-  , HasState outertag outer m
+  , HasState innertag inner (t m)
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
 zoom =
-  context @t @(HasState outertag outer) @(HasState innertag inner) @cs
+  context @t @(HasState innertag inner) @cs
 {-# INLINE zoom #-}

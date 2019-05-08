@@ -42,7 +42,7 @@ useZoom = do
   -- Zoom in on the first element in the current state, renaming tag 1 to "foo",
   -- while retaining the original 'HasState "foobar" (Int, Int)' capability.
   zoom
-    @"foobar" @"foo" @(Rename 1 :.: Pos 1 "foobar")
+    @"foo" @(Rename 1 :.: Pos 1 "foobar")
     @('[HasState "foobar" (Int,Int)]) $ do
       incFoo
       incFoobar
