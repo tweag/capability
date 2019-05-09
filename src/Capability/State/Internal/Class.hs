@@ -113,18 +113,19 @@ gets f = do
 --
 -- Examples:
 --
--- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @None foo
--- >   :: HasState "foobar" FooBar m => m ()
--- >
 -- > foo :: HasState "foo" Int m => m ()
--- > data FooBar = FooBar { foo :: Int, bar :: String }
---
--- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @('[MonadIO]) bar
--- >   :: (MonadIO m, HasState "foobar" FooBar m) => m ()
+-- > zoom @"foo" @(Field "foo" "foobar") @None foo
+-- >   :: (HasField' "foobar" record Int, HasState "foobar" record m) => m ()
+-- >
+-- > zoom @"foo" @(Field "foo" "foobar") @('[MonadIO]) bar
+-- >   :: ( HasField' "foobar" record Int, HasState "foobar" record m
+-- >      , MonadIO m) => m ()
 -- >
 -- > foo :: HasState "foo" Int m => m ()
 -- > bar :: (MonadIO m, HasState "foo" Int m) => m ()
--- > data FooBar = FooBar { foo :: Int, bar :: String }
+--
+-- Note: the 'Data.Generics.Product.Fields.HasField'' constraint comes from the
+-- @generic-lens@ package.
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.

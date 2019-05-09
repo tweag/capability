@@ -16,7 +16,7 @@ import Data.Coerce (Coercible)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Execute the given action with an additional @inner@ capability derived from
--- @outer@ via the @t@ wrapper, retaining the list @cs@ of capabilities.
+-- current context via the @t@ wrapper, retaining the list @cs@ of capabilities.
 context ::
   forall t (inner :: Capability) (cs :: [Capability]) m a.
   ( forall x. Coercible (t m x) (m x)
