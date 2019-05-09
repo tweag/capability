@@ -92,9 +92,11 @@ reader = reader_ (proxy# @_ @tag)
 {-# INLINE reader #-}
 
 -- | Execute the given reader action on a sub-component of the current context
--- as defined by the given transformer @t@, retaining arbitrary capabilities.
+-- as defined by the given transformer @t@, retaining arbitrary capabilities
+-- listed in @cs@.
 --
--- See 'Capability.State.zoom'.
+-- See the similar 'Capability.State.zoom' function for more details and
+-- examples.
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.

@@ -20,8 +20,8 @@ import Data.Kind (Constraint)
 -- | Evidence of a constraint that can be passed around as a value. Matching on
 -- the constructor brings the constraint into scope.
 --
--- This is similar to the @Dict@ datatype defined in the @constraints@ package,
--- but redefined here to avoid the dependence.
+-- This is the same as the @Dict@ datatype defined in the @constraints@ package,
+-- but redefined here to avoid the dependency.
 data Dict (c :: Constraint) = c => Dict
 
 -- | Type family used used to apply a list of capabilities to a single type.
@@ -37,7 +37,7 @@ type family All (xs :: [k -> Constraint]) a :: Constraint where
   All '[] a = ()
   All (x ':xs) a = (x a, All xs a)
 
--- | Convenient type synonym representing an empty set of capabilities.
+-- | Convenience type synonym representing an empty set of capabilities.
 --
 -- This is useful, because GHC infers @'[]@ as being of kind @[*]@ without an
 -- extra kind annotation.

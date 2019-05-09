@@ -110,7 +110,7 @@ gets f = do
 
 -- | Execute the given state action on a sub-component of the current state as
 -- defined by the given transformer @t@. The set of retained capabilities must
--- be passed as an extra type parameter. If no capabilities are required,
+-- be passed as @cs. If no capabilities are required,
 -- 'Capabilities.Constraints.None' can be used.
 --
 -- Examples:
@@ -139,7 +139,7 @@ zoom :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner 
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
 zoom action =
   let constraintsDict =
-        -- Note: this use of 'unsafeCoerce' should be safe thanks the Coercible
+        -- Note: this use of 'unsafeCoerce' is safe thanks the Coercible
         -- constraint between 'm x' and 't m x'. However, dictionaries
         -- themselves aren't coercible since the type role of 'c' in 'Dict c' is
         -- nominal.
