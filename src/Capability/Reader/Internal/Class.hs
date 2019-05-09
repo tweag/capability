@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures #-}
