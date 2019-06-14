@@ -15,11 +15,14 @@ module Capability.Reader
   , module Capability.Reader.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
+    -- * Helpers
+  , module Capability.Constraints
   , module Capability.TypeOf
   , HasReader'
   ) where
 
 import Capability.Accessors
+import Capability.Constraints
 import Capability.Reader.Internal.Class
 import Capability.Reader.Internal.Strategies
 import Capability.TypeOf

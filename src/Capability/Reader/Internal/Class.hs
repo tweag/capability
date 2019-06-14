@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures #-}
@@ -7,6 +8,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeInType #-}
 
 {-# OPTIONS_HADDOCK hide #-}
@@ -20,8 +22,10 @@ module Capability.Reader.Internal.Class
   , magnify
   ) where
 
-import Data.Coerce (Coercible, coerce)
+import Capability.Constraints
+import Data.Coerce (Coercible)
 import GHC.Exts (Proxy#, proxy#)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | Reader capability
 --
@@ -88,17 +92,27 @@ reader = reader_ (proxy# @_ @tag)
 {-# INLINE reader #-}
 
 -- | Execute the given reader action on a sub-component of the current context
--- as defined by the given transformer @t@.
+-- as defined by the given transformer @t@, retaining arbitrary capabilities
+-- listed in @cs@.
 --
--- See 'Capability.State.zoom'.
+-- See the similar 'Capability.State.zoom' function for more details and
+-- examples.
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-magnify :: forall outertag innertag t outer inner m a.
+magnify :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
   ( forall x. Coercible (t m x) (m x)
   , forall m'. HasReader outertag outer m'
     => HasReader innertag inner (t m')
-  , HasReader outertag outer m )
-  => (forall m'. HasReader innertag inner m' => m' a) -> m a
-magnify m = coerce @(t m a) m
+  , HasReader outertag outer m
+  , All cs m)
+  => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
+magnify action =
+  -- See comment in 'Capability.State.zoom'.
+  let constraintsDict =
+        unsafeCoerce
+          @(Dict (HasReader innertag inner (t m)))
+          @(Dict (HasReader innertag inner m)) Dict in
+  case constraintsDict of
+    Dict -> action
 {-# INLINE magnify #-}

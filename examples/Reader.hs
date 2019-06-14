@@ -48,6 +48,15 @@ fooBarExample = do
     liftIO . print =<< ask @Bar
     liftIO . print =<< tripleFoo
 
+-- | Shows the interaction between 'local' and 'magnify'.
+fooBarMagnify
+  :: (HasReader "foobar" FooBar m, MonadIO m) => m ()
+fooBarMagnify = do
+  magnify @"foobar" @"foo"
+    @(Field "foo" "foobar") @('[HasReader "foobar" FooBar, MonadIO]) $ do
+      FooBar a b <- local @"foo" (const 5) (ask @"foobar")
+      c <- local @"foobar" (const $ FooBar 3 4) (ask @"foo")
+      liftIO $ print ((a, b), c)
 
 ----------------------------------------------------------------------
 -- Instances
@@ -69,6 +78,8 @@ data FooBar = FooBar
 -- | Multiple @HasReader@ instances derived via record fields in @MonadReader@.
 newtype FooBarReader a = FooBarReader (ReaderT FooBar IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (HasReader "foobar" FooBar) via
+    (MonadReader (ReaderT FooBar IO))
   deriving (HasReader Foo Int) via
     Rename "foo" (Field "foo" () (MonadReader (ReaderT FooBar IO)))
   deriving (HasReader Bar Int) via
@@ -105,6 +116,8 @@ spec = do
       runFooBarReader fooExample `shouldPrint` "3\n6\n"
     it "evaluates fooBarExample" $
       runFooBarReader fooBarExample `shouldPrint` "4\n3\n"
+    it "evaluates fooBarMagnify" $
+      runFooBarReader fooBarMagnify `shouldPrint` "((5,2),3)\n"
   describe "BadFooBarReader" $ do
     it "evaluates fooExample" $
       runBadFooBarReader fooExample `shouldPrint` "3\n6\n"
