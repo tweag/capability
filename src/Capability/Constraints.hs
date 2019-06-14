@@ -12,7 +12,6 @@ module Capability.Constraints
   ( All
   , Constraint
   , Dict(..)
-  , None
   ) where
 
 import Data.Kind (Constraint)
@@ -36,9 +35,3 @@ data Dict (c :: Constraint) = c => Dict
 type family All (xs :: [k -> Constraint]) a :: Constraint where
   All '[] a = ()
   All (x ':xs) a = (x a, All xs a)
-
--- | Convenience type synonym representing an empty set of capabilities.
---
--- This is useful, because GHC infers @'[]@ as being of kind @[*]@ without an
--- extra kind annotation.
-type None = ('[] :: [k -> Constraint])
