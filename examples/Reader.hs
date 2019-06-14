@@ -52,8 +52,10 @@ fooBarExample = do
 fooBarMagnify
   :: (HasReader "foobar" FooBar m, MonadIO m) => m ()
 fooBarMagnify = do
-  magnify @"foobar" @"foo"
-    @(Field "foo" "foobar") @('[HasReader "foobar" FooBar, MonadIO]) $ do
+  magnify
+    @"foo"
+    @(Field "foo" "foobar")
+    @('[HasReader "foobar" FooBar, MonadIO]) $ do
       FooBar a b <- local @"foo" (const 5) (ask @"foobar")
       c <- local @"foobar" (const $ FooBar 3 4) (ask @"foo")
       liftIO $ print ((a, b), c)
