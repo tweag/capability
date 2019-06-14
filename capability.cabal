@@ -47,6 +47,7 @@ library
     Capability.Writer.Discouraged
   build-depends:
       base >= 4.12 && < 5.0
+    , constraints >= 0.1 && < 0.12
     , dlist >= 0.8 && < 0.9
     , exceptions >= 0.6 && < 0.11
     , generic-lens >= 1.0 && < 1.2
