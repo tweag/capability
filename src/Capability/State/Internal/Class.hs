@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures #-}
@@ -26,10 +25,9 @@ module Capability.State.Internal.Class
   ) where
 
 import Capability.Constraints
+import Capability.Context (context)
 import Data.Coerce (Coercible)
-import Data.Kind (Constraint)
 import GHC.Exts (Proxy#, proxy#)
-import Unsafe.Coerce (unsafeCoerce)
 
 -- | State capability
 --
@@ -115,37 +113,27 @@ gets f = do
 --
 -- Examples:
 --
--- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @None foo
--- >   :: HasState "foobar" FooBar m => m ()
--- >
 -- > foo :: HasState "foo" Int m => m ()
--- > data FooBar = FooBar { foo :: Int, bar :: String }
---
--- > zoom @"foobar" @"foo" @(Field "foo" "foobar") @('[MonadIO]) bar
--- >   :: (MonadIO m, HasState "foobar" FooBar m) => m ()
+-- > zoom @"foo" @(Field "foo" "foobar") @None foo
+-- >   :: (HasField' "foobar" record Int, HasState "foobar" record m) => m ()
+-- >
+-- > zoom @"foo" @(Field "foo" "foobar") @('[MonadIO]) bar
+-- >   :: ( HasField' "foobar" record Int, HasState "foobar" record m
+-- >      , MonadIO m) => m ()
 -- >
 -- > foo :: HasState "foo" Int m => m ()
 -- > bar :: (MonadIO m, HasState "foo" Int m) => m ()
--- > data FooBar = FooBar { foo :: Int, bar :: String }
+--
+-- Note: the 'Data.Generics.Product.Fields.HasField'' constraint comes from the
+-- @generic-lens@ package.
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-zoom :: forall outertag innertag t (cs :: [(* -> *) -> Constraint]) outer inner m a.
-  ( forall x. Coercible (m x) (t m x)
-  , forall m'. HasState outertag outer m'
-    => HasState innertag inner (t m')
-  , HasState outertag outer m
+zoom :: forall innertag t (cs :: [Capability]) inner m a.
+  ( forall x. Coercible (t m x) (m x)
+  , HasState innertag inner (t m)
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
-zoom action =
-  let constraintsDict =
-        -- Note: this use of 'unsafeCoerce' is safe thanks the Coercible
-        -- constraint between 'm x' and 't m x'. However, dictionaries
-        -- themselves aren't coercible since the type role of 'c' in 'Dict c' is
-        -- nominal.
-        unsafeCoerce
-          @(Dict (HasState innertag inner (t m)))
-          @(Dict (HasState innertag inner m)) Dict in
-  case constraintsDict of
-    Dict -> action
+zoom =
+  context @t @'[HasState innertag inner] @cs
 {-# INLINE zoom #-}

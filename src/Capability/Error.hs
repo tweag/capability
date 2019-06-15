@@ -69,6 +69,8 @@ module Capability.Error
   ) where
 
 import Capability.Accessors
+import Capability.Constraints
+import Capability.Context (context)
 import Capability.TypeOf
 import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
@@ -147,12 +149,12 @@ catchJust = catchJust_ (proxy# @_ @tag)
 {-# INLINE catchJust #-}
 
 -- | Wrap exceptions @inner@ originating from the given action according to
--- the accessor @t@.
+-- the accessor @t@. Retain arbitrary capabilities listed in @cs@.
 --
 -- Example:
 --
 -- > wrapError
--- >   @"AppError" @"ComponentError" @(Ctor "ComponentError" "AppError")
+-- >   @"ComponentError" @(Ctor "ComponentError" "AppError") @'[]
 -- >   component
 -- >
 -- > component :: HasError "ComponentError" ComponentError m => m ()
@@ -160,13 +162,20 @@ catchJust = catchJust_ (proxy# @_ @tag)
 --
 -- This function is experimental and subject to change.
 -- See <https://github.com/tweag/capability/issues/46>.
-wrapError :: forall outertag innertag t outer inner m a.
+wrapError :: forall innertag t (cs :: [Capability]) inner m a.
   ( forall x. Coercible (t m x) (m x)
-  , forall m'. HasCatch outertag outer m'
-    => HasCatch innertag inner (t m')
-  , HasCatch outertag outer m )
-  => (forall m'. HasCatch innertag inner m' => m' a) -> m a
-wrapError action = coerce @(t m a) action
+  , HasCatch innertag inner (t m)
+  , All cs m)
+  => (forall m'. All (HasCatch innertag inner ': cs) m' => m' a) -> m a
+wrapError =
+  context @t @'[HasCatch innertag inner] @cs
+-- wrapError :: forall outertag innertag t outer inner m a.
+--   ( forall x. Coercible (t m x) (m x)
+--   , forall m'. HasCatch outertag outer m'
+--     => HasCatch innertag inner (t m')
+--   , HasCatch outertag outer m )
+--   => (forall m'. HasCatch innertag inner m' => m' a) -> m a
+-- wrapError action = coerce @(t m a) action
 {-# INLINE wrapError #-}
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?

@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -80,10 +81,10 @@ calculator = do
         do
           -- Errors in the parser or math component are converted to a
           -- @CalcError@ by wrapping with the corresponding constructor.
-          let wrapParserError = wrapError @"calc" @"parser"
-                @(Rename "ParserError" :.: Ctor "ParserError" "calc")
-              wrapMathError = wrapError @"calc" @"math"
-                @(Rename "MathError" :.: Ctor "MathError" "calc")
+          let wrapParserError = wrapError @"parser"
+                @(Rename "ParserError" :.: Ctor "ParserError" "calc") @'[]
+              wrapMathError = wrapError @"math"
+                @(Rename "MathError" :.: Ctor "MathError" "calc") @'[]
           num <- wrapParserError $ parseNumber input
           root <- wrapMathError $ sqrtNumber num
           liftIO $ putStrLn $ "sqrt = " ++ show root
