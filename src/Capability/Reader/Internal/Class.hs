@@ -105,5 +105,5 @@ magnify :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m)
   => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
 magnify =
-  context @t @(HasReader innertag inner) @cs
+  context @t @'[HasReader innertag inner] @cs
 {-# INLINE magnify #-}

@@ -135,5 +135,5 @@ zoom :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
 zoom =
-  context @t @(HasState innertag inner) @cs
+  context @t @'[HasState innertag inner] @cs
 {-# INLINE zoom #-}

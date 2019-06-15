@@ -154,7 +154,7 @@ catchJust = catchJust_ (proxy# @_ @tag)
 -- Example:
 --
 -- > wrapError
--- >   @"AppError" @"ComponentError" @(Ctor "ComponentError" "AppError")
+-- >   @"ComponentError" @(Ctor "ComponentError" "AppError") @'[]
 -- >   component
 -- >
 -- > component :: HasError "ComponentError" ComponentError m => m ()
@@ -168,7 +168,7 @@ wrapError :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m)
   => (forall m'. All (HasCatch innertag inner ': cs) m' => m' a) -> m a
 wrapError =
-  context @t @(HasCatch innertag inner) @cs
+  context @t @'[HasCatch innertag inner] @cs
 -- wrapError :: forall outertag innertag t outer inner m a.
 --   ( forall x. Coercible (t m x) (m x)
 --   , forall m'. HasCatch outertag outer m'
