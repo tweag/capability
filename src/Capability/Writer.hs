@@ -49,13 +49,16 @@ module Capability.Writer
   , pass
     -- * Strategies
   , WriterLog
-  , StreamLog (..)
+  , StreamLog
+  , SinkLog (..)
     -- ** Modifiers
   , module Capability.Accessors
   ) where
 
 import Capability.Accessors
+import Capability.Sink
 import Capability.State
+-- import deprecated module to reexport deprecated item for back-compat.
 import Capability.Stream
 import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
@@ -72,21 +75,21 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> pass @t (tell @t w >> pure (a, f)) = tell @t (f w) >> pure a
 -- prop> writer @t (a, w) = tell @t w >> pure a
 --
--- = A note on the 'HasStream' super class.
+-- = A note on the 'HasSink' super class.
 --
--- 'HasStream' offers one 'yield' method with the same signature as 'tell'.
+-- 'HasSink' offers one 'yield' method with the same signature as 'tell'.
 -- Many people's intuition, however, wouldn't connect the two: 'yield'ing
 -- tosses the value down some black-box chute, while 'tell'ing grows and
 -- accumulation via the monoid. The connection is since the 'chute' is opaque,
 -- the tosser cannot rule out there being such an accumulation at the chutes
 -- other end.
 --
--- Formally, we reach the same conclusion. 'HasStream' has no laws,
+-- Formally, we reach the same conclusion. 'HasSink' has no laws,
 -- indicating the user can make no assumptions beyond the signature of 'yield'.
 -- 'HasWriter', with 'tell' defined as 'yield', is thus always compatable
 -- regardless of whatever additional methods it provides and laws by which it
 -- abides.
-class (Monoid w, Monad m, HasStream tag w m)
+class (Monoid w, Monad m, HasSink tag w m)
   => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
   where
     -- | For technical reasons, this method needs an extra proxy argument.
@@ -112,7 +115,7 @@ class (Monoid w, Monad m, HasStream tag w m)
 -- Appends @w@ to the output of the writer capability @tag@
 -- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
-writer = writer_ (proxy# @_ @tag)
+writer = writer @tag
 {-# INLINE writer #-}
 
 -- | @tell \@tag w@
@@ -144,7 +147,7 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
   , Monad m, HasWriter tag w (t2 (t1 m)) )
   => HasWriter tag w ((t2 :.: t1) m)
 
-type WriterLog = StreamLog
+type WriterLog = SinkLog
 
 instance (Monoid w, HasState tag w m)
   => HasWriter tag w (WriterLog m)

@@ -22,6 +22,7 @@ module Capability.Reader.Internal.Class
   ) where
 
 import Capability.Constraints
+import Capability.Source.Internal.Class
 import Capability.Context (context)
 import Data.Coerce (Coercible)
 import GHC.Exts (Proxy#, proxy#)
@@ -39,14 +40,9 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> local @t f (pure x) = pure x
 -- prop> local @t f (m >>= \x -> k x) = local @t f m >>= \x -> local @t f (k x)
 -- prop> reader @t f = f <$> ask @t
-class Monad m
+class (Monad m, HasSource tag r m)
   => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r
   where
-    -- | For technical reasons, this method needs an extra proxy argument.
-    -- You only need it if you are defining new instances of 'HasReader'.
-    -- Otherwise, you will want to use 'ask'.
-    -- See 'ask' for more documentation.
-    ask_ :: Proxy# tag -> m r
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
     -- Otherwise, you will want to use 'local'.
@@ -61,7 +57,7 @@ class Monad m
 -- | @ask \@tag@
 -- retrieves the environment of the reader capability @tag@.
 ask :: forall tag r m. HasReader tag r m => m r
-ask = ask_ (proxy# @_ @tag)
+ask = await @tag
 {-# INLINE ask #-}
 
 -- | @asks \@tag@
@@ -70,7 +66,7 @@ ask = ask_ (proxy# @_ @tag)
 --
 -- prop> asks @tag f = f <$> ask @tag
 asks :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
-asks f = f <$> ask @tag
+asks = awaits @tag
 {-# INLINE asks #-}
 
 -- | @local \@tag f m@

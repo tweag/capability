@@ -15,6 +15,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -30,10 +31,9 @@ module Capability.Reader.Internal.Strategies
 import Capability.Accessors
 import Capability.Reader.Internal.Class
 import Capability.State.Internal.Class
+import Capability.Source.Internal.Strategies
 import Control.Lens (over, view)
 import Control.Monad.Catch (MonadMask, bracket)
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.Reader.Class as Reader
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Control (MonadTransControl(..))
@@ -42,14 +42,7 @@ import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import GHC.Exts (Proxy#)
 
--- | Derive 'HasReader' from @m@'s 'Control.Monad.Reader.Class.MonadReader'
--- instance.
-newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
-  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
-
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
-  ask_ _ = coerce @(m r) Reader.ask
-  {-# INLINE ask_ #-}
   local_
     :: forall a. Proxy# tag -> (r -> r) -> MonadReader m a -> MonadReader m a
   local_ _ = coerce @((r -> r) -> m a -> m a) Reader.local
@@ -58,27 +51,7 @@ instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
   reader_ _ = coerce @((r -> a) -> m a) Reader.reader
   {-# INLINE reader_ #-}
 
--- | Convert a /pure/ state monad into a reader monad.
---
--- /Pure/ meaning that the monad stack does not allow catching exceptions.
--- Otherwise, an exception occurring in the action passed to 'local' could cause
--- the context to remain modified outside of the call to 'local'. E.g.
---
--- > local @tag (const r') (throw MyException)
--- > `catch` \MyException -> ask @tag
---
--- returns @r'@ instead of the previous value.
---
--- Note, that no @MonadIO@ instance is provided, as this would allow catching
--- exceptions.
---
--- See 'ReadState'.
-newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
-  deriving (Functor, Applicative, Monad)
-
 instance HasState tag r m => HasReader tag r (ReadStatePure m) where
-  ask_ _ = coerce @(m r) $ get @tag
-  {-# INLINE ask_ #-}
   local_ :: forall a.
     Proxy# tag -> (r -> r) -> ReadStatePure m a -> ReadStatePure m a
   local_ _ f = coerce @(m a -> m a) $ \m -> do
@@ -89,20 +62,10 @@ instance HasState tag r m => HasReader tag r (ReadStatePure m) where
   reader_ _ = coerce @((r -> a) -> m a) $ gets @tag
   {-# INLINE reader_ #-}
 
--- | Convert a state monad into a reader monad.
---
--- Use this if the monad stack allows catching exceptions.
---
--- See 'ReadStatePure'.
-newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
-  deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
-
 instance
   (HasState tag r m, MonadMask m)
   => HasReader tag r (ReadState m)
   where
-    ask_ _ = coerce @(m r) $ get @tag
-    {-# INLINE ask_ #-}
     local_ :: forall a.
       Proxy# tag -> (r -> r) -> ReadState m a -> ReadState m a
     local_ _ f = coerce @(m a -> m a) $ \action ->
@@ -122,8 +85,6 @@ instance
   , forall x y. Coercible x y => Coercible (m x) (m y) )
   => HasReader tag to (Coerce to m)
   where
-    ask_ tag = coerce @(m from) $ ask_ tag
-    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (to -> to) -> Coerce to m a -> Coerce to m a
     local_ tag = coerce @((from -> from) -> m a -> m a) $ local_ tag
@@ -134,8 +95,6 @@ instance
 
 -- | Rename the tag.
 instance HasReader oldtag r m => HasReader newtag r (Rename oldtag m) where
-  ask_ _ = coerce @(m r) $ ask @oldtag
-  {-# INLINE ask_ #-}
   local_ :: forall a.
     Proxy# newtag -> (r -> r) -> Rename oldtag m a -> Rename oldtag m a
   local_ _ = coerce @((r -> r) -> m a -> m a) $ local @oldtag
@@ -143,7 +102,6 @@ instance HasReader oldtag r m => HasReader newtag r (Rename oldtag m) where
   reader_ :: forall a. Proxy# newtag -> (r -> a) -> Rename oldtag m a
   reader_ _ = coerce @((r -> a) -> m a) $ reader @oldtag
   {-# INLINE reader_ #-}
-
 
 -- | Zoom in on the record field @field@ of type @v@
 -- in the environment @record@.
@@ -154,9 +112,6 @@ instance
   ( tag ~ field, Generic.HasField' field record v, HasReader oldtag record m )
   => HasReader tag v (Field field oldtag m)
   where
-    ask_ _ = coerce @(m v) $
-      asks @oldtag $ view (Generic.field' @field)
-    {-# INLINE ask_ #-}
     local_ :: forall a.
       Proxy# tag
       -> (v -> v)
@@ -182,9 +137,6 @@ instance
   ( tag ~ pos, Generic.HasPosition' pos struct v, HasReader oldtag struct m )
   => HasReader tag v (Pos pos oldtag m)
   where
-    ask_ _ = coerce @(m v) $
-      asks @oldtag $ view (Generic.position' @pos)
-    {-# INLINE ask_ #-}
     local_ :: forall a.
       Proxy# tag
       -> (v -> v)
@@ -205,8 +157,6 @@ instance
 instance (HasReader tag r m, MonadTransControl t, Monad (t m))
   => HasReader tag r (Lift (t m))
   where
-    ask_ _ = coerce $ lift @t @m $ ask @tag @r
-    {-# INLINE ask_ #-}
     local_
       :: forall a. Proxy# tag -> (r -> r) -> Lift (t m) a -> Lift (t m) a
     local_ _ f = coerce @(t m a -> t m a) $

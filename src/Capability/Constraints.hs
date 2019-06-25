@@ -31,8 +31,8 @@ type Capability = (* -> *) -> Constraint
 -- > All '[Num, Eq] Int
 -- >   -- Equivalent to: (Num Int, Eq Int)
 -- >
--- > All '[HasReader "foo" Int, HasStream "bar" Float] m
--- >   -- Equivalent to: (HasReader "foo" Int m, HasStream "bar" Float m)
+-- > All '[HasReader "foo" Int, HasSink "bar" Float] m
+-- >   -- Equivalent to: (HasReader "foo" Int m, HasSink "bar" Float m)
 type family All (xs :: [k -> Constraint]) a :: Constraint where
   All '[] a = ()
   All (x ':xs) a = (x a, All xs a)

@@ -65,7 +65,20 @@
 -- * "Capability.State" state effects
 -- * "Capability.Writer" writer effects
 -- * "Capability.Error" throw and catch errors
--- * "Capability.Stream" streaming effect (aka generators)
+-- * "Capability.Source" streaming in effect
+-- * "Capability.Sink" streaming out effect (aka generators)
+--
+-- The effects are not all independent:
+--
+-- >     Source   Sink
+-- >     /   \    /   \
+-- >    /     \  /     \
+-- > Reader   State    Writer
+--
+-- "Capability.Source" and "Capability.Sink" have just a method each, and no laws.
+-- The bottom three, familiar from mtl, add methods and laws relating them.
+-- The use of tags allows one to have independent effects that share a superclass.
+-- E.g. @HasState "foo" Int@ and @HasWriter "bar" String@.
 --
 -- Some of the capability modules have a “discouraged” companion (such as
 -- "Capability.Writer.Discouraged"). These modules contain deriving-via

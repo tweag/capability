@@ -11,6 +11,7 @@
 module Reader where
 
 import Capability.Reader
+import Capability.Source
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT (..))
 import GHC.Generics (Generic)
@@ -66,6 +67,7 @@ fooBarMagnify = do
 -- | @HasReader@ instance derived via @MonadReader@.
 newtype FooReaderT m (a :: *) = FooReaderT (ReaderT Int m a)
   deriving (Functor, Applicative, Monad, MonadIO)
+  deriving (HasSource Foo Int) via MonadReader (ReaderT Int m)
   deriving (HasReader Foo Int) via MonadReader (ReaderT Int m)
 
 runFooReaderT :: FooReaderT m a -> m a
@@ -80,11 +82,11 @@ data FooBar = FooBar
 -- | Multiple @HasReader@ instances derived via record fields in @MonadReader@.
 newtype FooBarReader a = FooBarReader (ReaderT FooBar IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
-  deriving (HasReader "foobar" FooBar) via
+  deriving (HasSource "foobar" FooBar, HasReader "foobar" FooBar) via
     (MonadReader (ReaderT FooBar IO))
-  deriving (HasReader Foo Int) via
+  deriving (HasSource Foo Int, HasReader Foo Int) via
     Rename "foo" (Field "foo" () (MonadReader (ReaderT FooBar IO)))
-  deriving (HasReader Bar Int) via
+  deriving (HasSource Bar Int, HasReader Bar Int) via
     Rename "bar" (Field "bar" () (MonadReader (ReaderT FooBar IO)))
 
 runFooBarReader :: FooBarReader a -> IO a
@@ -98,8 +100,10 @@ runFooBarReader (FooBarReader m) = runReaderT m FooBar { foo = 1, bar = 2 }
 -- in unexpected ways.
 newtype BadFooBarReader a = BadFooBarReader (ReaderT Int IO a)
   deriving (Functor, Applicative, Monad, MonadIO)
-  deriving (HasReader Foo Int) via MonadReader (ReaderT Int IO)
-  deriving (HasReader Bar Int) via MonadReader (ReaderT Int IO)
+  deriving (HasSource Foo Int, HasReader Foo Int)
+    via MonadReader (ReaderT Int IO)
+  deriving (HasSource Bar Int, HasReader Bar Int)
+    via MonadReader (ReaderT Int IO)
 
 runBadFooBarReader :: BadFooBarReader a -> IO a
 runBadFooBarReader (BadFooBarReader m) = runReaderT m 1

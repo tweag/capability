@@ -5,11 +5,12 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 
--- | Example uses and instances of the @HasStream@ capability.
-module Stream where
+-- | Example uses and instances of the @HasSink@ capability.
+module Sink where
 
 import Capability.State
-import Capability.Stream
+import Capability.Source
+import Capability.Sink
 import Control.Monad.State.Strict (State, StateT (..), evalStateT, runState)
 import qualified Data.Set as Set
 import Streaming (Stream, Of)
@@ -20,7 +21,7 @@ import Test.Hspec
 ----------------------------------------------------------------------
 -- Example Programs
 
-iota :: HasStream "nums" Int m => Int -> m ()
+iota :: HasSink "nums" Int m => Int -> m ()
 iota n
   | n < 0 = error "negative number passed to iota."
   | otherwise = go 0
@@ -30,7 +31,7 @@ iota n
       | otherwise = yield @"nums" i >> go (succ i)
 
 labelledNodes
-  :: (HasState "counter" Int m, HasStream "out" (Int, a) m, Foldable t)
+  :: (HasState "counter" Int m, HasSink "out" (Int, a) m, Foldable t)
   => t a -> m ()
 labelledNodes = mapM_ $ \a -> do
   n <- state @"counter" $ \n -> (n, succ n)
@@ -40,28 +41,28 @@ labelledNodes = mapM_ $ \a -> do
 ----------------------------------------------------------------------
 -- Instances
 
--- | @HasStream a@ derived from @HasState [a]@. Will produce reversed list.
+-- | @HasSink a@ derived from @HasState [a]@. Will produce reversed list.
 newtype StreamAccM a = StreamAccM (State [Int] a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasStream "nums" Int) via
-    StreamStack (MonadState (State [Int]))
+  deriving (HasSink "nums" Int) via
+    SinkStack (MonadState (State [Int]))
 
 runStreamAccM :: StreamAccM a -> (a, [Int])
 runStreamAccM (StreamAccM m) = runState m []
 
 
--- | @'Streaming.Stream' ('Streaming.Of' a)@ has a @HasStream a@ instance.
+-- | @'Streaming.Stream' ('Streaming.Of' a)@ has a @HasSink a@ instance.
 printStreamOfInt :: Stream (Of Int) IO () -> IO ()
 printStreamOfInt = S.stdoutLn . S.map show
 
 
--- | Composed @StateT@ and @Stream@ to provide @HasState@ and @HasStream@.
+-- | Composed @StateT@ and @Stream@ to provide @HasState@ and @HasSink@.
 newtype StateOverStream a =
   StateOverStream (StateT Int (Stream (Of (Int, Char)) IO) a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasState "counter" Int) via
+  deriving (HasSource "counter" Int, HasSink "counter" Int, HasState "counter" Int) via
     MonadState (StateT Int (Stream (Of (Int, Char)) IO))
-  deriving (HasStream "out" (Int, Char)) via
+  deriving (HasSink "out" (Int, Char)) via
     Lift (StateT Int (Stream (Of (Int, Char)) IO))
 
 printStateOverStream :: StateOverStream () -> IO ()

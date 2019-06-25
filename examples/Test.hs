@@ -15,7 +15,7 @@ import qualified CountLog
 import qualified Error
 import qualified Reader
 import qualified State
-import qualified Stream
+import qualified Sink
 import qualified Writer
 import qualified WordCount
 
@@ -26,7 +26,7 @@ spec = do
   describe "Error" Error.spec
   describe "Reader" Reader.spec
   describe "State" State.spec
-  describe "Stream" Stream.spec
+  describe "Sink" Sink.spec
   describe "Writer" Writer.spec
   describe "WordCount" WordCount.spec
 
