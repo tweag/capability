@@ -37,7 +37,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints -Wno-deprecations #-}
 
 module Capability.Writer
   ( -- * Interface
