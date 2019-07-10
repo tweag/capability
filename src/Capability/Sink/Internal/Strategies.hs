@@ -113,8 +113,7 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
 
 -- | Convert the state using safe coercion.
 instance
-  ( Coercible from to, HasSink tag from m
-  , forall x y. Coercible x y => Coercible (m x) (m y) )
+  ( Coercible from to, HasSink tag from m )
   => HasSink tag to (Coerce to m)
   where
     yield_ tag = coerce @(from -> m ()) $ yield_ tag
