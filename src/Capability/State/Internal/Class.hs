@@ -26,6 +26,8 @@ module Capability.State.Internal.Class
 
 import Capability.Constraints
 import Capability.Context (context)
+import Capability.Source.Internal.Class
+import Capability.Sink.Internal.Class
 import Data.Coerce (Coercible)
 import GHC.Exts (Proxy#, proxy#)
 
@@ -40,19 +42,9 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> put @t s1 >> put @t s2 = put @t s2
 -- prop> put @t s >> get @t = put @t s >> pure s
 -- prop> state @t f = get @t >>= \s -> let (a, s') = f s in put @t s' >> pure a
-class Monad m
+class (Monad m, HasSource tag s m, HasSink tag s m)
   => HasState (tag :: k) (s :: *) (m :: * -> *) | tag m -> s
   where
-    -- | For technical reasons, this method needs an extra proxy argument.
-    -- You only need it if you are defining new instances of 'HasState.
-    -- Otherwise, you will want to use 'get'.
-    -- See 'get' for more documentation.
-    get_ :: Proxy# tag -> m s
-    -- | For technical reasons, this method needs an extra proxy argument.
-    -- You only need it if you are defining new instances of 'HasState.
-    -- Otherwise, you will want to use 'put'.
-    -- See 'put' for more documentation.
-    put_ :: Proxy# tag -> s -> m ()
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasState.
     -- Otherwise, you will want to use 'state'.
@@ -62,13 +54,13 @@ class Monad m
 -- | @get \@tag@
 -- retrieve the current state of the state capability @tag@.
 get :: forall tag s m. HasState tag s m => m s
-get = get_ (proxy# @_ @tag)
+get = await @tag
 {-# INLINE get #-}
 
 -- | @put \@tag s@
 -- replace the current state of the state capability @tag@ with @s@.
 put :: forall tag s m. HasState tag s m => s -> m ()
-put = put_ (proxy# @_ @tag)
+put = yield @tag
 {-# INLINE put #-}
 
 -- | @state \@tag f@

@@ -39,9 +39,16 @@ library
     Capability.Reader
     Capability.Reader.Internal.Class
     Capability.Reader.Internal.Strategies
+    Capability.Sink
+    Capability.Sink.Internal.Class
+    Capability.Sink.Internal.Strategies
+    Capability.Source
+    Capability.Source.Internal.Class
+    Capability.Source.Internal.Strategies
     Capability.State
     Capability.State.Internal.Class
     Capability.State.Internal.Strategies
+    Capability.State.Internal.Strategies.Common
     Capability.Stream
     Capability.TypeOf
     Capability.Writer
@@ -74,8 +81,8 @@ test-suite examples
     CountLog
     Error
     Reader
+    Sink
     State
-    Stream
     Test.Common
     Writer
   main-is: Test.hs

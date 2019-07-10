@@ -14,6 +14,8 @@
 module State where
 
 import Capability.Reader
+import Capability.Sink
+import Capability.Source
 import Capability.State
 import Control.Monad.Reader (ReaderT (..))
 import Control.Monad.State.Strict (State, StateT (..), runState)
@@ -63,10 +65,10 @@ data TwoStates = TwoStates
 -- fields of the @HasReader@ context.
 newtype TwoStatesM a = TwoStatesM (ReaderT TwoStates IO a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasState "foo" Int) via
+  deriving (HasSource "foo" Int, HasSink "foo" Int, HasState "foo" Int) via
     ReaderIORef (Rename "tsFoo" (Field "tsFoo" ()
     (MonadReader (ReaderT TwoStates IO))))
-  deriving (HasState "bar" Int) via
+  deriving (HasSource "bar" Int, HasSink "bar" Int, HasState "bar" Int) via
     ReaderIORef (Rename "tsBar" (Field "tsBar" ()
     (MonadReader (ReaderT TwoStates IO))))
 
@@ -87,9 +89,9 @@ runTwoStatesM (TwoStatesM m) = do
 -- @MonadState@.
 newtype PairStateM a = PairStateM (State (Int, Int) a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasState "foo" Int) via
+  deriving (HasSource "foo" Int, HasSink "foo" Int, HasState "foo" Int) via
     Rename 1 (Pos 1 () (MonadState (State (Int, Int))))
-  deriving (HasState "bar" Int) via
+  deriving (HasSource "bar" Int, HasSink "bar" Int, HasState "bar" Int) via
     Rename 2 (Pos 2 () (MonadState (State (Int, Int))))
 
 runPairStateM :: PairStateM a -> (a, (Int, Int))
@@ -103,8 +105,10 @@ runPairStateM (PairStateM m) = runState m (0, 0)
 -- this pattern can be useful to transation existing code to this library.
 newtype NestedStatesM a = NestedStatesM (StateT Int (State Int) a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasState "foo" Int) via MonadState (StateT Int (State Int))
-  deriving (HasState "bar" Int) via Lift (StateT Int (MonadState (State Int)))
+  deriving (HasSource "foo" Int, HasSink "foo" Int, HasState "foo" Int) via
+    MonadState (StateT Int (State Int))
+  deriving (HasSource "bar" Int, HasSink "bar" Int, HasState "bar" Int) via
+    Lift (StateT Int (MonadState (State Int)))
 
 runNestedStatesM :: NestedStatesM a -> ((a, Int), Int)
 runNestedStatesM (NestedStatesM m) = runState (runStateT m 0) 0

@@ -14,7 +14,7 @@ module WordCount where
 
 import Capability.Reader
 import Capability.State
-import Capability.Stream
+import Capability.Sink
 import Control.Lens (ifor_)
 import Data.Coerce (coerce)
 import Data.Map.Strict (Map)
@@ -56,21 +56,21 @@ oneOccurrence k = Occurrences $ Map.singleton k 1
 
 -- | Count the occurrence of a single letter.
 countLetter ::
-  HasStream "letterCount" (Occurrences Char) m
+  HasSink "letterCount" (Occurrences Char) m
   => Char -> m ()
 countLetter letter = yield @"letterCount" (oneOccurrence letter)
 
 -- | Count the occurrence of a single word.
 countWord ::
-  HasStream "wordCount" (Occurrences Text) m
+  HasSink "wordCount" (Occurrences Text) m
   => Text -> m ()
 countWord word = yield @"wordCount" (oneOccurrence word)
 
 
 -- | Count the occurrence of a single word and all the letters in it.
 countWordAndLetters ::
-  ( HasStream "letterCount" (Occurrences Char) m
-  , HasStream "wordCount" (Occurrences Text) m )
+  ( HasSink "letterCount" (Occurrences Char) m
+  , HasSink "wordCount" (Occurrences Text) m )
   => Text -> m ()
 countWordAndLetters word = do
   countWord word
@@ -80,8 +80,8 @@ countWordAndLetters word = do
 -- | Count the occurrences of words and letters in a text,
 -- excluding white space.
 countWordsAndLettersInText ::
-  ( HasStream "letterCount" (Occurrences Char) m
-  , HasStream "wordCount" (Occurrences Text) m )
+  ( HasSink "letterCount" (Occurrences Char) m
+  , HasSink "wordCount" (Occurrences Text) m )
   => Text -> m ()
 countWordsAndLettersInText text =
   mapM_ countWordAndLetters (Text.words text)
@@ -98,14 +98,14 @@ data CounterCtx = CounterCtx
 -- | Counter application monad.
 newtype Counter a = Counter { runCounter :: CounterCtx -> IO a }
   deriving (Functor, Applicative, Monad) via (ReaderT CounterCtx IO)
-  deriving (HasStream "letterCount" (Occurrences Char)) via
-    (StreamLog  -- Generate HasStream using HasState of Monoid
+  deriving (HasSink "letterCount" (Occurrences Char)) via
+    (SinkLog  -- Generate HasSink using HasState of Monoid
     (ReaderIORef  -- Generate HasState from HasReader of IORef
     (Field "letterCount" "ctx"  -- Focus on the field letterCount
     (MonadReader  -- Generate HasReader using mtl MonadReader
     (ReaderT CounterCtx IO)))))  -- Use mtl ReaderT newtype
-  deriving (HasStream "wordCount" (Occurrences Text)) via
-    StreamLog (ReaderIORef
+  deriving (HasSink "wordCount" (Occurrences Text)) via
+    SinkLog (ReaderIORef
     (Field "wordCount" "ctx" (MonadReader (ReaderT CounterCtx IO))))
 
 

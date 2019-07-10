@@ -9,7 +9,8 @@
 module Writer where
 
 import Capability.State
-import Capability.Stream
+import Capability.Sink
+import Capability.Source
 import Capability.Writer
 import Control.Monad.State.Strict (State, StateT (..), runState)
 import Data.Monoid (Sum (..))
@@ -19,12 +20,12 @@ import Test.Hspec
 -- Example Programs
 
 -- | Increase a counter using a writer monad.
-useWriter :: HasWriter "count" (Sum Int) m => m ()
+useWriter :: HasWriter "count-writer" (Sum Int) m => m ()
 useWriter = do
   -- Add 3 and retrieve result
-  ((), count) <- listen @"count" (tell @"count" 3)
+  ((), count) <- listen @"count-writer" (tell @"count-writer" 3)
   -- Duplicate
-  tell @"count" count
+  tell @"count-writer" count
 
 
 -- | Mix writer and state monad operations on the same tag.
@@ -33,12 +34,12 @@ useWriter = do
 -- real applications.  The @HasState@ capability could be used to clear the
 -- accumulated outcome of the @HasWriter@ capability.
 mixWriterState
-  :: (HasState "count" Int m, HasWriter "count" (Sum Int) m)
+  :: (HasState "count-state" Int m, HasWriter "count-writer" (Sum Int) m)
   => m Int
 mixWriterState = do
-  tell @"count" 1
-  one <- get @"count"
-  tell @"count" $ Sum one
+  tell @"count-writer" 1
+  one <- get @"count-state"
+  tell @"count-writer" $ Sum one
   pure one
 
 
@@ -51,7 +52,7 @@ mixWriterState = do
 -- via clause.
 newtype WriterM a = WriterM (State Int a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasStream "count" (Sum Int), HasWriter "count" (Sum Int))
+  deriving (HasSink "count-writer" (Sum Int), HasWriter "count-writer" (Sum Int))
     via WriterLog (Coerce (Sum Int) (MonadState (State Int)))
 
 runWriterM :: WriterM a -> (a, Int)
@@ -65,9 +66,9 @@ runWriterM (WriterM m) = runState m 0
 -- See caveat on 'mixWriterState'.
 newtype BadWriterM a = BadWriterM (State Int a)
   deriving (Functor, Applicative, Monad)
-  deriving (HasStream "count" (Sum Int), HasWriter "count" (Sum Int))
+  deriving (HasSink "count-writer" (Sum Int), HasWriter "count-writer" (Sum Int))
     via WriterLog (Coerce (Sum Int) (MonadState (State Int)))
-  deriving (HasState "count" Int)
+  deriving (HasSource "count-state" Int, HasSink "count-state" Int, HasState "count-state" Int)
     via MonadState (State Int)
 
 runBadWriterM :: BadWriterM a -> (a, Int)
