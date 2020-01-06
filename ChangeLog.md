@@ -1,6 +1,6 @@
 # Revision history for capability
 
-## 0.?.?.? -- ??
+## 0.3.0.0 -- 2020-01-06
 
 * Rename HasStream to HasSink, for symmetry.
   See [#75](https://github.com/tweag/capability/pull/75)
@@ -11,6 +11,11 @@
 * Make HasSource and HasSink superclasses of HasState.
   See [#75](https://github.com/tweag/capability/pull/75)
 
+* Allow to retain capabilities in zoom and magnify.
+  See [#73](https://github.com/tweag/capability/pull/73)
+
+* Introduce the TypeOf type-family and capability short-cuts.
+  See [#72](https://github.com/tweag/capability/pull/72)
 
 ## 0.2.0.0 -- 2019-03-22
 
