@@ -58,13 +58,13 @@ library
     , constraints >= 0.1 && < 0.12
     , dlist >= 0.8 && < 0.9
     , exceptions >= 0.6 && < 0.11
-    , generic-lens >= 1.0 && < 1.2
+    , generic-lens >= 1.0 && < 1.3
     , lens >= 4.16 && < 5.0
     , monad-control >= 1.0 && < 1.1
     , monad-unlift >= 0.2 && < 0.3
     , mtl >= 2.0 && < 3.0
     , mutable-containers >= 0.3 && < 0.4
-    , primitive >= 0.6 && < 0.7
+    , primitive >= 0.6 && < 0.8
     , safe-exceptions >= 0.1 && < 0.2
     , streaming >= 0.2 && < 0.3
     , transformers >= 0.5.5 && < 0.6
