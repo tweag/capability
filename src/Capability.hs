@@ -51,6 +51,29 @@
 -- Then you can use @foo@ at type @MyM@. Or any other type which can provide
 -- these capabilites.
 --
+-- === Functional capabilities
+--
+-- When writing applications, as opposed to libraries, a capability /name/ often
+-- determines its type parameters. It can be tiresome to write
+--
+-- @
+-- f :: HasReader "config" Config m => …
+-- @
+--
+-- over and over again.
+--
+-- To avoid this, each capability comes with a /functional/—here
+-- @HasReader\'@—variant (in this terminology @HasReader@ is
+-- /relational/). Where the type is deduced from the capability's name. The
+-- mapping from name to type is done with the @'Capability.TypeOf.TypeOf'@
+-- family, which is re-exported by every capability module.
+--
+-- @
+-- type instance TypeOf Symbol "config" = Config
+--
+-- f :: HasReader' "config" m => …
+-- @
+--
 -- == Module structure
 --
 -- Each module introduces a capability type class (or several related type
