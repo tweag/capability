@@ -11,7 +11,7 @@
 * Make HasSource and HasSink superclasses of HasState.
   See [#75](https://github.com/tweag/capability/pull/75)
 
-* Allow to retain capabilities in zoom and magnify.
+* Handlers `zoom` and `magnify` can now carry capabilities over from the context.
   See [#73](https://github.com/tweag/capability/pull/73)
 
 * Introduce the TypeOf type-family and capability short-cuts.
