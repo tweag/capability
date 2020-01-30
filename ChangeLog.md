@@ -14,7 +14,7 @@
 * Handlers `zoom` and `magnify` can now carry capabilities over from the context.
   See [#73](https://github.com/tweag/capability/pull/73)
 
-* Introduce the TypeOf type-family and capability short-cuts.
+* Introduce functional capabilities and the `TypeOf` type family.
   See [#72](https://github.com/tweag/capability/pull/72)
 
 ## 0.2.0.0 -- 2019-03-22
