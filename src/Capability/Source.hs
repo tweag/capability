@@ -39,13 +39,11 @@ module Capability.Source
     -- ** Modifiers
   , module Capability.Accessors
     -- * Helpers
-  , module Capability.Constraints
   , module Capability.TypeOf
   , HasSource'
   ) where
 
 import Capability.Accessors
-import Capability.Constraints
 import Capability.Source.Internal.Class
 import Capability.Source.Internal.Strategies
 import Capability.TypeOf

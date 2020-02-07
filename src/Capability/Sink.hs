@@ -29,7 +29,6 @@ module Capability.Sink
     -- ** Modifiers
   , module Capability.Accessors
     -- * Helpers
-  , module Capability.Constraints
   , module Capability.TypeOf
   , HasSink'
   ) where
@@ -37,7 +36,6 @@ module Capability.Sink
 import Capability.Sink.Internal.Class
 import Capability.Sink.Internal.Strategies
 import Capability.Accessors
-import Capability.Constraints
 import Capability.TypeOf
 
 -- | Type synonym using the 'TypeOf' type family to specify 'HasSink'
