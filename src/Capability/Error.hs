@@ -169,13 +169,6 @@ wrapError :: forall innertag t (cs :: [Capability]) inner m a.
   => (forall m'. All (HasCatch innertag inner ': cs) m' => m' a) -> m a
 wrapError =
   context @t @'[HasCatch innertag inner] @cs
--- wrapError :: forall outertag innertag t outer inner m a.
---   ( forall x. Coercible (t m x) (m x)
---   , forall m'. HasCatch outertag outer m'
---     => HasCatch innertag inner (t m')
---   , HasCatch outertag outer m )
---   => (forall m'. HasCatch innertag inner m' => m' a) -> m a
--- wrapError action = coerce @(t m a) action
 {-# INLINE wrapError #-}
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?

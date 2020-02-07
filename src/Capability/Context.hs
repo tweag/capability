@@ -15,8 +15,25 @@ import Capability.Constraints
 import Data.Coerce (Coercible)
 import Unsafe.Coerce (unsafeCoerce)
 
--- | Execute the given action with an additional @inner@ capability derived from
--- current context via the @t@ wrapper, retaining the list @cs@ of capabilities.
+-- | @'context' \@t \@derived \@ambient act@ is used to run @act@ when the
+-- capabilities required by @act@ are not necessarily the same as those
+-- available.
+--
+-- @'context' \@t \@derived \@ambient act@ runs @act@ by providing both the
+-- capabilities in @derived@ and @ambient@. The difference is that @ambient@
+-- capabilities are assumed to be available, whereas @derived@ instances are
+-- provided by @t@.
+--
+-- 'context' assumes that @t@ is a newtype defined in the form:
+--
+-- @
+-- newtype T m a = T (m a)
+-- @
+--
+-- Then 'context' uses type-class instances for `T` to provide for each of the
+-- capability in @derived@.
+--
+-- See 'Capability.Error.wrapError' for an example.
 context ::
   forall t (derived :: [Capability]) (ambient :: [Capability]) m a.
   ( forall x. Coercible (t m x) (m x)
