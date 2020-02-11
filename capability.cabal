@@ -2,7 +2,7 @@ name: capability
 version: 0.2.0.0
 homepage: https://github.com/tweag/capability
 license: BSD3
-license-file: LICENSE
+license-file: LICENSE.md
 maintainer: andreas.herrmann@tweag.io
 copyright: 2018 EURL Tweag
 category: Control
