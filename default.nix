@@ -12,7 +12,8 @@ let
     overrides = capabilityOverlay;
   };
   capabilityOverlay = self: super: {
-    "capability" = super.callCabal2nix "capability" source { };
+    "capability" = pkgs.haskell.lib.enableCabalFlag
+      (super.callCabal2nix "capability" source { }) "dev";
   };
 in {
   capability = haskellPackages.capability;
