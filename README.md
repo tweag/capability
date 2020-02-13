@@ -1,5 +1,7 @@
 # capability: effects, extensionally
 
+[![Build status](https://badge.buildkite.com/a44574059e13fc443caa437226af5ae5e67b6a5ae012534712.svg?branch=master)](https://buildkite.com/tweag-1/capability)
+
 A capability is a type class that says explicitly which effects
 a function is allowed to use. The [`mtl`][mtl] works like this too.
 But unlike the `mtl`, this library decouples effects from their
@@ -135,17 +137,6 @@ These patches are defined in
 [`nix/haskell/default.nix`](nix/haskell/default.nix).
 A development environment with all patched dependencies in scope is defined in
 [`shell.nix`](shell.nix).
-
-### Cachix Nix Cache
-
-A Nix cache for this package's dependencies is provided via [cachix][cachix].
-If you have [cachix][cachix] installed, then you can activate it by executing
-
-```
-$ cachix use tweag
-```
-
-[cachix]: https://cachix.org/
 
 ### Build
 

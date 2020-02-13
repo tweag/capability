@@ -2,7 +2,7 @@ name: capability
 version: 0.2.0.0
 homepage: https://github.com/tweag/capability
 license: BSD3
-license-file: LICENSE
+license-file: LICENSE.md
 maintainer: andreas.herrmann@tweag.io
 copyright: 2018 EURL Tweag
 category: Control
@@ -27,6 +27,11 @@ flag hspec-jenkins
     You can enable the use of the `hspec-jenkins` package using `-fhspec-jenkins`.
     .
     This package allows JUnit formatted test reporting for CI.
+  default: False
+
+flag dev
+  description: Turn on development settings.
+  manual: True
   default: False
 
 library
@@ -70,7 +75,13 @@ library
     , transformers >= 0.5.5 && < 0.6
     , unliftio >= 0.2 && < 0.3
     , unliftio-core >= 0.1 && < 0.2
-  ghc-options: -Wall
+  if flag(dev)
+    ghc-options: -Wall -Werror -Wcompat
+                 -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns
+                 -Wnoncanonical-monad-instances
+  else
+    ghc-options: -Wall
   hs-source-dirs: src
   default-language: Haskell2010
 
@@ -100,6 +111,12 @@ test-suite examples
     , unliftio >= 0.2 && < 0.3
   if flag(hspec-jenkins)
     build-depends: hspec-jenkins
-  ghc-options: -Wall
+  if flag(dev)
+    ghc-options: -Wall -Werror -Wcompat
+                 -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns
+                 -Wnoncanonical-monad-instances
+  else
+    ghc-options: -Wall
   hs-source-dirs: examples
   default-language: Haskell2010
