@@ -25,7 +25,7 @@ module Capability.State.Internal.Class
   ) where
 
 import Capability.Constraints
-import Capability.Context (context)
+import Capability.Derive (derive)
 import Capability.Source.Internal.Class
 import Capability.Sink.Internal.Class
 import Data.Coerce (Coercible)
@@ -127,5 +127,5 @@ zoom :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
 zoom =
-  context @t @'[HasState innertag inner] @cs
+  derive @t @'[HasState innertag inner] @cs
 {-# INLINE zoom #-}

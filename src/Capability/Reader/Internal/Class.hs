@@ -23,7 +23,7 @@ module Capability.Reader.Internal.Class
 
 import Capability.Constraints
 import Capability.Source.Internal.Class
-import Capability.Context (context)
+import Capability.Derive (derive)
 import Data.Coerce (Coercible)
 import GHC.Exts (Proxy#, proxy#)
 
@@ -101,5 +101,5 @@ magnify :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m)
   => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
 magnify =
-  context @t @'[HasReader innertag inner] @cs
+  derive @t @'[HasReader innertag inner] @cs
 {-# INLINE magnify #-}
