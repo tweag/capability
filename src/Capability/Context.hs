@@ -34,6 +34,8 @@ import Unsafe.Coerce (unsafeCoerce)
 -- capability in @derived@.
 --
 -- See 'Capability.Error.wrapError' for an example.
+--
+-- The @context@ function is experimental and is subject to change.
 context ::
   forall t (derived :: [Capability]) (ambient :: [Capability]) m a.
   ( forall x. Coercible (t m x) (m x)
