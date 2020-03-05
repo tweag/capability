@@ -108,6 +108,15 @@
 -- combinators which you can use if you absolutely must: they are correct, but
 -- inefficient, so we recommend that you do not.
 --
+-- Finally there is
+--
+-- * "Capability.Derive"
+--
+-- Which exports a (still experimental) 'Capability.Derive.derive' function,
+-- which lets you run a computation which requires capabilities which are not
+-- directly provided by the ambient monad, but can be derived from the
+-- capabilities provided by the ambient monad.
+--
 -- == Further considerations
 --
 -- The tags of capabilities can be of any kind, they are not restricted to
