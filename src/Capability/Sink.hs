@@ -22,15 +22,15 @@
 {-# LANGUAGE PolyKinds #-}
 
 module Capability.Sink
-  ( -- * Interface
+  ( -- * Relational capability
     module Capability.Sink.Internal.Class
+    -- * Functional capability
+  , HasSink'
+  , TypeOf
     -- * Strategies
   , module Capability.Sink.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
-    -- * Helpers
-  , module Capability.TypeOf
-  , HasSink'
   ) where
 
 import Capability.Sink.Internal.Class

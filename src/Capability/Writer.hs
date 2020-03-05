@@ -40,13 +40,15 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints -Wno-deprecations #-}
 
 module Capability.Writer
-  ( -- * Interface
+  ( -- * Relational capability
     HasWriter(..)
-  , HasWriter'
   , writer
   , tell
   , listen
   , pass
+  -- * Functional capability
+  , HasWriter'
+  , TypeOf
     -- * Strategies
   , WriterLog
   , StreamLog

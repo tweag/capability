@@ -46,15 +46,17 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module Capability.Error
-  ( -- * Interface
+  ( -- * Relational capabilities
     HasThrow(..)
-  , HasThrow'
   , throw
   , HasCatch(..)
-  , HasCatch'
   , catch
   , catchJust
   , wrapError
+    -- * Functional capabilities
+  , HasThrow'
+  , HasCatch'
+  , TypeOf
     -- * Strategies
   , MonadError(..)
   , MonadThrow(..)
