@@ -1,6 +1,6 @@
 # Revision history for capability
 
-## 0.3.0.0 -- 2020-01-06
+## 0.3.0.0 -- 2020-03-19
 
 * Rename HasStream to HasSink, for symmetry.
   See [#75](https://github.com/tweag/capability/pull/75)
