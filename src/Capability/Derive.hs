@@ -15,9 +15,7 @@ import Capability.Constraints
 import Data.Coerce (Coercible)
 import Unsafe.Coerce (unsafeCoerce)
 
--- | @'derive' \@t \@derived \@ambient act@ is used to run @act@ when the
--- capabilities required by @act@ are not necessarily the same as those
--- available.
+-- | Runs an action that requires additional capabilities.
 --
 -- @'derive' \@t \@derived \@ambient act@ runs @act@ by providing both the
 -- capabilities in @derived@ and @ambient@. The difference is that @ambient@
