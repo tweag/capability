@@ -11,6 +11,10 @@
 * Make HasSource and HasSink superclasses of HasState.
   See [#75](https://github.com/tweag/capability/pull/75)
 
+* Introduce `derive` to run an action that requires additional capabilities.
+  See [#74](https://github.com/tweag/capability/pull/74)
+  and [#83](https://github.com/tweag/capability/pull/83)
+
 * Handlers `zoom` and `magnify` can now carry capabilities over from the context.
   See [#73](https://github.com/tweag/capability/pull/73)
 
