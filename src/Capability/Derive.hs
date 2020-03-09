@@ -29,7 +29,7 @@ import Unsafe.Coerce (unsafeCoerce)
 -- @
 --
 -- Then 'derive' uses type-class instances for `T` to provide for each of the
--- capability in @derived@.
+-- capabilities in @derived@.
 --
 -- A common instance of this is 'Capability.Error.wrapError', whereby exceptions
 -- raised by @act@ can be repackaged in a larger exception type.
