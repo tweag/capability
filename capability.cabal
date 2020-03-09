@@ -39,7 +39,7 @@ library
     Capability
     Capability.Accessors
     Capability.Constraints
-    Capability.Context
+    Capability.Derive
     Capability.Error
     Capability.Reader
     Capability.Reader.Internal.Class

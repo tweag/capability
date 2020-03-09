@@ -22,22 +22,20 @@
 {-# LANGUAGE PolyKinds #-}
 
 module Capability.Sink
-  ( -- * Interface
+  ( -- * Relational capability
     module Capability.Sink.Internal.Class
+    -- * Functional capability
+  , HasSink'
+  , TypeOf
     -- * Strategies
   , module Capability.Sink.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
-    -- * Helpers
-  , module Capability.Constraints
-  , module Capability.TypeOf
-  , HasSink'
   ) where
 
 import Capability.Sink.Internal.Class
 import Capability.Sink.Internal.Strategies
 import Capability.Accessors
-import Capability.Constraints
 import Capability.TypeOf
 
 -- | Type synonym using the 'TypeOf' type family to specify 'HasSink'

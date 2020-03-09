@@ -9,20 +9,18 @@
 -- a change is local, and does not persist when the 'local' call ends.
 
 module Capability.Reader
-  ( -- * Interface
+  ( -- * Relational capability
     module Capability.Reader.Internal.Class
+    -- * Functional capability
+  , HasReader'
+  , TypeOf
     -- * Strategies
   , module Capability.Reader.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
-    -- * Helpers
-  , module Capability.Constraints
-  , module Capability.TypeOf
-  , HasReader'
   ) where
 
 import Capability.Accessors
-import Capability.Constraints
 import Capability.Reader.Internal.Class
 import Capability.Reader.Internal.Strategies
 import Capability.TypeOf

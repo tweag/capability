@@ -13,20 +13,18 @@
 -- or "Capability.Stream".
 
 module Capability.State
-  ( -- * Interface
+  ( -- * Relational capability
     module Capability.State.Internal.Class
+    -- * Functional capability
+  , HasState'
+  , TypeOf
     -- * Strategies
   , module Capability.State.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
-    -- * Helpers
-  , module Capability.Constraints
-  , module Capability.TypeOf
-  , HasState'
   ) where
 
 import Capability.Accessors
-import Capability.Constraints
 import Capability.State.Internal.Class
 import Capability.State.Internal.Strategies
 import Capability.TypeOf

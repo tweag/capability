@@ -46,15 +46,17 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module Capability.Error
-  ( -- * Interface
+  ( -- * Relational capabilities
     HasThrow(..)
-  , HasThrow'
   , throw
   , HasCatch(..)
-  , HasCatch'
   , catch
   , catchJust
   , wrapError
+    -- * Functional capabilities
+  , HasThrow'
+  , HasCatch'
+  , TypeOf
     -- * Strategies
   , MonadError(..)
   , MonadThrow(..)
@@ -70,7 +72,7 @@ module Capability.Error
 
 import Capability.Accessors
 import Capability.Constraints
-import Capability.Context (context)
+import Capability.Derive (derive)
 import Capability.TypeOf
 import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
@@ -168,14 +170,7 @@ wrapError :: forall innertag t (cs :: [Capability]) inner m a.
   , All cs m)
   => (forall m'. All (HasCatch innertag inner ': cs) m' => m' a) -> m a
 wrapError =
-  context @t @'[HasCatch innertag inner] @cs
--- wrapError :: forall outertag innertag t outer inner m a.
---   ( forall x. Coercible (t m x) (m x)
---   , forall m'. HasCatch outertag outer m'
---     => HasCatch innertag inner (t m')
---   , HasCatch outertag outer m )
---   => (forall m'. HasCatch innertag inner m' => m' a) -> m a
--- wrapError action = coerce @(t m a) action
+  derive @t @'[HasCatch innertag inner] @cs
 {-# INLINE wrapError #-}
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?

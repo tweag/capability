@@ -32,20 +32,18 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module Capability.Source
-  ( -- * Interface
+  ( -- * Relational capability
     module Capability.Source.Internal.Class
+    -- * Functional capability
+  , HasSource'
+  , TypeOf
     -- * Strategies
   , module Capability.Source.Internal.Strategies
     -- ** Modifiers
   , module Capability.Accessors
-    -- * Helpers
-  , module Capability.Constraints
-  , module Capability.TypeOf
-  , HasSource'
   ) where
 
 import Capability.Accessors
-import Capability.Constraints
 import Capability.Source.Internal.Class
 import Capability.Source.Internal.Strategies
 import Capability.TypeOf
