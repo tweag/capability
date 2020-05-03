@@ -12,6 +12,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
@@ -21,6 +22,8 @@
 
 module Capability.Sink.Internal.Class where
 
+import Capability.Reflection
+import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Sinking capability.
@@ -41,3 +44,16 @@ class Monad m
 yield :: forall tag a m. HasSink tag a m => a -> m ()
 yield = yield_ (proxy# @_ @tag)
 {-# INLINE yield #-}
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasSink tag a) m = ReifiedSink {_yield :: a -> m ()}
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasSink tag a) m)
+  ) =>
+  HasSink tag a (Reflected s (HasSink tag a) m)
+  where
+  yield_ _ = coerce $ _yield (reified @s)
+  {-# INLINE yield_ #-}

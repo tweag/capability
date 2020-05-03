@@ -14,6 +14,7 @@ import Test.Hspec.Formatters.Jenkins (xmlFormatter)
 import qualified CountLog
 import qualified Error
 import qualified Reader
+import qualified Reflection
 import qualified State
 import qualified Sink
 import qualified Writer
@@ -25,6 +26,7 @@ spec = do
   describe "CountLog" CountLog.spec
   describe "Error" Error.spec
   describe "Reader" Reader.spec
+  describe "Reflection" Reflection.spec
   describe "State" State.spec
   describe "Sink" Sink.spec
   describe "Writer" Writer.spec

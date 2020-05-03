@@ -1,5 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,6 +10,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeInType #-}
 
@@ -19,12 +23,14 @@ module Capability.Reader.Internal.Class
   , local
   , reader
   , magnify
+  , Reified(..)
   ) where
 
 import Capability.Constraints
-import Capability.Source.Internal.Class
 import Capability.Derive (derive)
-import Data.Coerce (Coercible)
+import Capability.Reflection
+import Capability.Source.Internal.Class
+import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Reader capability
@@ -103,3 +109,33 @@ magnify :: forall innertag t (cs :: [Capability]) inner m a.
 magnify =
   derive @t @'[HasReader innertag inner] @cs
 {-# INLINE magnify #-}
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasReader tag r) m = ReifiedReader
+  { _readerSource :: Reified tag (HasSource tag r) m,
+    _local :: forall a. (r -> r) -> m a -> m a,
+    _reader :: forall a. (r -> a) -> m a
+  }
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasReader tag r) m)
+  ) =>
+  HasSource tag r (Reflected s (HasReader tag r) m)
+  where
+  await_ _ = coerce $ _await $ _readerSource $ reified @s
+  {-# INLINE await_ #-}
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasReader tag r) m)
+  ) =>
+  HasReader tag r (Reflected s (HasReader tag r) m)
+  where
+  local_ :: forall a. Proxy# tag -> (r -> r) -> Reflected s (HasReader tag r) m a -> Reflected s (HasReader tag r) m a
+  local_ _ = coerce @((r -> r) -> m a -> m a) $ _local (reified @s)
+  {-# INLINE local_ #-}
+  reader_ :: forall a. Proxy# tag -> (r -> a) -> Reflected s (HasReader tag r) m a
+  reader_ _ = coerce @((r -> a) -> m a) $ _reader (reified @s)
+  {-# INLINE reader_ #-}

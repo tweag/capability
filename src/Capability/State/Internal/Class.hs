@@ -1,5 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -22,13 +25,15 @@ module Capability.State.Internal.Class
   , modify'
   , gets
   , zoom
+  , Reified (..)
   ) where
 
 import Capability.Constraints
 import Capability.Derive (derive)
+import Capability.Reflection
 import Capability.Source.Internal.Class
 import Capability.Sink.Internal.Class
-import Data.Coerce (Coercible)
+import Data.Coerce (Coercible, coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | State capability
@@ -129,3 +134,39 @@ zoom :: forall innertag t (cs :: [Capability]) inner m a.
 zoom =
   derive @t @'[HasState innertag inner] @cs
 {-# INLINE zoom #-}
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasState tag s) m = ReifiedState
+  { _stateSource :: Reified tag (HasSource tag s) m,
+    _stateSink :: Reified tag (HasSink tag s) m,
+    _state :: forall a. (s -> (a, s)) -> m a
+  }
+
+instance
+  ( Monad m,
+    Reifies s' (Reified tag (HasState tag s) m)
+  ) =>
+  HasSource tag s (Reflected s' (HasState tag s) m)
+  where
+  await_ _ = coerce $ _await $ _stateSource $ reified @s'
+  {-# INLINE await_ #-}
+
+instance
+  ( Monad m,
+    Reifies s' (Reified tag (HasState tag s) m)
+  ) =>
+  HasSink tag s (Reflected s' (HasState tag s) m)
+  where
+  yield_ _ = coerce $ _yield $ _stateSink $ reified @s'
+  {-# INLINE yield_ #-}
+
+instance
+  ( Monad m,
+    Reifies s' (Reified tag (HasState tag s) m)
+  ) =>
+  HasState tag s (Reflected s' (HasState tag s) m)
+  where
+  state_ :: forall a. Proxy# tag -> (s -> (a, s)) -> Reflected s' (HasState tag s) m a
+  state_ _ = coerce @((s -> (a, s)) -> m a) $ _state (reified @s')
+  {-# INLINE state_ #-}

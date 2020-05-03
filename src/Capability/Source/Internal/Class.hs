@@ -27,6 +27,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -35,6 +36,8 @@
 
 module Capability.Source.Internal.Class where
 
+import Capability.Reflection
+import Data.Coerce (coerce)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Sourcing capability.
@@ -64,3 +67,16 @@ await = await_ (proxy# @_ @tag)
 awaits :: forall tag r m a. HasSource tag r m => (r -> a) -> m a
 awaits f = f <$> await @tag
 {-# INLINE awaits #-}
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasSource tag a) m = ReifiedSource {_await :: m a}
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasSource tag a) m)
+  ) =>
+  HasSource tag a (Reflected s (HasSource tag a) m)
+  where
+  await_ _ = coerce $ _await (reified @s)
+  {-# INLINE await_ #-}
