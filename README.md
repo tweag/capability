@@ -132,10 +132,7 @@ $ nix-shell --pure --run "cabal test examples --show-details=streaming --test-op
 
 ### Nix Shell
 
-Some of this package's dependencies require patches to build with GHC 8.6.
-These patches are defined in
-[`nix/haskell/default.nix`](nix/haskell/default.nix).
-A development environment with all patched dependencies in scope is defined in
+A development environment with all dependencies in scope is defined in
 [`shell.nix`](shell.nix).
 
 ### Build
