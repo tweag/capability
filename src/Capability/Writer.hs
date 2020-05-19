@@ -117,7 +117,7 @@ class (Monoid w, Monad m, HasSink tag w m)
 -- Appends @w@ to the output of the writer capability @tag@
 -- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
-writer = writer @tag
+writer = writer_ (proxy# @_ @tag)
 {-# INLINE writer #-}
 
 -- | @tell \@tag w@
