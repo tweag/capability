@@ -47,11 +47,11 @@ yield = yield_ (proxy# @_ @tag)
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasSink tag a) m = ReifiedSink {_yield :: a -> m ()}
+data instance Reified (HasSink tag a m) = ReifiedSink {_yield :: a -> m ()}
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasSink tag a) m)
+    Reifies s (Reified (HasSink tag a m))
   ) =>
   HasSink tag a (Reflected s (HasSink tag a) m)
   where

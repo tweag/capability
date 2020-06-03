@@ -444,17 +444,17 @@ type HasCatch' (tag :: k) = HasCatch tag (TypeOf k tag)
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasThrow tag e) m = ReifiedThrow {_throw :: forall a. e -> m a}
+data instance Reified (HasThrow tag e m) = ReifiedThrow {_throw :: forall a. e -> m a}
 
-data instance Reified tag (HasCatch tag e) m = ReifiedCatch
-  { _catchThrow :: Reified tag (HasThrow tag e) m,
+data instance Reified (HasCatch tag e m) = ReifiedCatch
+  { _catchThrow :: Reified (HasThrow tag e m),
     _catch :: forall a. m a -> (e -> m a) -> m a,
     _catchJust :: forall a b. (e -> Maybe b) -> m a -> (b -> m a) -> m a
   }
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasThrow tag e) m)
+    Reifies s (Reified (HasThrow tag e m))
   ) =>
   HasThrow tag e (Reflected s (HasThrow tag e) m)
   where
@@ -464,7 +464,7 @@ instance
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasCatch tag e) m)
+    Reifies s (Reified (HasCatch tag e m))
   ) =>
   HasThrow tag e (Reflected s (HasCatch tag e) m)
   where
@@ -474,7 +474,7 @@ instance
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasCatch tag e) m)
+    Reifies s (Reified (HasCatch tag e m))
   ) =>
   HasCatch tag e (Reflected s (HasCatch tag e) m)
   where

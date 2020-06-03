@@ -66,9 +66,9 @@ import Data.Reflection
 interpret_ ::
   forall tag c m a.
   ( Monad m,
-    forall s. Reifies s (Reified tag c m) => c (Reflected s c m)
+    forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
   ) =>
-  Reified tag c m ->
+  Reified (c m) ->
   (forall m'. c m' => m' a) ->
   m a
 interpret_ = interpret @tag @'[] @c
@@ -92,9 +92,9 @@ interpret ::
   forall tag (cs :: [Capability]) c m a.
   ( Monad m,
     All cs m,
-    forall s. Reifies s (Reified tag c m) => c (Reflected s c m)
+    forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
   ) =>
-  Reified tag c m ->
+  Reified (c m) ->
   (forall m'. All (c ': cs) m' => m' a) ->
   m a
 interpret dict action =
@@ -130,7 +130,7 @@ interpret dict action =
 --         _state :: forall a. (s -> (a, s)) -> m a
 --       }
 --   :}
-data family Reified (tag :: k) (c :: Capability) (m :: * -> *)
+data family Reified (c :: Constraint)
 
 -- | @Reflected s capability m@
 --
@@ -165,6 +165,6 @@ newtype Reflected (s :: *) (c :: Capability) (m :: * -> *) (a :: *) = Reflect (m
 -- Obtain the dictionary that is reflected in the type system under @s@.
 --
 -- This is a convenience wrapper around 'Data.Reflection.reflect'.
-reified :: forall s tag c m. Reifies s (Reified tag c m) => Reified tag c m
+reified :: forall s c m. Reifies s (Reified (c m)) => Reified (c m)
 reified = reflect (Proxy @s)
 {-# INLINE reified #-}

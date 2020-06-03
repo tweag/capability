@@ -137,15 +137,15 @@ zoom =
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasState tag s) m = ReifiedState
-  { _stateSource :: Reified tag (HasSource tag s) m,
-    _stateSink :: Reified tag (HasSink tag s) m,
+data instance Reified (HasState tag s m) = ReifiedState
+  { _stateSource :: Reified (HasSource tag s m),
+    _stateSink :: Reified (HasSink tag s m),
     _state :: forall a. (s -> (a, s)) -> m a
   }
 
 instance
   ( Monad m,
-    Reifies s' (Reified tag (HasState tag s) m)
+    Reifies s' (Reified (HasState tag s m))
   ) =>
   HasSource tag s (Reflected s' (HasState tag s) m)
   where
@@ -154,7 +154,7 @@ instance
 
 instance
   ( Monad m,
-    Reifies s' (Reified tag (HasState tag s) m)
+    Reifies s' (Reified (HasState tag s m))
   ) =>
   HasSink tag s (Reflected s' (HasState tag s) m)
   where
@@ -163,7 +163,7 @@ instance
 
 instance
   ( Monad m,
-    Reifies s' (Reified tag (HasState tag s) m)
+    Reifies s' (Reified (HasState tag s m))
   ) =>
   HasState tag s (Reflected s' (HasState tag s) m)
   where

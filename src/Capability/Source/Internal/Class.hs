@@ -70,11 +70,11 @@ awaits f = f <$> await @tag
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasSource tag a) m = ReifiedSource {_await :: m a}
+data instance Reified (HasSource tag a m) = ReifiedSource {_await :: m a}
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasSource tag a) m)
+    Reifies s (Reified (HasSource tag a m))
   ) =>
   HasSource tag a (Reflected s (HasSource tag a) m)
   where

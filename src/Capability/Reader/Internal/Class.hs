@@ -112,15 +112,15 @@ magnify =
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasReader tag r) m = ReifiedReader
-  { _readerSource :: Reified tag (HasSource tag r) m,
+data instance Reified (HasReader tag r m) = ReifiedReader
+  { _readerSource :: Reified (HasSource tag r m),
     _local :: forall a. (r -> r) -> m a -> m a,
     _reader :: forall a. (r -> a) -> m a
   }
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasReader tag r) m)
+    Reifies s (Reified (HasReader tag r m))
   ) =>
   HasSource tag r (Reflected s (HasReader tag r) m)
   where
@@ -129,7 +129,7 @@ instance
 
 instance
   ( Monad m,
-    Reifies s (Reified tag (HasReader tag r) m)
+    Reifies s (Reified (HasReader tag r m))
   ) =>
   HasReader tag r (Reflected s (HasReader tag r) m)
   where

@@ -185,8 +185,8 @@ type HasWriter' (tag :: k) = HasWriter tag (TypeOf k tag)
 
 --------------------------------------------------------------------------------
 
-data instance Reified tag (HasWriter tag w) m = ReifiedWriter
-  { _writerSink :: Reified tag (HasSink tag w) m,
+data instance Reified (HasWriter tag w m) = ReifiedWriter
+  { _writerSink :: Reified (HasSink tag w m),
     _writer :: forall a. (a, w) -> m a,
     _listen :: forall a. m a -> m (a, w),
     _pass :: forall a. m (a, w -> w) -> m a
@@ -195,7 +195,7 @@ data instance Reified tag (HasWriter tag w) m = ReifiedWriter
 instance
   ( Monoid w,
     Monad m,
-    Reifies s (Reified tag (HasWriter tag w) m)
+    Reifies s (Reified (HasWriter tag w m))
   ) =>
   HasSink tag w (Reflected s (HasWriter tag w) m)
   where
@@ -205,7 +205,7 @@ instance
 instance
   ( Monad m,
     Monoid w,
-    Reifies s (Reified tag (HasWriter tag w) m)
+    Reifies s (Reified (HasWriter tag w m))
   ) =>
   HasWriter tag w (Reflected s (HasWriter tag w) m)
   where
