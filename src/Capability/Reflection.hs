@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
--- | This module allows to provide an ad-hoc interpreter for a capability using
+-- | Use this module to provide an ad-hoc interpreter for a capability using
 -- type class reflection.
 --
 -- Use the functions 'interpret_' or 'interpret' for ad-hoc interpretation of
@@ -76,8 +76,8 @@ interpret_ = interpret @tag @'[] @c
 
 -- | @interpret \@tag \@ambient dict action@
 --
--- Like 'interpret_' but allows to forward the ambient capabilities @ambient@
--- into the context of @action@ as well.
+-- Like 'interpret_' but forwards the ambient capabilities @ambient@ into the
+-- context of @action@ as well.
 --
 -- For example, the following provides an ad-hoc interpretation for the
 -- 'Capability.Source.HasSource' capability, while using an ambient
