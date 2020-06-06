@@ -2,8 +2,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE QuantifiedConstraints #-}
@@ -11,6 +14,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Use this module to provide an ad-hoc interpreter for a capability using
 -- type class reflection.
@@ -48,6 +52,10 @@ import Capability.Derive
 import Data.Proxy
 import Data.Reflection
 
+class TagOf (tag :: k) (c :: Capability) | c -> tag
+
+instance tag ~ tag' => TagOf tag (c tag' v)
+
 -- | @interpret_ \@tag dict action@
 --
 -- Execute @action@ using the ad-hoc interpretation of a capability @c@ under
@@ -65,11 +73,12 @@ import Data.Reflection
 -- ["capabilities", "capabilities", "capabilities"]
 interpret_ ::
   forall tag c m a.
-  ( Monad m,
+  ( TagOf tag c,
+    Monad m,
     forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
   ) =>
   Reified (c m) ->
-  (forall m'. c m' => m' a) ->
+  (forall m'. (TagOf tag c, c m') => m' a) ->
   m a
 interpret_ = interpret @tag @'[] @c
 {-# INLINE interpret_ #-}
@@ -90,12 +99,13 @@ interpret_ = interpret @tag @'[] @c
 --   :}
 interpret ::
   forall tag (cs :: [Capability]) c m a.
-  ( Monad m,
+  ( TagOf tag c,
+    Monad m,
     All cs m,
     forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
   ) =>
   Reified (c m) ->
-  (forall m'. All (c ': cs) m' => m' a) ->
+  (forall m'. (TagOf tag c, All (c ': cs) m') => m' a) ->
   m a
 interpret dict action =
   reify dict $ \(_ :: Proxy s) ->
