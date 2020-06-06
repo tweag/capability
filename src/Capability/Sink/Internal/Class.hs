@@ -57,3 +57,9 @@ instance
   where
   yield_ _ = coerce $ _yield (reified @s)
   {-# INLINE yield_ #-}
+
+example :: [()]
+example =
+  interpret @"sink" @'[]
+    ReifiedSink { _yield = (:[]) }
+    (do yield @"sink" (); yield @"sink" ())
