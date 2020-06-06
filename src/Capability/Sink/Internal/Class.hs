@@ -60,6 +60,6 @@ instance
 
 example :: [()]
 example =
-  interpret @'[]
-    (ReifiedSink { _yield = (:[]) } :: Reified (HasSink "sink" () []))
+  interpret @"sink" @'[]
+    ReifiedSink { _yield = (:[]) }
     (do yield @"sink" (); yield @"sink" ())

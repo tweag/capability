@@ -64,14 +64,14 @@ import Data.Reflection
 --   :}
 -- ["capabilities", "capabilities", "capabilities"]
 interpret_ ::
-  forall c m a.
+  forall tag c m a.
   ( Monad m,
     forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
   ) =>
   Reified (c m) ->
   (forall m'. c m' => m' a) ->
   m a
-interpret_ = interpret @'[] @c
+interpret_ = interpret @tag @'[] @c
 {-# INLINE interpret_ #-}
 
 -- | @interpret \@tag \@ambient dict action@
@@ -89,7 +89,7 @@ interpret_ = interpret @'[] @c
 --     (replicateM_ 3 (await @"my-source" >>= yield @"my-sink"))
 --   :}
 interpret ::
-  forall (cs :: [Capability]) c m a.
+  forall tag (cs :: [Capability]) c m a.
   ( Monad m,
     All cs m,
     forall s. Reifies s (Reified (c m)) => c (Reflected s c m)
