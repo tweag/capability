@@ -33,6 +33,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -55,9 +56,12 @@ module Capability.Writer
   , SinkLog (..)
     -- ** Modifiers
   , module Capability.Accessors
+    -- * Reflection
+  , Reified (..)
   ) where
 
 import Capability.Accessors
+import Capability.Reflection
 import Capability.Sink
 import Capability.State
 -- import deprecated module to reexport deprecated item for back-compat.
@@ -178,3 +182,39 @@ instance (Monoid w, HasState tag w m)
 -- | Type synonym using the 'TypeOf' type family to specify 'HasWriter'
 -- constraints without having to specify the type associated to a tag.
 type HasWriter' (tag :: k) = HasWriter tag (TypeOf k tag)
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasWriter tag w) m = ReifiedWriter
+  { _writerSink :: Reified tag (HasSink tag w) m,
+    _writer :: forall a. (a, w) -> m a,
+    _listen :: forall a. m a -> m (a, w),
+    _pass :: forall a. m (a, w -> w) -> m a
+  }
+
+instance
+  ( Monoid w,
+    Monad m,
+    Reifies s (Reified tag (HasWriter tag w) m)
+  ) =>
+  HasSink tag w (Reflected s (HasWriter tag w) m)
+  where
+  yield_ _ = coerce $ _yield $ _writerSink $ reified @s
+  {-# INLINE yield_ #-}
+
+instance
+  ( Monad m,
+    Monoid w,
+    Reifies s (Reified tag (HasWriter tag w) m)
+  ) =>
+  HasWriter tag w (Reflected s (HasWriter tag w) m)
+  where
+  writer_ :: forall a. Proxy# tag -> (a, w) -> Reflected s (HasWriter tag w) m a
+  writer_ _ = coerce @((a, w) -> m a) $ _writer (reified @s)
+  {-# INLINE writer_ #-}
+  listen_ :: forall a. Proxy# tag -> Reflected s (HasWriter tag w) m a -> Reflected s (HasWriter tag w) m (a, w)
+  listen_ _ = coerce @(m a -> m (a, w)) $ _listen (reified @s)
+  {-# INLINE listen_ #-}
+  pass_ :: forall a. Proxy# tag -> Reflected s (HasWriter tag w) m (a, w -> w) -> Reflected s (HasWriter tag w) m a
+  pass_ _ = coerce @(m (a, w -> w) -> m a) $ _pass (reified @s)
+  {-# INLINE pass_ #-}

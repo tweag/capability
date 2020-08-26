@@ -39,6 +39,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -65,6 +66,8 @@ module Capability.Error
   , MonadUnliftIO(..)
     -- ** Modifiers
   , module Capability.Accessors
+    -- * Reflection
+  , Reified(..)
     -- * Re-exported
   , Exception(..)
   , Typeable
@@ -73,6 +76,7 @@ module Capability.Error
 import Capability.Accessors
 import Capability.Constraints
 import Capability.Derive (derive)
+import Capability.Reflection
 import Capability.TypeOf
 import Control.Exception (Exception(..))
 import qualified Control.Exception.Safe as Safe
@@ -437,3 +441,46 @@ type HasThrow' (tag :: k) = HasThrow tag (TypeOf k tag)
 -- | Type synonym using the 'TypeOf' type family to specify 'HasCatch'
 -- constraints without having to specify the type associated to a tag.
 type HasCatch' (tag :: k) = HasCatch tag (TypeOf k tag)
+
+--------------------------------------------------------------------------------
+
+data instance Reified tag (HasThrow tag e) m = ReifiedThrow {_throw :: forall a. e -> m a}
+
+data instance Reified tag (HasCatch tag e) m = ReifiedCatch
+  { _catchThrow :: Reified tag (HasThrow tag e) m,
+    _catch :: forall a. m a -> (e -> m a) -> m a,
+    _catchJust :: forall a b. (e -> Maybe b) -> m a -> (b -> m a) -> m a
+  }
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasThrow tag e) m)
+  ) =>
+  HasThrow tag e (Reflected s (HasThrow tag e) m)
+  where
+  throw_ :: forall a. Proxy# tag -> e -> Reflected s (HasThrow tag e) m a
+  throw_ _ = coerce @(e -> m a) $ _throw $ reified @s
+  {-# INLINE throw_ #-}
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasCatch tag e) m)
+  ) =>
+  HasThrow tag e (Reflected s (HasCatch tag e) m)
+  where
+  throw_ :: forall a. Proxy# tag -> e -> Reflected s (HasCatch tag e) m a
+  throw_ _ = coerce @(e -> m a) $ _throw $ _catchThrow $ reified @s
+  {-# INLINE throw_ #-}
+
+instance
+  ( Monad m,
+    Reifies s (Reified tag (HasCatch tag e) m)
+  ) =>
+  HasCatch tag e (Reflected s (HasCatch tag e) m)
+  where
+  catch_ :: forall a. Proxy# tag -> Reflected s (HasCatch tag e) m a -> (e -> Reflected s (HasCatch tag e) m a) -> Reflected s (HasCatch tag e) m a
+  catch_ _ = coerce @(m a -> (e -> m a) -> m a) $ _catch $ reified @s
+  {-# INLINE catch_ #-}
+  catchJust_ :: forall a b. Proxy# tag -> (e -> Maybe b) -> Reflected s (HasCatch tag e) m a -> (b -> Reflected s (HasCatch tag e) m a) -> Reflected s (HasCatch tag e) m a
+  catchJust_ _ = coerce @((e -> Maybe b) -> m a -> (b -> m a) -> m a) $ _catchJust $ reified @s
+  {-# INLINE catchJust_ #-}

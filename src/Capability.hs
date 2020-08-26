@@ -108,14 +108,18 @@
 -- combinators which you can use if you absolutely must: they are correct, but
 -- inefficient, so we recommend that you do not.
 --
--- Finally there is
+-- Finally there are
 --
 -- * "Capability.Derive"
---
 -- Which exports a (still experimental) 'Capability.Derive.derive' function,
 -- which lets you run a computation which requires capabilities which are not
 -- directly provided by the ambient monad, but can be derived from the
 -- capabilities provided by the ambient monad.
+-- * "Capability.Reflection"
+-- Which exports 'Capability.Reflection.interpret_' and
+-- 'Capability.Reflection.interpret', which let you define an ad-hoc
+-- interpretation of a capability based on the capabilities provided by the
+-- ambient monad.
 --
 -- == Further considerations
 --
