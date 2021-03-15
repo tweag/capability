@@ -1,5 +1,16 @@
 # Revision history for capability
 
+## 0.4.0.0 -- 2021-03-15
+
+* Fix infinite loop in `writer`.
+  See [#85](https://github.com/tweag/capability/pull/85)
+
+* Introduce `Capability.Reflection` to define ad-hoc interpreters.
+  See [#86](https://github.com/tweag/capability/pull/86)
+
+* Fix compatibility with GHC 8.10.
+  See [#87](https://github.com/tweag/capability/pull/87)
+
 ## 0.3.0.0 -- 2020-03-19
 
 * Rename HasStream to HasSink, for symmetry.
