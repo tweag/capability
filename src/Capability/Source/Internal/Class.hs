@@ -56,7 +56,7 @@ class Monad m
 -- | @await \@tag a@
 -- takes @a@ from the source capability @tag@.
 await :: forall tag a m. HasSource tag a m => m a
-await = await_ (proxy# @_ @tag)
+await = await_ (proxy# @tag)
 {-# INLINE await #-}
 
 -- | @awaits \@tag@

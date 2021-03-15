@@ -110,7 +110,7 @@ class Monad m
 
 -- | Throw an exception in the specified exception capability.
 throw :: forall tag e m a. HasThrow tag e m => e -> m a
-throw = throw_ (proxy# @_ @tag)
+throw = throw_ (proxy# @tag)
 {-# INLINE throw #-}
 
 -- | Capability to catch exceptions of type @e@ under @tag@.
@@ -144,14 +144,14 @@ class HasThrow tag e m
 -- | Provide a handler for exceptions thrown in the given action
 -- in the given exception capability.
 catch :: forall tag e m a. HasCatch tag e m => m a -> (e -> m a) -> m a
-catch = catch_ (proxy# @_ @tag)
+catch = catch_ (proxy# @tag)
 {-# INLINE catch #-}
 
 -- | Like 'catch', but only handle the exception if the provided function
 -- returns 'Just'.
 catchJust :: forall tag e m a b. HasCatch tag e m
   => (e -> Maybe b) -> m a -> (b -> m a) -> m a
-catchJust = catchJust_ (proxy# @_ @tag)
+catchJust = catchJust_ (proxy# @tag)
 {-# INLINE catchJust #-}
 
 -- | Wrap exceptions @inner@ originating from the given action according to

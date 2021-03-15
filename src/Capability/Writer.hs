@@ -121,13 +121,13 @@ class (Monoid w, Monad m, HasSink tag w m)
 -- Appends @w@ to the output of the writer capability @tag@
 -- and returns the value @a@.
 writer :: forall tag w m a. HasWriter tag w m => (a, w) -> m a
-writer = writer_ (proxy# @_ @tag)
+writer = writer_ (proxy# @tag)
 {-# INLINE writer #-}
 
 -- | @tell \@tag w@
 -- appends @w@ to the output of the writer capability @tag@.
 tell :: forall tag w m. HasWriter tag w m => w -> m ()
-tell = yield_ (proxy# @_ @tag)
+tell = yield_ (proxy# @tag)
 {-# INLINE tell #-}
 
 -- | @listen \@tag m@
@@ -135,7 +135,7 @@ tell = yield_ (proxy# @_ @tag)
 -- in the writer capability @tag@ along with result of @m@.
 -- Appends the output of @m@ to the output of the writer capability @tag@.
 listen :: forall tag w m a. HasWriter tag w m => m a -> m (a, w)
-listen = listen_ (proxy# @_ @tag)
+listen = listen_ (proxy# @tag)
 {-# INLINE listen #-}
 
 -- | @pass \@tag m@
@@ -143,7 +143,7 @@ listen = listen_ (proxy# @_ @tag)
 -- @w@ to the output of the writer capability @tag@.
 -- @pass \@tag m@ instead appends @w' = f w@ to the output and returns @a@.
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
-pass = pass_ (proxy# @_ @tag)
+pass = pass_ (proxy# @tag)
 {-# INLINE pass #-}
 
 -- | Compose two accessors.

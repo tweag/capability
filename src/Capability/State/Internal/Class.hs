@@ -75,7 +75,7 @@ put = yield @tag
 -- Given the current state @s@ of the state capability @tag@
 -- and @(a, s') = f s@, update the state to @s'@ and return @a@.
 state :: forall tag s m a. HasState tag s m => (s -> (a, s)) -> m a
-state = state_ (proxy# @_ @tag)
+state = state_ (proxy# @tag)
 {-# INLINE state #-}
 
 -- | @modify \@tag f@

@@ -80,7 +80,7 @@ asks = awaits @tag
 -- where @e@ is the environment of the reader capability @tag@.
 -- Symbolically: @return e = ask \@tag@.
 local :: forall tag r m a. HasReader tag r m => (r -> r) -> m a -> m a
-local = local_ (proxy# @_ @tag)
+local = local_ (proxy# @tag)
 {-# INLINE local #-}
 
 -- | @reader \@tag act@
@@ -89,7 +89,7 @@ local = local_ (proxy# @_ @tag)
 --
 -- It happens to coincide with @asks@: @reader = asks@.
 reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
-reader = reader_ (proxy# @_ @tag)
+reader = reader_ (proxy# @tag)
 {-# INLINE reader #-}
 
 -- | Execute the given reader action on a sub-component of the current context
