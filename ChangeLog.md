@@ -2,7 +2,7 @@
 
 ## 0.4.0.0 -- 2021-03-15
 
-* Fix infite loop in `writer`.
+* Fix infinite loop in `writer`.
   See [#85](https://github.com/tweag/capability/pull/85)
 
 * Introduce `Capability.Reflection` to define ad-hoc interpreters.
