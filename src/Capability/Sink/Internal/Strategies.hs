@@ -44,19 +44,20 @@ import qualified Data.DList as DList
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import Data.IORef
+import Data.Kind (Type)
 import Data.Mutable
 import Streaming
 import qualified Streaming.Prelude as S
 
 -- | Accumulate sunk values in a reverse order list.
-newtype SinkStack m (a :: *) = SinkStack (m a)
+newtype SinkStack m (a :: Type) = SinkStack (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance HasState tag [a] m => HasSink tag a (SinkStack m) where
   yield_ _ a = coerce @(m ()) $ modify' @tag (a:)
   {-# INLINE yield_ #-}
 
 -- | Accumulate sunk values in forward order in a difference list.
-newtype SinkDList m (a :: *) = SinkDList (m a)
+newtype SinkDList m (a :: Type) = SinkDList (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 -- | This instance may seem a bit odd at first. All it does is wrap each
 -- 'yield'ed value in a single element difference list. How does re-yielding
@@ -75,7 +76,7 @@ instance HasSink tag (DList a) m => HasSink tag a (SinkDList m) where
   {-# INLINE yield_ #-}
 
 -- | Accumulate sunk values with their own monoid.
-newtype SinkLog m (a :: *) = SinkLog (m a)
+newtype SinkLog m (a :: Type) = SinkLog (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 instance (Monoid w, HasState tag w m) => HasSink tag w (SinkLog m) where
     yield_ _ w = coerce @(m ()) $ modify' @tag (<> w)
@@ -105,7 +106,7 @@ instance (HasSink tag a m, MonadTrans t, Monad (t m))
     {-# INLINE yield_ #-}
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasSink tag a (t2 (t1 m)) )

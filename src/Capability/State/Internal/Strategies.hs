@@ -41,6 +41,7 @@ import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
 import Data.IORef
+import Data.Kind (Type)
 import Data.Mutable
 import GHC.Exts (Proxy#)
 
@@ -106,7 +107,7 @@ instance (HasState tag s m, MonadTrans t, Monad (t m))
     {-# INLINE state_ #-}
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasState tag s (t2 (t1 m)) )

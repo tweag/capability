@@ -46,6 +46,7 @@ module Capability.Reflection
 
 import Capability.Constraints
 import Capability.Derive
+import Data.Kind (Type)
 import Data.Proxy
 import Data.Reflection
 
@@ -131,7 +132,7 @@ interpret dict action =
 --         _state :: forall a. (s -> (a, s)) -> m a
 --       }
 --   :}
-data family Reified (tag :: k) (c :: Capability) (m :: * -> *)
+data family Reified (tag :: k) (c :: Capability) (m :: Type -> Type)
 
 -- | @Reflected s capability m@
 --
@@ -158,7 +159,7 @@ data family Reified (tag :: k) (c :: Capability) (m :: * -> *)
 --     where
 --     yield a = Reflect $ _yield (reified @s) a
 --   :}
-newtype Reflected (s :: *) (c :: Capability) (m :: * -> *) (a :: *) = Reflect (m a)
+newtype Reflected (s :: Type) (c :: Capability) (m :: Type -> Type) (a :: Type) = Reflect (m a)
   deriving (Functor, Applicative, Monad)
 
 -- | @reified \@s@

@@ -38,6 +38,7 @@ module Capability.Source.Internal.Class where
 
 import Capability.Reflection
 import Data.Coerce (coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Sourcing capability.
@@ -45,7 +46,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- An instance does not need to fulfill any additional laws
 -- besides the monad laws.
 class Monad m
-  => HasSource (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
+  => HasSource (tag :: k) (a :: Type) (m :: Type -> Type) | tag m -> a
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasSource'.

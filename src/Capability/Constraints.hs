@@ -16,12 +16,12 @@ module Capability.Constraints
   ) where
 
 import Data.Constraint (Dict(..))
-import Data.Kind (Constraint)
+import Data.Kind (Constraint, Type)
 
--- | A 'Capability' takes a type constructor @* -> *@ (e.g., a monad) and
+-- | A 'Capability' takes a type constructor @Type -> Type@ (e.g., a monad) and
 -- returns a 'Constraint'. Examples of capabilities includ: @HasReader "foo"
 -- Int@, @MonadIO@, …
-type Capability = (* -> *) -> Constraint
+type Capability = (Type -> Type) -> Constraint
 
 -- | Type family used used to express a conjunction of constraints over a single
 -- type.

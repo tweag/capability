@@ -67,6 +67,7 @@ import Capability.State
 -- import deprecated module to reexport deprecated item for back-compat.
 import Capability.Stream
 import Data.Coerce (Coercible, coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Writer capability
@@ -96,7 +97,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- regardless of whatever additional methods it provides and laws by which it
 -- abides.
 class (Monoid w, Monad m, HasSink tag w m)
-  => HasWriter (tag :: k) (w :: *) (m :: * -> *) | tag m -> w
+  => HasWriter (tag :: k) (w :: Type) (m :: Type -> Type) | tag m -> w
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
@@ -147,7 +148,7 @@ pass = pass_ (proxy# @tag)
 {-# INLINE pass #-}
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasWriter tag w (t2 (t1 m)) )

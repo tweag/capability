@@ -44,6 +44,7 @@ import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
 import Data.IORef
+import Data.Kind (Type)
 import Data.Mutable
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
@@ -52,7 +53,7 @@ import qualified Data.Generics.Product.Positions as Generic
 
 -- | Derive 'HasSource' from @m@'s 'Control.Monad.Reader.Class.MonadReader'
 -- instance.
-newtype MonadReader (m :: * -> *) (a :: *) = MonadReader (m a)
+newtype MonadReader (m :: Type -> Type) (a :: Type) = MonadReader (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance Reader.MonadReader r m => HasSource tag r (MonadReader m) where
@@ -74,7 +75,7 @@ instance Reader.MonadReader r m => HasSource tag r (MonadReader m) where
 -- exceptions.
 --
 -- See 'ReadState'.
-newtype ReadStatePure (m :: * -> *) (a :: *) = ReadStatePure (m a)
+newtype ReadStatePure (m :: Type -> Type) (a :: Type) = ReadStatePure (m a)
   deriving (Functor, Applicative, Monad)
 
 instance HasState tag r m => HasSource tag r (ReadStatePure m) where
@@ -86,7 +87,7 @@ instance HasState tag r m => HasSource tag r (ReadStatePure m) where
 -- Use this if the monad stack allows catching exceptions.
 --
 -- See 'ReadStatePure'.
-newtype ReadState (m :: * -> *) (a :: *) = ReadState (m a)
+newtype ReadState (m :: Type -> Type) (a :: Type) = ReadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance
@@ -104,7 +105,7 @@ instance
       awaits @oldtag $ view (Generic.position' @pos)
     {-# INLINE await_ #-}
 
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasSource tag r (t2 (t1 m)) )

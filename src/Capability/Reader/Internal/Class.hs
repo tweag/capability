@@ -31,6 +31,7 @@ import Capability.Derive (derive)
 import Capability.Reflection
 import Capability.Source.Internal.Class
 import Data.Coerce (Coercible, coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Reader capability
@@ -47,7 +48,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> local @t f (m >>= \x -> k x) = local @t f m >>= \x -> local @t f (k x)
 -- prop> reader @t f = f <$> ask @t
 class (Monad m, HasSource tag r m)
-  => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r
+  => HasReader (tag :: k) (r :: Type) (m :: Type -> Type) | tag m -> r
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
