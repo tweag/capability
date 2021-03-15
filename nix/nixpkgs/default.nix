@@ -1,6 +1,6 @@
 let
-  rev = "19.09";
-  sha256 = "0mhqhq21y5vrr1f30qd2bvydv4bbbslvyzclhw0kdxmkgg3z4c92";
+  rev = "f5f6dc053b1a0eca03c853dad710f3de070df24e";
+  sha256 = "0kxp8fmcdw2nla5kficm7ffbllczwh7b7nqagwr4djs417rf4wma";
   nixpkgs = builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
     inherit sha256;
