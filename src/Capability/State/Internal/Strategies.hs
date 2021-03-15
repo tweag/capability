@@ -34,7 +34,6 @@ import Capability.State.Internal.Strategies.Common
 import Capability.Source.Internal.Strategies ()
 import Capability.Sink.Internal.Strategies ()
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)

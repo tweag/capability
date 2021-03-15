@@ -34,10 +34,7 @@ import Capability.Sink.Internal.Class
 import Capability.State.Internal.Class
 import Capability.State.Internal.Strategies.Common
 import Control.Lens (set)
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.State.Class as State
-import Control.Monad.Trans.Class (MonadTrans, lift)
 import Data.Coerce (Coercible, coerce)
 import Data.DList (DList)
 import qualified Data.DList as DList

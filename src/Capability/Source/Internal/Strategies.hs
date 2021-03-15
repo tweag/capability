@@ -38,7 +38,6 @@ import Capability.Accessors
 import Control.Lens (view)
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Primitive (PrimMonad)
 import qualified Control.Monad.Reader.Class as Reader
 import qualified Control.Monad.State.Class as State
 import Control.Monad.Trans.Class (MonadTrans, lift)
