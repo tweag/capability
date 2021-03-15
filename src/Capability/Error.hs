@@ -91,6 +91,7 @@ import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Control (MonadTransControl(..))
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Sum.Constructors as Generic
+import Data.Kind (Type)
 import Data.Typeable (Typeable)
 import GHC.Exts (Proxy#, proxy#)
 import qualified UnliftIO.Exception as UnliftIO
@@ -100,7 +101,7 @@ import qualified UnliftIO.Exception as UnliftIO
 -- @HasThrow@/@HasCatch@ capabilities at different tags should be independent.
 -- See 'HasCatch'.
 class Monad m
-  => HasThrow (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
+  => HasThrow (tag :: k) (e :: Type) (m :: Type -> Type) | tag m -> e
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
@@ -110,7 +111,7 @@ class Monad m
 
 -- | Throw an exception in the specified exception capability.
 throw :: forall tag e m a. HasThrow tag e m => e -> m a
-throw = throw_ (proxy# @_ @tag)
+throw = throw_ (proxy# @tag)
 {-# INLINE throw #-}
 
 -- | Capability to catch exceptions of type @e@ under @tag@.
@@ -128,7 +129,7 @@ throw = throw_ (proxy# @_ @tag)
 --
 -- See 'wrapError' for a way to combine multiple exception types into one.
 class HasThrow tag e m
-  => HasCatch (tag :: k) (e :: *) (m :: * -> *) | tag m -> e
+  => HasCatch (tag :: k) (e :: Type) (m :: Type -> Type) | tag m -> e
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
@@ -144,14 +145,14 @@ class HasThrow tag e m
 -- | Provide a handler for exceptions thrown in the given action
 -- in the given exception capability.
 catch :: forall tag e m a. HasCatch tag e m => m a -> (e -> m a) -> m a
-catch = catch_ (proxy# @_ @tag)
+catch = catch_ (proxy# @tag)
 {-# INLINE catch #-}
 
 -- | Like 'catch', but only handle the exception if the provided function
 -- returns 'Just'.
 catchJust :: forall tag e m a b. HasCatch tag e m
   => (e -> Maybe b) -> m a -> (b -> m a) -> m a
-catchJust = catchJust_ (proxy# @_ @tag)
+catchJust = catchJust_ (proxy# @tag)
 {-# INLINE catchJust #-}
 
 -- | Wrap exceptions @inner@ originating from the given action according to
@@ -181,7 +182,7 @@ wrapError =
 --   What would the meaning of the tag be?
 
 -- | Derive 'HasError from @m@'s 'Control.Monad.Except.MonadError' instance.
-newtype MonadError m (a :: *) = MonadError (m a)
+newtype MonadError m (a :: Type) = MonadError (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance Except.MonadError e m => HasThrow tag e (MonadError m) where
@@ -204,7 +205,7 @@ instance Except.MonadError e m => HasCatch tag e (MonadError m) where
   {-# INLINE catchJust_ #-}
 
 -- | Derive 'HasThrow' from @m@'s 'Control.Monad.Catch.MonadThrow' instance.
-newtype MonadThrow (e :: *) m (a :: *) = MonadThrow (m a)
+newtype MonadThrow (e :: Type) m (a :: Type) = MonadThrow (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance (Catch.Exception e, Catch.MonadThrow m)
@@ -215,7 +216,7 @@ instance (Catch.Exception e, Catch.MonadThrow m)
     {-# INLINE throw_ #-}
 
 -- | Derive 'HasCatch from @m@'s 'Control.Monad.Catch.MonadCatch instance.
-newtype MonadCatch (e :: *) m (a :: *) = MonadCatch (m a)
+newtype MonadCatch (e :: Type) m (a :: Type) = MonadCatch (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
   deriving (HasThrow tag e) via MonadThrow e m
 
@@ -242,7 +243,7 @@ instance (Catch.Exception e, Catch.MonadCatch m)
 
 -- | Derive 'HasError' using the functionality from the @safe-exceptions@
 -- package.
-newtype SafeExceptions (e :: *) m (a :: *) = SafeExceptions (m a)
+newtype SafeExceptions (e :: Type) m (a :: Type) = SafeExceptions (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance (Safe.Exception e, Safe.MonadThrow m)
@@ -273,7 +274,7 @@ instance (Safe.Exception e, Safe.MonadCatch m)
     {-# INLINE catchJust_ #-}
 
 -- | Derive 'HasError' using the functionality from the @unliftio@ package.
-newtype MonadUnliftIO (e :: *) m (a :: *) = MonadUnliftIO (m a)
+newtype MonadUnliftIO (e :: Type) m (a :: Type) = MonadUnliftIO (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 instance (UnliftIO.Exception e, MonadIO m)
@@ -420,7 +421,7 @@ instance
 
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasThrow tag e (t2 (t1 m)) )
@@ -428,7 +429,7 @@ deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
 
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasCatch tag e (t2 (t1 m)) )

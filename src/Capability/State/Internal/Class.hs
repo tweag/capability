@@ -34,6 +34,7 @@ import Capability.Reflection
 import Capability.Source.Internal.Class
 import Capability.Sink.Internal.Class
 import Data.Coerce (Coercible, coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | State capability
@@ -48,7 +49,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> put @t s >> get @t = put @t s >> pure s
 -- prop> state @t f = get @t >>= \s -> let (a, s') = f s in put @t s' >> pure a
 class (Monad m, HasSource tag s m, HasSink tag s m)
-  => HasState (tag :: k) (s :: *) (m :: * -> *) | tag m -> s
+  => HasState (tag :: k) (s :: Type) (m :: Type -> Type) | tag m -> s
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasState.
@@ -75,7 +76,7 @@ put = yield @tag
 -- Given the current state @s@ of the state capability @tag@
 -- and @(a, s') = f s@, update the state to @s'@ and return @a@.
 state :: forall tag s m a. HasState tag s m => (s -> (a, s)) -> m a
-state = state_ (proxy# @_ @tag)
+state = state_ (proxy# @tag)
 {-# INLINE state #-}
 
 -- | @modify \@tag f@

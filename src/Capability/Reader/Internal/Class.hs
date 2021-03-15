@@ -31,6 +31,7 @@ import Capability.Derive (derive)
 import Capability.Reflection
 import Capability.Source.Internal.Class
 import Data.Coerce (Coercible, coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Reader capability
@@ -47,7 +48,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- prop> local @t f (m >>= \x -> k x) = local @t f m >>= \x -> local @t f (k x)
 -- prop> reader @t f = f <$> ask @t
 class (Monad m, HasSource tag r m)
-  => HasReader (tag :: k) (r :: *) (m :: * -> *) | tag m -> r
+  => HasReader (tag :: k) (r :: Type) (m :: Type -> Type) | tag m -> r
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasReader'.
@@ -80,7 +81,7 @@ asks = awaits @tag
 -- where @e@ is the environment of the reader capability @tag@.
 -- Symbolically: @return e = ask \@tag@.
 local :: forall tag r m a. HasReader tag r m => (r -> r) -> m a -> m a
-local = local_ (proxy# @_ @tag)
+local = local_ (proxy# @tag)
 {-# INLINE local #-}
 
 -- | @reader \@tag act@
@@ -89,7 +90,7 @@ local = local_ (proxy# @_ @tag)
 --
 -- It happens to coincide with @asks@: @reader = asks@.
 reader :: forall tag r m a. HasReader tag r m => (r -> a) -> m a
-reader = reader_ (proxy# @_ @tag)
+reader = reader_ (proxy# @tag)
 {-# INLINE reader #-}
 
 -- | Execute the given reader action on a sub-component of the current context

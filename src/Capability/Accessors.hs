@@ -20,6 +20,7 @@ module Capability.Accessors
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
+import Data.Kind (Type)
 import GHC.TypeLits (Nat, Symbol)
 
 -- | Coerce the type in the context @m@ to @to@.
@@ -37,7 +38,7 @@ import GHC.TypeLits (Nat, Symbol)
 -- @'Capability.Reader.MonadReader' (Reader Int)@ to a
 -- @'Capability.Reader.HasReader' \"a\" MyInt@
 -- instance using @Coercible Int MyInt@.
-newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
+newtype Coerce (to :: Type) m (a :: Type) = Coerce (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Rename the tag.
@@ -58,7 +59,7 @@ newtype Coerce (to :: *) m (a :: *) = Coerce (m a)
 -- and @Rename@ is redundant in this example.
 --
 -- See 'Pos' below for a common use-case.
-newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
+newtype Rename (oldtag :: k) m (a :: Type) = Rename (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Access the record field @field@ in the context @m@.
@@ -78,7 +79,7 @@ newtype Rename (oldtag :: k) m (a :: *) = Rename (m a)
 -- instance by focusing on the field @foo@ in the @Foo@ record.
 --
 -- See 'Rename' for a way to change the tag.
-newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
+newtype Field (field :: Symbol) (oldtag :: k) m (a :: Type) = Field (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Access the value at position @pos@ in the context @m@.
@@ -104,7 +105,7 @@ newtype Field (field :: Symbol) (oldtag :: k) m (a :: *) = Field (m a)
 --   deriving (HasReader "foo" Int) via
 --     Rename 1 (Pos 1 () (MonadReader (Reader (Int, Bool))))
 -- @
-newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
+newtype Pos (pos :: Nat) (oldtag :: k) m (a :: Type) = Pos (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Choose the given constructor in the sum-type in context @m@.
@@ -122,7 +123,7 @@ newtype Pos (pos :: Nat) (oldtag :: k) m (a :: *) = Pos (m a)
 -- @'Capability.Error.MonadError' (ExceptT MyError Identity)@ to a
 -- @'Capability.Error.HasThrow' \"ErrB\" String@
 -- instance by wrapping thrown @String@s in the @ErrB@ constructor.
-newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
+newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: Type) = Ctor (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Skip one level in a monad transformer stack.
@@ -143,7 +144,7 @@ newtype Ctor (ctor :: Symbol) (oldtag :: k) m (a :: *) = Ctor (m a)
 -- the @'Capability.State.HasState' "\foo\" Bool@ instance of the underlying
 -- @'Capability.State.MonadState' (State Bool)@ over the
 -- @StateT Int@ monad transformer.
-newtype Lift m (a :: *) = Lift (m a)
+newtype Lift m (a :: Type) = Lift (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 
@@ -152,10 +153,10 @@ newtype Lift m (a :: *) = Lift (m a)
 -- This is not necessary in deriving via clauses, but in places where a
 -- transformer is expected as a type argument. E.g. 'HasError.wrapError'.
 newtype (:.:)
-  (t2 :: (* -> *) -> * -> *)
-  (t1 :: (* -> *) -> * -> *)
-  (m :: * -> *)
-  (a :: *)
+  (t2 :: (Type -> Type) -> Type -> Type)
+  (t1 :: (Type -> Type) -> Type -> Type)
+  (m :: Type -> Type)
+  (a :: Type)
   = (:.:) (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 infixr 9 :.:

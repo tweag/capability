@@ -40,6 +40,7 @@ import Control.Monad.Trans.Control (MonadTransControl(..))
 import Data.Coerce (Coercible, coerce)
 import qualified Data.Generics.Product.Fields as Generic
 import qualified Data.Generics.Product.Positions as Generic
+import Data.Kind (Type)
 import GHC.Exts (Proxy#)
 
 instance Reader.MonadReader r m => HasReader tag r (MonadReader m) where
@@ -167,7 +168,7 @@ instance (HasReader tag r m, MonadTransControl t, Monad (t m))
     {-# INLINE reader_ #-}
 
 -- | Compose two accessors.
-deriving via ((t2 :: (* -> *) -> * -> *) ((t1 :: (* -> *) -> * -> *) m))
+deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
   instance
   ( forall x. Coercible (m x) (t2 (t1 m) x)
   , Monad m, HasReader tag r (t2 (t1 m)) )

@@ -24,6 +24,7 @@ module Capability.Sink.Internal.Class where
 
 import Capability.Reflection
 import Data.Coerce (coerce)
+import Data.Kind (Type)
 import GHC.Exts (Proxy#, proxy#)
 
 -- | Sinking capability.
@@ -31,7 +32,7 @@ import GHC.Exts (Proxy#, proxy#)
 -- An instance does not need to fulfill any additional laws
 -- besides the monad laws.
 class Monad m
-  => HasSink (tag :: k) (a :: *) (m :: * -> *) | tag m -> a
+  => HasSink (tag :: k) (a :: Type) (m :: Type -> Type) | tag m -> a
   where
     -- | For technical reasons, this method needs an extra proxy argument.
     -- You only need it if you are defining new instances of 'HasSink'.
@@ -42,7 +43,7 @@ class Monad m
 -- | @yield \@tag a@
 -- emits @a@ in the sink capability @tag@.
 yield :: forall tag a m. HasSink tag a m => a -> m ()
-yield = yield_ (proxy# @_ @tag)
+yield = yield_ (proxy# @tag)
 {-# INLINE yield #-}
 
 --------------------------------------------------------------------------------

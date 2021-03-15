@@ -31,10 +31,11 @@ module Capability.State.Internal.Strategies.Common
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Primitive (PrimMonad)
+import Data.Kind (Type)
 
 -- | Derive 'HasState' from @m@'s
 -- 'Control.Monad.State.Class.MonadState' instance.
-newtype MonadState (m :: * -> *) (a :: *) = MonadState (m a)
+newtype MonadState (m :: Type -> Type) (a :: Type) = MonadState (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)
 
 -- | Derive a state monad from a reader over an 'Data.IORef.IORef'.
@@ -66,5 +67,5 @@ newtype ReaderIORef m a = ReaderIORef (m a)
 -- >   => HasState "foo" Int (MyState m)
 --
 -- See 'ReaderIORef' for a specialized version over 'Data.IORef.IORef'.
-newtype ReaderRef m (a :: *) = ReaderRef (m a)
+newtype ReaderRef m (a :: Type) = ReaderRef (m a)
   deriving (Functor, Applicative, Monad, MonadIO, PrimMonad)

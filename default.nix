@@ -1,7 +1,7 @@
 { pkgs ? (import ./nix/nixpkgs) }:
 
 let
-  compiler = "ghc865";
+  compiler = "ghc8104";
   source = pkgs.lib.sourceByRegex ./. [
     "^.*\.md$"
     "^capability\.cabal$"

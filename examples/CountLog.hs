@@ -22,6 +22,7 @@ import Control.Monad.State.Strict (State, StateT (..), runState)
 import qualified Data.Char
 import Data.Coerce (coerce)
 import Data.IORef
+import Data.Kind (Type)
 import GHC.Generics (Generic)
 import Test.Common
 import Test.Hspec
@@ -63,7 +64,7 @@ loudLogger = LogCtx { logger = putStrLn . map Data.Char.toUpper }
 
 
 -- | Deriving @HasReader@ from @MonadReader@.
-newtype LogM m (a :: *) = LogM (ReaderT LogCtx m a)
+newtype LogM m (a :: Type) = LogM (ReaderT LogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Logger via
     (TheLoggerReader (Field "logger" ()
@@ -110,7 +111,7 @@ runCounterM (CounterM m) = runState m 0
 -- ReaderT IORef instance --------------------------------------------
 
 -- | Deriving @HasState@ from @HasReader@ of an @IORef@.
-newtype Counter'M m (a :: *) = Counter'M (ReaderT (IORef Int) m a)
+newtype Counter'M m (a :: Type) = Counter'M (ReaderT (IORef Int) m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     TheCounterState (ReaderIORef (MonadReader (ReaderT (IORef Int) m)))
@@ -139,7 +140,7 @@ data CountLogCtx = CountLogCtx
 
 
 -- | Deriving two capabilities from the record fields of @MonadReader@.
-newtype CountLogM m (a :: *) = CountLogM (ReaderT CountLogCtx m a)
+newtype CountLogM m (a :: Type) = CountLogM (ReaderT CountLogCtx m a)
   deriving (Functor, Applicative, Monad)
   deriving Counter via
     TheCounterState (ReaderIORef (Rename "countCtx" (Field "countCtx" ()

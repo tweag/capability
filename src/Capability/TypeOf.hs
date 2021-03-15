@@ -4,12 +4,14 @@
 
 module Capability.TypeOf where
 
+import Data.Kind (Type)
+
 -- | Type family associating a tag to the corresponding type. It is intended to
 -- simplify constraint declarations, by removing the need to redundantly specify
 -- the type associated to a tag.
 --
 -- It is poly-kinded, which allows users to define their own kind of tags.
--- Standard haskell types can also be used as tags by specifying the '*' kind
+-- Standard haskell types can also be used as tags by specifying the 'Type' kind
 -- when defining the type family instance.
 --
 -- Defining 'TypeOf' instances for 'GHC.TypeLits.Symbol's (typelevel string
@@ -26,11 +28,11 @@ module Capability.TypeOf where
 --
 --     data Foo
 --     data Bar
---     type instance TypeOf * Foo = Int
---     type instance TypeOf * Bar = String
+--     type instance TypeOf Type Foo = Int
+--     type instance TypeOf Type Bar = String
 --
 --     -- Same as: foo :: HasReader Foo Int M => …
 --     foo :: HasReader' Foo m => …
 --     foo = …
 -- @
-type family TypeOf k (s :: k) :: *
+type family TypeOf k (s :: k) :: Type

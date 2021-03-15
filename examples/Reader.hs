@@ -14,6 +14,7 @@ import Capability.Reader
 import Capability.Source
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT (..))
+import Data.Kind (Type)
 import GHC.Generics (Generic)
 import Test.Common
 import Test.Hspec
@@ -21,8 +22,8 @@ import Test.Hspec
 data Foo
 data Bar
 
-type instance TypeOf * Foo = Int
-type instance TypeOf * Bar = Int
+type instance TypeOf Type Foo = Int
+type instance TypeOf Type Bar = Int
 
 ----------------------------------------------------------------------
 -- Example Programs
@@ -65,7 +66,7 @@ fooBarMagnify = do
 -- Instances
 
 -- | @HasReader@ instance derived via @MonadReader@.
-newtype FooReaderT m (a :: *) = FooReaderT (ReaderT Int m a)
+newtype FooReaderT m (a :: Type) = FooReaderT (ReaderT Int m a)
   deriving (Functor, Applicative, Monad, MonadIO)
   deriving (HasSource Foo Int) via MonadReader (ReaderT Int m)
   deriving (HasReader Foo Int) via MonadReader (ReaderT Int m)
