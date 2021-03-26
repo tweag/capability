@@ -72,11 +72,11 @@ data Ctx = Ctx { foo :: Int, bar :: IORef Bool }
 newtype M a = M { runM :: Ctx -> IO a }
   deriving (Functor, Applicative, Monad) via ReaderT Ctx IO
   -- Use DerivingVia to derive a HasReader instance.
-  deriving (HasReader "foo" Int) via
+  deriving (HasReader "foo" Int, HasSource "foo" Int) via
     -- Pick the field foo from the Ctx record in the ReaderT environment.
     Field "foo" "ctx" (MonadReader (ReaderT Ctx IO))
   -- Use DerivingVia to derive a HasState instance.
-  deriving (HasState "bar" Bool) via
+  deriving (HasState "bar" Bool, HasSource "bar" Bool, HasSink "bar" Bool) via
     -- Convert a reader of IORef to a state capability.
     ReaderIORef (Field "bar" "ctx" (MonadReader (ReaderT Ctx IO)))
 
