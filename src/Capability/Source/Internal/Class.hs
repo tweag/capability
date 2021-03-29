@@ -62,7 +62,7 @@ await = await_ (proxy# @tag)
 
 -- | @awaits \@tag@
 -- retrieves the image by @f@ of the environment
--- of the reader capability @tag@.
+-- of the source capability @tag@.
 --
 -- prop> awaits @tag f = f <$> await @tag
 awaits :: forall tag r m a. HasSource tag r m => (r -> a) -> m a
