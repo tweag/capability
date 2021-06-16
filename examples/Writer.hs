@@ -21,7 +21,7 @@ import Test.Hspec
 
 -- | Increase a counter using a writer monad.
 useWriter :: HasWriter "count-writer" (Sum Int) m => m ()
-useWriter = do
+useWriter = censor @"count-writer" (*2) {- double the eventual result -} $ do
   -- Add 3 and retrieve result
   ((), count) <- listen @"count-writer" (tell @"count-writer" 3)
   -- Duplicate
@@ -82,9 +82,9 @@ spec :: Spec
 spec = do
   describe "WriterM" $
     it "evaluates useWriter" $
-      runWriterM useWriter `shouldBe` ((), 6)
+      runWriterM useWriter `shouldBe` ((), 12)
   describe "BadWriterM" $ do
     it "evaluates useWriter" $
-      runBadWriterM useWriter `shouldBe` ((), 6)
+      runBadWriterM useWriter `shouldBe` ((), 12)
     it "evaluates mixWriterState" $
       runBadWriterM mixWriterState `shouldBe` (1, 2)

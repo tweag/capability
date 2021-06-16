@@ -31,6 +31,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -47,6 +48,7 @@ module Capability.Writer
   , tell
   , listen
   , pass
+  , censor
   -- * Functional capability
   , HasWriter'
   , TypeOf
@@ -146,6 +148,17 @@ listen = listen_ (proxy# @tag)
 pass :: forall tag w m a. HasWriter tag w m => m (a, w -> w) -> m a
 pass = pass_ (proxy# @tag)
 {-# INLINE pass #-}
+
+censor_ :: forall k (tag :: k) w m a. HasWriter tag w m => Proxy# tag -> (w -> w) -> m a -> m a
+censor_ tag f m = pass_ tag $ (,f) <$> m
+
+-- | @censor \@tag f m@
+--   is an action that executes the action @m@ and applies the
+--   function @f@ to the output of the writer capability @tag@,
+--   leaving the return value unchanged.
+censor :: forall tag w m a. HasWriter tag w m => (w -> w) -> m a -> m a
+censor = censor_ (proxy# @tag)
+{-# INLINE censor #-}
 
 -- | Compose two accessors.
 deriving via ((t2 :: (Type -> Type) -> Type -> Type) ((t1 :: (Type -> Type) -> Type -> Type) m))
