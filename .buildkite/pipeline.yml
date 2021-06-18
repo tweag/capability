@@ -1,5 +1,0 @@
-steps:
-  - label: Build and test
-    command: |
-      nix-build -A capability --no-out-link
-    timeout: 100
