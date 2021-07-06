@@ -107,8 +107,8 @@ magnify :: forall innertag t (cs :: [Capability]) inner m a.
   , HasReader innertag inner (t m)
   , All cs m)
   => (forall m'. All (HasReader innertag inner ': cs) m' => m' a) -> m a
-magnify =
-  derive @t @'[HasReader innertag inner] @cs
+magnify action =
+  derive @t @'[HasReader innertag inner] @cs action
 {-# INLINE magnify #-}
 
 --------------------------------------------------------------------------------
