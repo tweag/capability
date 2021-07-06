@@ -174,8 +174,8 @@ wrapError :: forall innertag t (cs :: [Capability]) inner m a.
   , HasCatch innertag inner (t m)
   , All cs m)
   => (forall m'. All (HasCatch innertag inner ': cs) m' => m' a) -> m a
-wrapError =
-  derive @t @'[HasCatch innertag inner] @cs
+wrapError action =
+  derive @t @'[HasCatch innertag inner] @cs action
 {-# INLINE wrapError #-}
 
 -- XXX: Does it make sense to add a HasMask capability similar to @MonadMask@?

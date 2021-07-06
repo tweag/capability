@@ -1,0 +1,12 @@
+resolver: nightly-2021-07-04
+
+packages:
+- .
+
+extra-deps:
+# Generic-lens is not yet released in a 9.0-compatible version
+- git: https://github.com/kcsongor/generic-lens.git
+  commit: 8e1fc7dcf444332c474fca17110d4bc554db08c8
+  subdirs:
+  - generic-lens-core
+  - generic-lens

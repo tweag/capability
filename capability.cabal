@@ -58,7 +58,6 @@ library
     Capability.Stream
     Capability.TypeOf
     Capability.Writer
-    Capability.Writer.Discouraged
   build-depends:
       base >= 4.14 && < 5.0
     , constraints >= 0.1 && < 0.14
@@ -67,7 +66,6 @@ library
     , generic-lens >= 2.0 && < 2.2
     , lens >= 4.16 && < 5.1
     , monad-control >= 1.0 && < 1.1
-    , monad-unlift >= 0.2 && < 0.3
     , mtl >= 2.0 && < 3.0
     , mutable-containers >= 0.3 && < 0.4
     , primitive >= 0.6 && < 0.8

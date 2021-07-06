@@ -132,8 +132,8 @@ zoom :: forall innertag t (cs :: [Capability]) inner m a.
   , HasState innertag inner (t m)
   , All cs m )
   => (forall m'. All (HasState innertag inner ': cs) m' => m' a) -> m a
-zoom =
-  derive @t @'[HasState innertag inner] @cs
+zoom action =
+  derive @t @'[HasState innertag inner] @cs action
 {-# INLINE zoom #-}
 
 --------------------------------------------------------------------------------

@@ -73,7 +73,7 @@ interpret_ ::
   Reified tag c m ->
   (forall m'. c m' => m' a) ->
   m a
-interpret_ = interpret @tag @'[] @c
+interpret_ dict action = interpret @tag @'[] @c dict action
 {-# INLINE interpret_ #-}
 
 -- | @interpret \@tag \@ambient dict action@
