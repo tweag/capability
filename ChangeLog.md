@@ -1,5 +1,19 @@
 # Revision history for capability
 
+## 0.5.0.0 -- 2021-07-21
+
+* Fix compatibility with GHC 9.0.
+  See [#96](https://github.com/tweag/capability/pull/96)
+
+* Remove `Capability.Writer.Discouraged`.
+  This module incurred a dependency on monad-unlift which is no longer
+  available for GHC 9.0. Given that its use was discouraged, it was deemed best
+  to remove it.
+  See [#96](https://github.com/tweag/capability/pull/96)
+
+* Added `censor` function to `Capability.Writer`.
+  See [#94](https://github.com/tweag/capability/pull/94)
+
 ## 0.4.0.0 -- 2021-03-15
 
 * Fix infinite loop in `writer`.
