@@ -5,31 +5,19 @@
 
 packages:
 - completed:
-    subdir: generic-lens-core
-    name: generic-lens-core
-    version: 2.1.0.0
-    git: https://github.com/kcsongor/generic-lens.git
+    hackage: generic-lens-core-2.2.0.0@sha256:b6b69e992f15fa80001de737f41f2123059011a1163d6c8941ce2e3ab44f8c03,2913
     pantry-tree:
-      size: 2283
-      sha256: 5a26b16c38ad8d8ebc81182e1d09858858f16dc117a0c7b084d8446d3a17d749
-    commit: 8e1fc7dcf444332c474fca17110d4bc554db08c8
+      size: 2202
+      sha256: 6918fb47f34ecf4246778b229911693b6e20fc2ce94ae8c89d69a89db4e72269
   original:
-    subdir: generic-lens-core
-    git: https://github.com/kcsongor/generic-lens.git
-    commit: 8e1fc7dcf444332c474fca17110d4bc554db08c8
+    hackage: generic-lens-core-2.2.0.0
 - completed:
-    subdir: generic-lens
-    name: generic-lens
-    version: 2.1.0.0
-    git: https://github.com/kcsongor/generic-lens.git
+    hackage: generic-lens-2.2.0.0@sha256:4008a39f464e377130346e46062e2ac1211f9d2e256bbb1857216e889c7196be,3867
     pantry-tree:
-      size: 2630
-      sha256: aba81557550537d4cfda2c1b07accff8589da44a1e418a3cde5639eb438d1c86
-    commit: 8e1fc7dcf444332c474fca17110d4bc554db08c8
+      size: 2470
+      sha256: 93d7aae1de4cbbb2e3320b357cd744618cb17356989bd417d374aa73331e7370
   original:
-    subdir: generic-lens
-    git: https://github.com/kcsongor/generic-lens.git
-    commit: 8e1fc7dcf444332c474fca17110d4bc554db08c8
+    hackage: generic-lens-2.2.0.0
 snapshots:
 - completed:
     size: 540164
