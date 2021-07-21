@@ -23,8 +23,8 @@ jobs:
           ~/.cabal/packages
           ~/.cabal/store
           dist-newstyle
-        key: cache-${{ runner.os }}-${{ hashFiles('nixpkgs.nix') }}-v${{ env.cache-invalidation-key }}-${{ hashFiles('linear-base.cabal') }}-${{ github.sha }}
-        restore-keys: cache-${{ runner.os }}-${{ hashFiles('nixpkgs.nix') }}-v${{ env.cache-invalidation-key }}-${{ hashFiles('linear-base.cabal') }}-
+        key: cache-${{ runner.os }}-${{ hashFiles('nixpkgs.nix') }}-v${{ env.cache-invalidation-key }}-${{ hashFiles('capability.cabal') }}-${{ github.sha }}
+        restore-keys: cache-${{ runner.os }}-${{ hashFiles('nixpkgs.nix') }}-v${{ env.cache-invalidation-key }}-${{ hashFiles('capability.cabal') }}-
     - name: Update Cabal's database
       run: $NIXSHELL --run "cabal update"
     - name: Build Cabal's dependencies
@@ -35,3 +35,18 @@ jobs:
       run: $NIXSHELL --run "cabal --flag=dev test"
     - name: Haddock
       run: $NIXSHELL --run "cabal haddock"
+
+  stack-ghc9:
+    name: Build on GHC 9.0
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - name: Cache dependencies
+      uses: actions/cache@v2.1.6
+      with:
+        path: ~/.stack
+        key: stack-ghc9-${{ runner.os }}-v${{ env.cache-invalidation-key }}-${{ hashFiles('stack-ghc9.yaml.lock', 'capability.cabal') }}
+    - name: Upgrade stack
+      run: stack upgrade
+    - name: Build
+      run: stack --stack-yaml=stack-ghc9.yaml build --pedantic --test --bench --no-run-tests --no-run-benchmarks
