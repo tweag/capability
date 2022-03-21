@@ -3,24 +3,10 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: generic-lens-core-2.2.0.0@sha256:b6b69e992f15fa80001de737f41f2123059011a1163d6c8941ce2e3ab44f8c03,2913
-    pantry-tree:
-      size: 2202
-      sha256: 6918fb47f34ecf4246778b229911693b6e20fc2ce94ae8c89d69a89db4e72269
-  original:
-    hackage: generic-lens-core-2.2.0.0
-- completed:
-    hackage: generic-lens-2.2.0.0@sha256:4008a39f464e377130346e46062e2ac1211f9d2e256bbb1857216e889c7196be,3867
-    pantry-tree:
-      size: 2470
-      sha256: 93d7aae1de4cbbb2e3320b357cd744618cb17356989bd417d374aa73331e7370
-  original:
-    hackage: generic-lens-2.2.0.0
+packages: []
 snapshots:
 - completed:
-    size: 540164
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/7/4.yaml
-    sha256: 195e3e9394de03e724525e210f82e30c4488f7c8a09fc70850d75d8b79332993
-  original: nightly-2021-07-04
+    size: 505396
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/3/20.yaml
+    sha256: bc9df2f2f2a6bc8814a5f9976de39f8e37eaceee47f887bc72ebb2518e5d3473
+  original: nightly-2022-03-20

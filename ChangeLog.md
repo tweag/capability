@@ -1,5 +1,10 @@
 # Revision history for capability
 
+## 0.5.0.1 -- 2022-03-21
+
+* Fix compatibility with GHC 9.2.
+  See [Ghc 9.2.x migration guide](https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.2#undecidableinstances-no-longer-implies-flexiblecontexts-in-instance-declarations).
+
 ## 0.5.0.0 -- 2021-07-21
 
 * Fix compatibility with GHC 9.0.
