@@ -63,7 +63,7 @@ library
     , constraints >= 0.1 && < 0.15
     , dlist >= 0.8 && < 1.1
     , exceptions >= 0.6 && < 0.11
-    , generic-lens >= 2.0 && < 2.3
+    , generic-lens >= 2.0 && < 2.4
     , lens >= 4.16 && < 5.4
     , monad-control >= 1.0 && < 1.1
     , mtl >= 2.0 && < 3.0
