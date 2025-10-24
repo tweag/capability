@@ -59,22 +59,22 @@ library
     Capability.TypeOf
     Capability.Writer
   build-depends:
-      base >= 4.14 && < 5.0
-    , constraints >= 0.1 && < 0.15
-    , dlist >= 0.8 && < 1.1
-    , exceptions >= 0.6 && < 0.11
-    , generic-lens >= 2.0 && < 2.4
-    , lens >= 4.16 && < 5.4
-    , monad-control >= 1.0 && < 1.1
-    , mtl >= 2.0 && < 3.0
-    , mutable-containers >= 0.3 && < 0.4
-    , primitive >= 0.6 && < 0.10
-    , reflection >= 2.1 && < 2.2
-    , safe-exceptions >= 0.1 && < 0.2
-    , streaming >= 0.2 && < 0.3
-    , transformers >= 0.5.5 && < 0.7
-    , unliftio >= 0.2 && < 0.3
-    , unliftio-core >= 0.1 && < 0.3
+      base >= 4.14
+    , constraints >= 0.1
+    , dlist >= 0.8
+    , exceptions >= 0.6
+    , generic-lens >= 2.0
+    , lens >= 4.16
+    , monad-control >= 1.0
+    , mtl >= 2.0
+    , mutable-containers >= 0.3
+    , primitive >= 0.6
+    , reflection >= 2.1
+    , safe-exceptions >= 0.1
+    , streaming >= 0.2
+    , transformers >= 0.5.5
+    , unliftio >= 0.2
+    , unliftio-core >= 0.1
   if flag(dev)
     ghc-options: -Wall -Werror -Wcompat
                  -Wincomplete-record-updates
@@ -99,7 +99,7 @@ test-suite examples
     Writer
   main-is: Test.hs
   build-depends:
-      base >= 4.14 && < 5.0
+      base >= 4.14
     , capability
     , containers
     , dlist
