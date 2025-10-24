@@ -59,7 +59,7 @@ library
     Capability.TypeOf
     Capability.Writer
   build-depends:
-      base >= 4.14
+      base >= 4.14 && < 5.0
     , constraints >= 0.1
     , dlist >= 0.8
     , exceptions >= 0.6
@@ -99,7 +99,7 @@ test-suite examples
     Writer
   main-is: Test.hs
   build-depends:
-      base >= 4.14
+      base >= 4.14 && < 5.0
     , capability
     , containers
     , dlist
